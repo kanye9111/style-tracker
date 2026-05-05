@@ -15913,8 +15913,10 @@ function toggleMoreFilters() {
   panel.style.display = isOpen ? 'none' : 'flex';
   btn.classList.toggle('open', !isOpen);
 }
-document.getElementById('newStyleBackdrop').addEventListener('click', e => { if (e.target.id === 'newStyleBackdrop') closeNewStyleModal(); });
-document.getElementById('updateBackdrop').addEventListener('click', e => { if (e.target.id === 'updateBackdrop') closeUpdateModal(); });
+// 新增款式弹窗：点外部不关闭，防止误操作丢失填写内容
+// document.getElementById('newStyleBackdrop').addEventListener('click', e => { if (e.target.id === 'newStyleBackdrop') closeNewStyleModal(); });
+// 更新弹窗：点外部不关闭，防止误操作
+// document.getElementById('updateBackdrop').addEventListener('click', e => { if (e.target.id === 'updateBackdrop') closeUpdateModal(); });
 document.getElementById('imageBackdrop').addEventListener('click', e => { if (e.target.id === 'imageBackdrop') closeImageModal(); });
 document.addEventListener('keydown', e => {
   // 如果焦点在输入框 textarea 里，只处理 Esc
