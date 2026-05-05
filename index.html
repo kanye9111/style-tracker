@@ -13997,7 +13997,80 @@ function renderStyleGallery(s) {
 function toggleGalleryGroup(el) { el.classList.toggle('open'); }
 function toggleGroupSelect(btn, key) { const cbs = document.querySelectorAll('.style-gallery-group-grid[data-group="'+key+'"] .photo-check'); const all = Array.from(cbs).every(cb => cb.checked); cbs.forEach(cb => { cb.checked = !all; }); btn.classList.toggle('active', !all); }
 function downloadPhoto(dataUrl, fn) { const a = document.createElement('a'); a.href = dataUrl; a.download = fn || 'photo.jpg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
-async function downloadPhotos(urls, prefix) { if (urls.length===0) { showToast('没有选中的照片','warn'); return; } if (urls.length > 5) { const ok = await showDialog({title:'确认下载', message:`即将下载 ${urls.length} 张照片，浏览器会弹出多个保存对话框。确定继续？`, confirmText:'下载', cancelText:'取消'}); if (!ok) return; } urls.forEach((s,i) => setTimeout(() => downloadPhoto(s, (prefix||'photo')+'_'+(i+1)+'.jpg'), i*300)); showToast('开始下载 '+urls.length+' 张','ok'); }
+
+// 获取当前打开的 style 的 SKU
+function getCurrentSku() {
+  const s = state.styles.find(x => x.id === state.selectedId);
+  return s ? s.sku.replace(/[\/\\:*?"<>|]/g, '_') : 'photo';
+}
+
+// 阶段名称映射
+function getCycleLabel(key) {
+  const map = {
+    'DEV': '开发版', 'REVISE': '修改版', 'PHOTO': '拍照版',
+    'PROD': '大货版', 'FIT': 'FIT版'
+  };
+  // key 格式可能是 "DEV_0" 或 "REVISE_1"
+  const type = key.split('_')[0];
+  return map[type] || key;
+}
+
+// 把 base64 转成 Blob
+function base64ToBlob(base64) {
+  const parts = base64.split(';base64,');
+  const type = parts[0].split(':')[1] || 'image/jpeg';
+  const binary = atob(parts[1]);
+  const arr = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+  return new Blob([arr], { type });
+}
+
+// 打包下载（用 JSZip）
+async function downloadPhotosAsZip(urls, cycleKey) {
+  if (urls.length === 0) { showToast('没有选中的照片', 'warn'); return; }
+
+  const sku = getCurrentSku();
+  const label = getCycleLabel(cycleKey);
+  const folderName = `${sku}_${label}`;
+
+  showToast(`正在打包 ${urls.length} 张图片…`, 'ok');
+
+  // 动态加载 JSZip
+  if (!window.JSZip) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  const zip = new JSZip();
+  const folder = zip.folder(folderName);
+
+  urls.forEach((url, i) => {
+    const ext = url.startsWith('data:image/png') ? 'png' : 'jpg';
+    const filename = `${sku}_${label}_${String(i+1).padStart(2,'0')}.${ext}`;
+    // 去掉 base64 头，只存数据部分
+    const base64Data = url.split(';base64,')[1];
+    if (base64Data) folder.file(filename, base64Data, { base64: true });
+  });
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${folderName}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  showToast(`✅ 已下载：${folderName}.zip`, 'ok');
+}
+
+async function downloadPhotos(urls, cycleKey) {
+  if (urls.length === 0) { showToast('没有选中的照片', 'warn'); return; }
+  await downloadPhotosAsZip(urls, cycleKey);
+}
 function getSelectedInGroup(key) { return Array.from(document.querySelectorAll('.style-gallery-group-grid[data-group="'+key+'"] .photo-check:checked')).map(cb => cb.dataset.src); }
 function downloadSelectedPhotos(key) { downloadPhotos(getSelectedInGroup(key), key); }
 function downloadAllGroupPhotos(key) { downloadPhotos(Array.from(document.querySelectorAll('.style-gallery-group-grid[data-group="'+key+'"] .photo-check')).map(cb => cb.dataset.src), key); }
