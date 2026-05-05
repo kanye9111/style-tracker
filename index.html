@@ -1712,6 +1712,103 @@ body { overflow: hidden; }  /* 整体不滚动，内容区独立滚动 */
   color: white;
 }
 
+/* 今日跟进子菜单 */
+.today-sub-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 4px 0;
+  margin: 0 10px 2px 32px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.2s ease;
+}
+.today-sub-nav.open {
+  max-height: 220px;
+  opacity: 1;
+  padding: 4px 0 8px 0;
+}
+.today-sub-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px 5px 12px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--ink-mute);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  position: relative;
+}
+.today-sub-item::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 1px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+.today-sub-item:hover {
+  background: rgba(0, 0, 0, 0.035);
+  color: var(--ink);
+}
+.today-sub-item.active {
+  background: rgba(0, 122, 255, 0.08);
+  color: var(--apple-blue, #007AFF);
+  font-weight: 600;
+}
+.today-sub-item.active::before {
+  background: var(--apple-blue, #007AFF);
+}
+.today-sub-count {
+  font-size: 10.5px;
+  min-width: 16px;
+  height: 16px;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ink-mute);
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+}
+.today-sub-item.active .today-sub-count {
+  background: rgba(0, 122, 255, 0.15);
+  color: var(--apple-blue, #007AFF);
+}
+/* 数量为0时淡化 */
+.today-sub-item .today-sub-count.is-zero {
+  opacity: 0.35;
+}
+/* 今日跟进展开箭头 */
+.nav-item[data-toptab="today"] .nav-label {
+  position: relative;
+}
+.nav-item[data-toptab="today"]::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid var(--ink-mute);
+  border-bottom: 1.5px solid var(--ink-mute);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  margin-left: auto;
+  margin-right: 4px;
+  opacity: 0.5;
+}
+.nav-item[data-toptab="today"].sub-open::after {
+  transform: rotate(-135deg);
+}
+
 .sidebar-footer {
   padding: 14px;
   border-top: 1px solid rgba(207, 206, 191, 0.4);
@@ -8854,6 +8951,28 @@ main { animation: fadeInUp 0.25s ease-out; }
         <span class="nav-label">今日跟进</span>
         <span class="nav-count today-count" id="tab-count-today">0</span>
       </button>
+      <div class="today-sub-nav" id="todaySubNav">
+        <button class="today-sub-item active" data-today-sub="all" onclick="switchTodaySub('all')">
+          <span>📋 全部</span>
+          <span class="today-sub-count" id="sub-count-all">0</span>
+        </button>
+        <button class="today-sub-item" data-today-sub="pattern" onclick="switchTodaySub('pattern')">
+          <span>✂️ 版师待办</span>
+          <span class="today-sub-count" id="sub-count-pattern">0</span>
+        </button>
+        <button class="today-sub-item" data-today-sub="merch" onclick="switchTodaySub('merch')">
+          <span>📋 跟单待办</span>
+          <span class="today-sub-count" id="sub-count-merch">0</span>
+        </button>
+        <button class="today-sub-item" data-today-sub="fit" onclick="switchTodaySub('fit')">
+          <span>💬 等fit</span>
+          <span class="today-sub-count" id="sub-count-fit">0</span>
+        </button>
+        <button class="today-sub-item" data-today-sub="prod" onclick="switchTodaySub('prod')">
+          <span>🏭 大货跟进</span>
+          <span class="today-sub-count" id="sub-count-prod">0</span>
+        </button>
+      </div>
       <button class="nav-item" data-toptab="dev">
         <span class="nav-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -9270,6 +9389,7 @@ function dbStyleToLocal(s, cycles, pos) {
     snoozedUntil: s.snoozed_until || null,
     awaitingFit: s.awaiting_fit ? JSON.parse(s.awaiting_fit) : null,
     orderType: s.order_type || null,
+    prodReceived: s.prod_received ? JSON.parse(s.prod_received) : null,
     cycles: cycles || [],
     pos: pos || [],
   };
@@ -9319,6 +9439,7 @@ function localStyleToDB(s) {
     snoozed_until: s.snoozedUntil || null,
     awaiting_fit: s.awaitingFit ? JSON.stringify(s.awaitingFit) : null,
     order_type: s.orderType || null,
+    prod_received: s.prodReceived ? JSON.stringify(s.prodReceived) : null,
   };
 }
 function localCycleToDB(c, styleId) {
@@ -10729,6 +10850,8 @@ const STORAGE_KEY = 'style-tracker-v7';
 let state = {
   styles: [],
   topTab: 'today',
+  todaySub: 'all',
+  todaySubOpen: true,
   filterPO: 'all',
   filterUrgency: 'all',
   filterClient: 'all',
@@ -10856,12 +10979,43 @@ function getStyleStatus(style) {
   const lastCycle = style.cycles[style.cycles.length - 1];
 
   if (lastCycle.type === 'PROD' && lastCycle.feedbackOutcome === 'APPROVED') {
+    // 大货已到仓 → 真正完成
+    if (style.prodReceived && style.prodReceived.date) {
+      return {
+        stage: 'DONE', stageLabel: '大货已到仓',
+        currentNode: 'DONE', currentNodeLabel: '大货已到仓 ✓',
+        startDate: style.prodReceived.date,
+        days: null, level: 'done',
+        awaitingClient: false, isActive: false, isArchived: false
+      };
+    }
+    // 船版已批但大货还没到 → 等大货
+    const approvedDate = lastCycle.feedbackDate;
+    const po = getPOInfo(style);
+    const efDate = po.exFactory;
+    let days = null;
+    let level = 'ok';
+    if (efDate) {
+      days = daysBetween(todayStr(), efDate); // 距离货期还有几天
+      if (days !== null) {
+        if (days <= 0) level = 'danger';        // 已过货期！
+        else if (days <= 7) level = 'danger';   // ≤7天 紧急
+        else if (days <= 14) level = 'warn';    // ≤14天 该跟进
+      }
+    } else {
+      // 没有货期，按批准后天数算
+      const sinceApproved = daysSince(approvedDate);
+      level = urgencyByDays(sinceApproved, 7, 14);
+      days = sinceApproved;
+    }
     return {
-      stage: 'DONE', stageLabel: '已批船版',
-      currentNode: 'DONE', currentNodeLabel: '船版已批 ✓',
-      startDate: lastCycle.feedbackDate,
-      days: null, level: 'done',
-      awaitingClient: false, isActive: false, isArchived: false
+      stage: 'PROD_SHIPPING', stageLabel: '等大货',
+      currentNode: 'PROD_SHIPPING', currentNodeLabel: '等大货完成',
+      startDate: approvedDate,
+      days, level,
+      awaitingClient: false, isActive: true, isArchived: false,
+      cycleType: 'PROD', cycleId: lastCycle.id,
+      exFactory: efDate
     };
   }
 
@@ -11144,28 +11298,57 @@ function getTodayList(activeStyles) {
     const efAlert = getExFactoryAlert(s, status);
     const isUrgent = status.level === 'danger' || status.level === 'warn';
     const isExUrgent = efAlert && efAlert.level !== 'ok';
-
-    if (!isUrgent && !isExUrgent) return;
+    const hasPoOrder = hasPO(s);
+    const isAwaitFit = status.currentNode === 'AWAIT_FIT';
+    const isProdShipping = status.stage === 'PROD_SHIPPING';
+    // 有PO的款（REVISE/PHOTO/PROD）强制进入今日跟进
+    const isPoActive = hasPoOrder && status.isActive && (
+      status.cycleType === 'REVISE' || status.cycleType === 'PHOTO' || status.cycleType === 'PROD'
+    );
+    // 等fit、等大货也强制进入
+    if (!isUrgent && !isExUrgent && !isPoActive && !isAwaitFit && !isProdShipping) return;
 
     const who = whoToFollowUp(status.currentNode, status.cycleType);
     let actionHint = '';
-    if (status.currentNode === 'PATTERN_MAKING') actionHint = '催板房';
-    else if (status.currentNode === 'AWAIT_SEND') actionHint = '该寄了';
+    if (status.currentNode === 'PROD_SHIPPING') {
+      if (status.exFactory) {
+        const daysLeft = daysBetween(today, status.exFactory);
+        if (daysLeft !== null && daysLeft <= 0) actionHint = '⚠️ 已过货期！催工厂';
+        else if (daysLeft !== null && daysLeft <= 7) actionHint = `⚡ 距交货仅 ${daysLeft} 天`;
+        else if (daysLeft !== null) actionHint = `距交货 ${daysLeft} 天`;
+        else actionHint = '等大货完成';
+      } else {
+        actionHint = '等大货完成';
+      }
+    } else if (status.currentNode === 'PATTERN_MAKING') {
+      if (isPoActive) actionHint = '⚡ 催板房（已下PO）';
+      else actionHint = '催板房';
+    }
+    else if (status.currentNode === 'AWAIT_SEND') {
+      if (isPoActive) actionHint = '⚡ 赶紧寄出（已下PO）';
+      else actionHint = '该寄了';
+    }
     else if (status.currentNode === 'AWAIT_FB') {
-      if (status.cycleType === 'PHOTO') actionHint = '催图审';
+      if (status.cycleType === 'PHOTO') actionHint = isPoActive ? '⚡ 催图审（已下PO）' : '催图审';
       else if (status.cycleType === 'PROD') actionHint = '催船版批准';
       else actionHint = '催客户回评语';
     } else if (status.currentNode === 'AWAIT_FIT') actionHint = '催 fit comment';
 
     let priority = 99;
-    if (efAlert?.level === 'danger') priority = 0;  // 货期最优先
-    else if (status.level === 'danger') priority = 1;
-    else if (efAlert?.level === 'warn') priority = 2;
-    else if (status.level === 'warn') priority = 3;
+    // 有PO + 有货期的最优先
+    if (isProdShipping && status.level === 'danger') priority = -2;
+    else if (isProdShipping) priority = -1;
+    else if (isPoActive && efAlert?.level === 'danger') priority = 0;
+    else if (isPoActive) priority = 1;
+    else if (efAlert?.level === 'danger') priority = 2;
+    else if (status.level === 'danger') priority = 3;
+    else if (efAlert?.level === 'warn') priority = 4;
+    else if (status.level === 'warn') priority = 5;
+    else if (isAwaitFit) priority = 6;
 
     items.push({
       style: s, status, efAlert, who, actionHint, priority,
-      isAwaitFit: status.currentNode === 'AWAIT_FIT'
+      isAwaitFit, hasPoOrder: isPoActive, isProdShipping
     });
   });
   items.sort((a, b) => {
@@ -11215,9 +11398,10 @@ function renderTodayTab() {
   // 等fit comment：单独一组
   const fitItems = items.filter(it => it.isAwaitFit);
 
-  // 大货跟进：船版相关 + 货期紧急
+  // 大货跟进：船版相关 + PROD_SHIPPING + 货期紧急
   const prodItems = items.filter(it => {
     if (it.isAwaitFit || patternItems.includes(it) || merchandiserItems.includes(it)) return false;
+    if (it.isProdShipping) return true;
     const ct = it.status.cycleType;
     return ct === 'PROD' || (it.efAlert && it.efAlert.level !== 'ok');
   });
@@ -11227,6 +11411,56 @@ function renderTodayTab() {
     !patternItems.includes(it) && !merchandiserItems.includes(it) &&
     !fitItems.includes(it) && !prodItems.includes(it)
   );
+
+  const renderCard = (it) => {
+    const s = it.style;
+    const isDanger = it.efAlert?.level === 'danger' || it.status.level === 'danger';
+    const cls = isDanger ? 'danger' : 'warn';
+    const thumb = s.imageUrl
+      ? `<img class="thumb-mini thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-mini-placeholder&quot;>NO IMG</div>'">`
+      : `<div class="thumb-mini-placeholder">NO IMG</div>`;
+    let mainText, detailText;
+    if (it.efAlert?.level === 'danger') {
+      mainText = it.efAlert.message;
+      detailText = `${it.actionHint || '处理'} · ${it.who || ''}`;
+    } else {
+      mainText = it.actionHint;
+      detailText = `${it.status.currentNodeLabel} · 已 ${it.status.days} 天 · ${it.who || ''}`;
+    }
+    const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
+    const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
+    const _ob = getOrderTypeBadge(s);
+    const _orderTypeHtml = _ob ? `<span class="order-type-pill ${_ob.cls}">${escapeHtml(_ob.label)}</span>` : '';
+    return `
+      <div class="today-card ${cls} ${batchCls}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
+        <input type="checkbox" class="batch-checkbox today-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">
+        ${thumb}
+        <div class="today-card-body">
+          <div class="today-card-head">
+            <span class="today-card-sku">${escapeHtml(s.sku)}</span>
+            <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
+            ${_orderTypeHtml}
+            <span class="today-card-name">${escapeHtml(s.name)}</span>
+          </div>
+          <div class="today-card-action">
+            <span class="today-card-action-main ${cls}">${escapeHtml(mainText)}</span>
+            <span class="today-card-action-detail">${escapeHtml(detailText)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  // 更新子菜单数量
+  const _sc = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+  _sc('sub-count-all', items.length);
+  _sc('sub-count-pattern', patternItems.length);
+  _sc('sub-count-merch', merchandiserItems.length);
+  _sc('sub-count-fit', fitItems.length);
+  _sc('sub-count-prod', prodItems.length + otherItems.length);
+
+  // 确保子菜单显示
+  updateTodaySubNav();
 
   let html = '<div class="today-page">';
   const todayCollapsibleSection = (key, badgeCls, title, sub, items, renderFn) => {
@@ -11247,13 +11481,31 @@ function renderTodayTab() {
     `;
   };
 
-  html += todayCollapsibleSection('today_pattern', 'danger', '✂️ 版师待办', '板房在做的 — 催板房出样板', patternItems, renderCard);
-  html += todayCollapsibleSection('today_merch', 'warn', '📋 跟单待办', '等寄出 / 等客户反馈 — 跟单负责推进', merchandiserItems, renderCard);
-  html += todayCollapsibleSection('today_fit', 'fit', '💬 等 fit comment', '客户已下 PO 但还没给评语 — 给 buyer 发邮件确认', fitItems, renderCard);
-  html += todayCollapsibleSection('today_prod', 'danger', '🏭 大货跟进', '船版已批 / 货期紧急 — 后端同事跟进出货', prodItems, renderCard);
-  if (otherItems.length > 0) {
-    html += todayCollapsibleSection('today_other', 'warn', '📌 其他待办', '其他需要关注的事项', otherItems, renderCard);
+  const sub = state.todaySub || 'all';
+  if (sub === 'all' || sub === 'pattern') {
+    html += todayCollapsibleSection('today_pattern', 'danger', '✂️ 版师待办', '板房在做的 — 催板房出样板', patternItems, renderCard);
   }
+  if (sub === 'all' || sub === 'merch') {
+    html += todayCollapsibleSection('today_merch', 'warn', '📋 跟单待办', '等寄出 / 等客户反馈 — 跟单负责推进', merchandiserItems, renderCard);
+  }
+  if (sub === 'all' || sub === 'fit') {
+    html += todayCollapsibleSection('today_fit', 'fit', '💬 等 fit comment', '客户已下 PO 但还没给评语 — 给 buyer 发邮件确认', fitItems, renderCard);
+  }
+  if (sub === 'all' || sub === 'prod') {
+    html += todayCollapsibleSection('today_prod', 'danger', '🏭 大货跟进', '船版已批 / 货期紧急 — 后端同事跟进出货', prodItems, renderCard);
+    if (otherItems.length > 0) {
+      html += todayCollapsibleSection('today_other', 'warn', '📌 其他待办', '其他需要关注的事项', otherItems, renderCard);
+    }
+  }
+
+  // 如果筛选后没有内容
+  if (sub !== 'all') {
+    const subItems = sub === 'pattern' ? patternItems : sub === 'merch' ? merchandiserItems : sub === 'fit' ? fitItems : [...prodItems, ...otherItems];
+    if (subItems.length === 0) {
+      html += `<div class="today-empty"><span class="icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></span><h3>这个分组没有待办</h3><p>当前没有需要处理的事项。</p></div>`;
+    }
+  }
+
   html += '</div>';
   main.innerHTML = html;
 }
@@ -11898,7 +12150,7 @@ function renderGridCard(s, idx) {
   let stageTagCls = 'dev';
   if (status.stage === 'AWAIT_FIT') stageTagCls = 'await-fit';
   else if (status.stage === 'REVISE' || status.stage === 'PHOTO') stageTagCls = 'revise';
-  else if (status.stage === 'PROD') stageTagCls = 'prod';
+  else if (status.stage === 'PROD' || status.stage === 'PROD_SHIPPING') stageTagCls = 'prod';
   else if (status.stage === 'DONE') stageTagCls = 'done';
 
   let nodeText;
@@ -12023,7 +12275,7 @@ function renderSingleStyleRow(s, idx) {
   let stageTagCls = 'dev';
   if (status.stage === 'AWAIT_FIT') stageTagCls = 'await-fit';
   else if (status.stage === 'REVISE' || status.stage === 'PHOTO') stageTagCls = 'revise';
-  else if (status.stage === 'PROD') stageTagCls = 'prod';
+  else if (status.stage === 'PROD' || status.stage === 'PROD_SHIPPING') stageTagCls = 'prod';
   else if (status.stage === 'DONE') stageTagCls = 'done';
   else if (status.stage === 'ARCHIVED') stageTagCls = 'archived';
 
@@ -12089,7 +12341,7 @@ function renderList(styles) {
     let stageTagCls = 'dev';
     if (status.stage === 'AWAIT_FIT') stageTagCls = 'await-fit';
     else if (status.stage === 'REVISE' || status.stage === 'PHOTO') stageTagCls = 'revise';
-    else if (status.stage === 'PROD') stageTagCls = 'prod';
+    else if (status.stage === 'PROD' || status.stage === 'PROD_SHIPPING') stageTagCls = 'prod';
     else if (status.stage === 'DONE') stageTagCls = 'done';
     else if (status.stage === 'ARCHIVED') stageTagCls = 'archived';
 
@@ -12196,7 +12448,7 @@ function renderBoardCard(s) {
   let stageTagCls = 'dev';
   if (status.stage === 'AWAIT_FIT') stageTagCls = 'await-fit';
   else if (status.stage === 'REVISE' || status.stage === 'PHOTO') stageTagCls = 'revise';
-  else if (status.stage === 'PROD') stageTagCls = 'prod';
+  else if (status.stage === 'PROD' || status.stage === 'PROD_SHIPPING') stageTagCls = 'prod';
 
   return `
     <div class="board-card stage-bg-${stageTagCls} ${urgentClass}" onclick="openDrawer('${s.id}')">
@@ -13135,7 +13387,7 @@ function renderProductionBoardCard(s, po) {
   let stageTagCls = 'dev';
   if (status.stage === 'AWAIT_FIT') stageTagCls = 'await-fit';
   else if (status.stage === 'REVISE' || status.stage === 'PHOTO') stageTagCls = 'revise';
-  else if (status.stage === 'PROD') stageTagCls = 'prod';
+  else if (status.stage === 'PROD' || status.stage === 'PROD_SHIPPING') stageTagCls = 'prod';
   else if (status.stage === 'DONE') stageTagCls = 'done';
 
   const thumb = s.imageUrl
@@ -13209,7 +13461,11 @@ function renderProductionRow(s, po) {
 
   let nodeDisplay;
   if (status.stage === 'DONE') {
-    nodeDisplay = `<div class="node-name" style="color:var(--ok);">船版已批 · 等大货</div>`;
+    nodeDisplay = `<div class="node-name" style="color:var(--ok);">✓ 大货已到仓</div>`;
+  } else if (status.stage === 'PROD_SHIPPING') {
+    const dLeft = daysToEF;
+    const efCls = dLeft <= 0 ? 'danger' : dLeft <= 7 ? 'danger' : dLeft <= 14 ? 'warn' : '';
+    nodeDisplay = `<div class="node-name ${efCls}">船版已批 · 等大货</div>`;
   } else {
     const startInfo = status.startDate ? ` · 起 ${formatDate(status.startDate)}` : '';
     nodeDisplay = `
@@ -13222,7 +13478,7 @@ function renderProductionRow(s, po) {
   let stageTagCls = 'dev';
   if (status.stage === 'AWAIT_FIT') stageTagCls = 'await-fit';
   else if (status.stage === 'REVISE' || status.stage === 'PHOTO') stageTagCls = 'revise';
-  else if (status.stage === 'PROD') stageTagCls = 'prod';
+  else if (status.stage === 'PROD' || status.stage === 'PROD_SHIPPING') stageTagCls = 'prod';
   else if (status.stage === 'DONE') stageTagCls = 'done';
 
   const poSel = state.poBatchSelected && state.poBatchSelected[po.id] ? 'checked' : '';
@@ -13282,8 +13538,10 @@ function openDrawer(id) {
     else actions = `<button class="primary" onclick="openFeedbackModal('${s.id}', '${lastCycle.id}')">登记 · 客户评语</button>`;
   } else if (status.currentNode === 'AWAIT_FIT') {
     actions = `<button class="primary" onclick="openFitReceivedModal('${s.id}')">登记 · 收到 fit comment</button>`;
+  } else if (status.currentNode === 'PROD_SHIPPING') {
+    actions = `<button class="primary" onclick="openProdReceivedModal('${s.id}')">📦 登记 · 大货已到仓</button>`;
   } else if (status.currentNode === 'DONE') {
-    actions = `<span style="font-family:var(--font-mono);font-size:12px;color:var(--ok);padding:9px 14px;">✓ 流程完结</span>`;
+    actions = `<span style="font-family:var(--font-mono);font-size:12px;color:var(--ok);padding:9px 14px;">✓ 大货已到仓 · 流程完结</span>`;
   }
 
   // "我已催过"按钮（仅在等客户/等板房时显示）
@@ -14572,6 +14830,41 @@ async function saveFeedback() {
   saveState(); closeUpdateModal(); render(); openDrawer(styleId);
 }
 
+// 登记大货已到仓
+function openProdReceivedModal(styleId) {
+  state.modalContext = { type: "prodReceived", styleId };
+  document.getElementById("updateTitle").textContent = "📦 登记 · 大货已到仓";
+  document.getElementById("updateBody").innerHTML = `
+    <div class="form-field">
+      <label>到仓日期</label>
+      <input type="date" id="u-date" value="${todayStr()}">
+    </div>
+    <div class="form-field">
+      <label>备注 <span class="optional-tag">选填</span></label>
+      <textarea id="u-prod-note" placeholder="如：大货已全部到齐 / 还差200件" style="width:100%;min-height:50px;background:var(--bg);border:1px solid var(--line-strong);padding:9px 11px;font-family:var(--font-sans);font-size:13px;color:var(--ink);border-radius:5px;outline:none;resize:vertical;"></textarea>
+    </div>
+  `;
+  document.getElementById("updateFooter").innerHTML = `
+    <button class="cancel" onclick="closeUpdateModal()">取消</button>
+    <button class="confirm" onclick="saveProdReceived()">确认到仓</button>
+  `;
+  document.getElementById("updateBackdrop").classList.add("open");
+}
+
+async function saveProdReceived() {
+  const { styleId } = state.modalContext;
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const date = document.getElementById("u-date").value;
+  if (!date) { showToast("请选择日期", "warn"); return; }
+  const note = document.getElementById("u-prod-note")?.value?.trim() || "";
+  s.prodReceived = { date, note };
+  saveToLocalCache(state.styles);
+  await saveStyleToSupabase(s);
+  closeUpdateModal(); render(); openDrawer(styleId);
+  showToast("✅ 大货已到仓登记成功", "ok");
+}
+
 function openFitReceivedModal(styleId) {
   state.modalContext = { type: 'fitReceived', styleId };
   document.getElementById('updateTitle').textContent = '登记 · 收到 fit comment';
@@ -15563,9 +15856,18 @@ document.querySelectorAll('.view-toggle button').forEach(b => {
 });
 document.querySelectorAll('.nav-item').forEach(b => {
   b.addEventListener('click', () => {
+    const clickedTab = b.dataset.toptab;
+    // 如果已经在今日跟进tab，再点就折叠/展开子菜单
+    if (clickedTab === 'today' && state.topTab === 'today') {
+      state.todaySubOpen = !state.todaySubOpen;
+      updateTodaySubNav();
+      return;
+    }
     document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
-    state.topTab = b.dataset.toptab;
+    state.topTab = clickedTab;
+    // 切到今日跟进时自动展开子菜单
+    if (clickedTab === 'today') state.todaySubOpen = true;
     const showPoToggle = document.getElementById('showPoToggle');
     const moreFiltersBtn = document.getElementById('moreFiltersBtn');
     const moreFiltersPanel = document.getElementById('moreFiltersPanel');
@@ -15603,9 +15905,45 @@ document.querySelectorAll('.nav-item').forEach(b => {
     state.keyboardSelectedIdx = -1;
     // 同步 view-toggle 的 active 状态
     syncViewToggle();
+    updateTodaySubNav();
     render();
   });
 });
+
+function switchTodaySub(sub) {
+  state.todaySub = sub;
+  document.querySelectorAll(".today-sub-item").forEach(el => {
+    el.classList.toggle("active", el.dataset.todaySub === sub);
+  });
+  render();
+}
+
+// 今日跟进子菜单显示/隐藏
+function updateTodaySubNav() {
+  const subNav = document.getElementById("todaySubNav");
+  const todayBtn = document.querySelector('.nav-item[data-toptab="today"]');
+  if (subNav) {
+    if (state.topTab === "today" && state.todaySubOpen !== false) {
+      subNav.classList.add("open");
+      if (todayBtn) todayBtn.classList.add("sub-open");
+    } else {
+      subNav.classList.remove("open");
+      if (todayBtn) todayBtn.classList.remove("sub-open");
+    }
+  }
+  // 更新零计数样式
+  document.querySelectorAll(".today-sub-count").forEach(el => {
+    el.classList.toggle("is-zero", el.textContent.trim() === "0");
+  });
+}
+
+// 折叠/展开子菜单
+function toggleTodaySubNav() {
+  if (state.topTab === "today") {
+    state.todaySubOpen = !state.todaySubOpen;
+    updateTodaySubNav();
+  }
+}
 
 function syncViewToggle() {
   let currentView;
@@ -15795,6 +16133,8 @@ setupCustomDatePickers();
   
   // 订阅实时更新
   subscribeRealtime();
+  // 初始化子菜单
+  updateTodaySubNav();
 })();
 
 </script>
