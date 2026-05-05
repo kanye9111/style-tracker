@@ -11782,6 +11782,31 @@ function renderArchiveRow(s, type) {
 
 // 恢复"未采用"款式 → 回到开发追踪
 async function restoreArchivedStyle(styleId) {
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const ok = await showDialog({
+    title: '恢复到开发追踪',
+    message: `将"${s.sku}"从历史档案恢复到开发追踪。后续可继续跟进。`,
+    confirmText: '恢复'
+  });
+  if (!ok) return;
+
+  s.archived = false;
+  delete s.archivedDate;
+  delete s.archiveReason;
+  delete s.archiveNote;
+  // 也清掉最后一个周期的 ARCHIVED 反馈（如果有）
+  if (s.cycles && s.cycles.length > 0) {
+    const lastCycle = s.cycles[s.cycles.length - 1];
+    if (lastCycle.feedbackOutcome === 'ARCHIVED') {
+      delete lastCycle.feedbackDate;
+      delete lastCycle.feedbackOutcome;
+    }
+  }
+  saveState();
+  render();
+  showToast(`已恢复 ${s.sku}`, 'ok');
+}
 
 // 永久删除款式（不可恢复）
 async function permanentlyDeleteStyle(styleId) {
