@@ -9479,9 +9479,6 @@ function dbPOToLocal(p) {
     status: p.status || 'pending',
     barcode: p.barcode || '',
     description: p.description || '',
-    archived: p.archived || false,
-    archivedDate: p.archived_date || null,
-    archiveReason: p.archive_reason || null,
   };
 }
 
@@ -9533,9 +9530,6 @@ function localPOToDB(p, styleId) {
     status: p.status || 'pending',
     barcode: p.barcode || null,
     description: p.description || null,
-    archived: p.archived || false,
-    archived_date: p.archivedDate || null,
-    archive_reason: p.archiveReason || null,
   };
 }
 
@@ -9695,11 +9689,10 @@ function clearBatchSelection() {
 // 计算款式的"首/反"标签信息
 // 返回 {label, cls, sub} 或 null
 function getOrderTypeBadge(s) {
-  const active = getActivePOs(s);
-  if (active.length === 0) return null;
-  const types = active.map(p => p.orderType).filter(Boolean);
+  if (!s.pos || s.pos.length === 0) return null;
+  const types = s.pos.map(p => p.orderType).filter(Boolean);
   if (types.length === 0) return null;
-  const allRepeat = types.length === active.length && types.every(t => t === 'repeat');
+  const allRepeat = types.length === s.pos.length && types.every(t => t === 'repeat');
   const anyRepeat = types.some(t => t === 'repeat');
   const anyNew = types.some(t => t === 'new');
 
@@ -9715,10 +9708,9 @@ function getOrderTypeBadge(s) {
 // 计算款式最近 PO 的紧迫信息
 // 返回 {text, cls} 或 null
 function getStyleUrgentBadge(s) {
-  const active = getActivePOs(s);
-  if (active.length === 0) return null;
+  if (!s.pos || s.pos.length === 0) return null;
   // 找最早未完成的 PO 货期
-  const efs = active.map(p => p.exFactory).filter(Boolean).sort();
+  const efs = s.pos.map(p => p.exFactory).filter(Boolean).sort();
   if (efs.length === 0) return null;
   const earliest = efs[0];
   const days = daysUntil(earliest);
@@ -10336,7 +10328,7 @@ function updatePoBatchBar() {
     if (count) count.textContent = ids.length;
     if (label) label.textContent = '已选 PO';
     document.body.classList.add('batch-mode');
-    // 切换到 PO 模式：显示"归档 PO"按钮
+    // 切换到 PO 模式：显示"批量删除 PO"按钮
     syncBatchBarForPo(true);
   } else if (!locked && !state.groupBatchDate) {
     bar.classList.remove('visible');
@@ -10366,7 +10358,7 @@ function updatePoBatchBar() {
   });
 }
 
-// 切换批量栏的按钮（PO 模式下显示归档 PO，款式模式下隐藏）
+// 切换批量栏的按钮（PO 模式下显示删除 PO，款式模式下隐藏）
 function syncBatchBarForPo(isPoMode) {
   const archiveBtn = document.getElementById('batchArchiveBtn');
   const followBtn = document.getElementById('batchFollowBtn');
@@ -10386,7 +10378,7 @@ function syncBatchBarForPo(isPoMode) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
         </svg>
-        归档选中 PO
+        删除选中 PO
       `;
       archiveBtn.parentElement.insertBefore(deleteBtn, archiveBtn);
     }
@@ -10403,9 +10395,9 @@ async function batchDeletePOs() {
   if (ids.length === 0) return;
 
   const ok = await showDialog({
-    title: '批量归档 PO',
-    message: `将选中的 ${ids.length} 个 PO 移入历史档案。可在历史档案中恢复或彻底删除。继续？`,
-    confirmText: '移入归档',
+    title: '批量删除 PO',
+    message: `将永久删除选中的 ${ids.length} 个 PO（不影响款式本身）。继续？`,
+    confirmText: '删除',
     danger: true
   });
   if (!ok) return;
@@ -10415,13 +10407,9 @@ async function batchDeletePOs() {
     const styleId = state.poBatchSelected[poId];
     const s = state.styles.find(x => x.id === styleId);
     if (s && s.pos) {
-      const po = s.pos.find(p => p.id === poId);
-      if (po && !po.archived) {
-        po.archived = true;
-        po.archivedDate = todayStr();
-        po.archiveReason = 'deleted';
-        count++;
-      }
+      const before = s.pos.length;
+      s.pos = s.pos.filter(p => p.id !== poId);
+      if (s.pos.length < before) count++;
     }
   });
   saveState();
@@ -10432,7 +10420,7 @@ async function batchDeletePOs() {
   // 退出批量模式
   if (typeof exitBatchMode === 'function') exitBatchMode();
   render();
-  showToast(`已归档 ${count} 个 PO，可在历史档案中恢复`, 'ok');
+  showToast(`已删除 ${count} 个 PO`, 'ok');
 }
 
 
@@ -10470,9 +10458,8 @@ function getAlertItems() {
 
     // PO 过货期？(看 ex-factory)
     let efOverdue = false;
-    const alertPOs = getActivePOs(s);
-    if (alertPOs.length > 0) {
-      const minEF = alertPOs.map(p => p.exFactory).filter(Boolean).sort()[0];
+    if (s.pos && s.pos.length > 0) {
+      const minEF = s.pos.map(p => p.exFactory).filter(Boolean).sort()[0];
       if (minEF) {
         const d = daysUntil(minEF);
         if (d !== null && d < 0) efOverdue = true;
@@ -11149,15 +11136,12 @@ function getStyleStatus(style) {
   };
 }
 
-// 获取活跃 PO（未归档的）
-function getActivePOs(style) { return (style.pos || []).filter(p => !p.archived); }
-
-function hasPO(style) { return getActivePOs(style).length > 0; }
+function hasPO(style) { return style.pos && style.pos.length > 0; }
 
 // 取代表性 PO 信息（多 PO 时取最早 ex-factory 那个）
 function getPOInfo(style) {
   if (!hasPO(style)) return { hasPO: false };
-  const pos = getActivePOs(style);
+  const pos = style.pos;
   // 多 PO 时取最早 ex-factory 的那个作为代表
   let best = pos[0];
   for (const p of pos) {
@@ -11180,8 +11164,7 @@ function getPOInfo(style) {
 function getExFactoryAlert(style, status) {
   if (!hasPO(style)) return null;
   // 取最近的 ex-factory（多 PO 时取最早的，最紧迫）
-  const activePOs = getActivePOs(style);
-  const earliestEF = activePOs.reduce((min, p) => {
+  const earliestEF = style.pos.reduce((min, p) => {
     if (!p.exFactory) return min;
     if (!min) return p.exFactory;
     return new Date(p.exFactory) < new Date(min) ? p.exFactory : min;
@@ -11641,12 +11624,9 @@ function renderArchiveTab() {
   });
   archivedStyles.sort((a, b) => (b.archivedDate || '').localeCompare(a.archivedDate || ''));
 
-  // 收集已归档 PO（仅来自未归档的款式）- 用于判断是否为空
-  const hasArchivedPOs = state.styles.some(s => !s.archived && (s.pos || []).some(p => p.archived));
-
   const main = document.getElementById('main');
-  if (allArchived.length === 0 && !hasArchivedPOs) {
-    main.innerHTML = `<div class="empty"><h3>历史档案为空</h3><p>已完成（船版批准）、未采用的款式，以及已归档的 PO 都会出现在这里。</p></div>`;
+  if (allArchived.length === 0) {
+    main.innerHTML = `<div class="empty"><h3>历史档案为空</h3><p>已完成（船版批准）和未采用的款式都会出现在这里。</p></div>`;
     return;
   }
 
@@ -11716,73 +11696,9 @@ function renderArchiveTab() {
     `;
   };
 
-  // 收集已归档 PO（仅来自未归档的款式）
-  const archivedPORows = [];
-  state.styles.filter(s => !s.archived).forEach(s => {
-    (s.pos || []).filter(p => p.archived).forEach(po => {
-      archivedPORows.push({ style: s, po });
-    });
-  });
-  // 按归档日期降序
-  archivedPORows.sort((a, b) => (b.po.archivedDate || '').localeCompare(a.po.archivedDate || ''));
-
-  const renderArchivedPOSection = () => {
-    if (archivedPORows.length === 0) return '';
-    const reasonMap = { 'deleted': '用户删除', 'customer_cancel': '客户取消', 'production_failed': '做不出', 'price_no_deal': '价格谈不下', 'other': '其他' };
-    const collapsed = state.collapsedSections['archive_po'];
-    return `
-      <div class="archive-section ${collapsed ? 'collapsed' : ''}">
-        <h2 class="collapsible-header" onclick="toggleSection('archive_po')">
-          <span class="section-chevron">▼</span>
-          <span>已归档 PO</span>
-          <span class="count-badge">${archivedPORows.length}</span>
-        </h2>
-        <div class="section-content">
-          <div class="style-list">
-            ${archivedPORows.map(({ style, po }) => {
-              const reasonText = po.archiveReason ? (reasonMap[po.archiveReason] || '已归档') : '已归档';
-              return `
-              <div class="archive-row archive-row-archived" style="cursor:default;">
-                <div class="node-block" style="flex:1;">
-                  <div class="node-block-row1">
-                    <span class="stage-tag archived" style="font-size:10px;">PO 已归档</span>
-                    <span class="node-name" style="color:var(--ink-soft);font-size:12px;">${escapeHtml(style.sku)}</span>
-                    <span style="font-family:var(--font-mono);font-size:13px;font-weight:500;">${escapeHtml(po.poNumber)}</span>
-                    <span style="color:var(--ink-mute);font-size:12px;">${escapeHtml(po.color || '—')}</span>
-                    ${po.quantity ? `<span style="color:var(--ink-mute);font-size:12px;">${po.quantity}件</span>` : ''}
-                  </div>
-                  <div class="node-block-row2">
-                    ${po.exFactory ? `<span class="node-since">EX ${escapeHtml(po.exFactory)}</span>` : ''}
-                    <span class="node-since">· ${escapeHtml(reasonText)}</span>
-                    ${po.archivedDate ? `<span class="node-since">· 归档于 ${escapeHtml(formatDate(po.archivedDate))}</span>` : ''}
-                  </div>
-                </div>
-                <div class="archive-action-group">
-                  <button class="archive-restore-btn" onclick="event.stopPropagation(); restoreArchivedPO('${style.id}','${po.id}')" title="恢复到活跃 PO">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>
-                    </svg>
-                    恢复
-                  </button>
-                  <button class="archive-delete-btn" onclick="event.stopPropagation(); permanentlyDeletePO('${style.id}','${po.id}')" title="永久删除此 PO">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
-                    彻底删除
-                  </button>
-                </div>
-              </div>
-            `;}).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-  };
-
   let html = '<div class="archive-page">';
   html += archiveSection('archive_done', '已完成订单', completedStyles, 'done');
   html += archiveSection('archive_unused', '未采用', archivedStyles, 'archived');
-  html += renderArchivedPOSection();
   html += '</div>';
   main.innerHTML = html;
 }
@@ -11984,59 +11900,6 @@ async function batchPermanentDelete() {
 }
 
 // ============================================================
-// PO 恢复 & 彻底删除（两段式）
-// ============================================================
-
-// 恢复已归档的 PO → 回到活跃状态
-async function restoreArchivedPO(styleId, poId) {
-  const s = state.styles.find(x => x.id === styleId);
-  if (!s) return;
-  const po = (s.pos || []).find(p => p.id === poId);
-  if (!po || !po.archived) return;
-
-  if (!await showDialog({
-    title: '恢复 PO',
-    message: `将 PO "${po.poNumber}" 恢复到活跃状态。`,
-    confirmText: '恢复'
-  })) return;
-
-  po.archived = false;
-  delete po.archivedDate;
-  delete po.archiveReason;
-  saveState();
-  render();
-  showToast(`已恢复 PO ${po.poNumber}`, 'ok');
-}
-
-// 永久删除 PO（不可恢复）
-async function permanentlyDeletePO(styleId, poId) {
-  const s = state.styles.find(x => x.id === styleId);
-  if (!s) return;
-  const po = (s.pos || []).find(p => p.id === poId);
-  if (!po) return;
-
-  if (!await showDialog({
-    title: '永久删除 PO',
-    message: `确认要永久删除 PO "${po.poNumber}" 吗？删除后无法恢复！`,
-    confirmText: '永久删除',
-    danger: true
-  })) return;
-
-  try {
-    // 从 Supabase 删除
-    await _supabase.from('pos').delete().eq('id', poId);
-    // 从本地删除
-    s.pos = s.pos.filter(p => p.id !== poId);
-    saveToLocalCache(state.styles);
-    render();
-    showToast(`已永久删除 PO ${po.poNumber}`, 'ok');
-  } catch(e) {
-    console.error('删除 PO 失败', e);
-    showToast('删除失败: ' + e.message, 'warn');
-  }
-}
-
-// ============================================================
 // 批量导出 Excel（含图片、款号、PO号、条形号、样板类型）
 // ============================================================
 async function batchExportExcel() {
@@ -12064,9 +11927,8 @@ async function batchExportExcel() {
       'DEV': '开发版', 'REVISE': '修改版', 'PHOTO': '拍照版', 'PROD': '船版/大货'
     }[latestCycle.type] || latestCycle.type) : '—';
 
-    const exportPOs = getActivePOs(s);
-    if (exportPOs.length > 0) {
-      for (const po of exportPOs) {
+    if (s.pos && s.pos.length > 0) {
+      for (const po of s.pos) {
         rows.push({
           '款号': s.sku || '',
           '款名': s.name || '',
@@ -12882,7 +12744,7 @@ function renderProductionTab() {
       const matchesPO = s.pos.some(p => p.poNumber.toLowerCase().includes(q));
       if (!matchesBasic && !matchesPO) return;
     }
-    getActivePOs(s).forEach(po => {
+    s.pos.forEach(po => {
       // EX 日期筛选
       if (state.filterEFDate && po.exFactory !== state.filterEFDate) return;
       rows.push({ style: s, po });
@@ -13063,7 +12925,7 @@ function renderProductionGrid() {
       const matchesPO = s.pos.some(p => p.poNumber.toLowerCase().includes(q));
       if (!matchesBasic && !matchesPO) return;
     }
-    getActivePOs(s).forEach(po => {
+    s.pos.forEach(po => {
       if (state.filterEFDate && po.exFactory !== state.filterEFDate) return;
       rows.push({ style: s, po });
     });
@@ -13184,7 +13046,7 @@ function openProdDateFolder(date) {
       const matchesPO = s.pos.some(p => p.poNumber.toLowerCase().includes(q));
       if (!matchesBasic && !matchesPO) return;
     }
-    getActivePOs(s).forEach(po => {
+    s.pos.forEach(po => {
       const ef = po.exFactory || '__no_date__';
       if (ef !== date) return;
       rows.push({ style: s, po });
@@ -13329,7 +13191,7 @@ function renderProductionBoard() {
       const matchesPO = s.pos.some(p => p.poNumber.toLowerCase().includes(q));
       if (!matchesBasic && !matchesPO) return;
     }
-    getActivePOs(s).forEach(po => {
+    s.pos.forEach(po => {
       allRows.push({ style: s, po });
     });
   });
@@ -13969,10 +13831,8 @@ function openDrawer(id) {
 
   // PO 列表卡片
   let poCard = '';
-  const activePOs = getActivePOs(s);
-  const archivedPOs = (s.pos || []).filter(p => p.archived);
-  if (activePOs.length > 0) {
-    const earliestEF = activePOs.reduce((min, p) => {
+  if (hasPO(s)) {
+    const earliestEF = s.pos.reduce((min, p) => {
       if (!p.exFactory) return min;
       if (!min) return p.exFactory;
       return new Date(p.exFactory) < new Date(min) ? p.exFactory : min;
@@ -13985,11 +13845,11 @@ function openDrawer(id) {
     poCard = `
       <div class="po-card">
         <div class="po-card-header">
-          <span class="lbl-section">PO 信息（${activePOs.length} 个颜色）</span>
+          <span class="lbl-section">PO 信息（${s.pos.length} 个颜色）</span>
           <button class="po-add-btn" onclick="openAddPOModal('${s.id}')">+ 加 PO</button>
         </div>
         <div class="po-list">
-          ${activePOs.map(po => {
+          ${s.pos.map(po => {
             const efDays = po.exFactory ? daysUntil(po.exFactory) : null;
             const isOverdue = (efDays !== null && efDays < 0);
             const overdueClass = isOverdue ? (
@@ -14044,37 +13904,6 @@ function openDrawer(id) {
     `;
   }
 
-  // 已归档 PO 卡片（抽屉内显示，可恢复或彻底删除）
-  let archivedPoCard = '';
-  if (archivedPOs.length > 0) {
-    archivedPoCard = `
-      <div class="po-card" style="opacity:0.7; border:1px dashed var(--line-strong);">
-        <div class="po-card-header">
-          <span class="lbl-section" style="color:var(--ink-mute);">已归档 PO（${archivedPOs.length} 个）</span>
-        </div>
-        <div class="po-list">
-          ${archivedPOs.map(po => {
-            const reasonMap = { 'deleted': '用户删除', 'customer_cancel': '客户取消', 'production_failed': '做不出', 'price_no_deal': '价格谈不下', 'other': '其他' };
-            const reasonText = po.archiveReason ? (reasonMap[po.archiveReason] || '已归档') : '已归档';
-            return `
-            <div class="po-item" style="background:var(--bg-sunken);">
-              <div class="po-item-main">
-                <span class="po-item-num" style="color:var(--ink-mute);">${escapeHtml(po.poNumber)}</span>
-                <span class="po-item-color" style="color:var(--ink-mute);">${escapeHtml(po.color || '—')}</span>
-                ${po.quantity ? `<span class="po-item-qty" style="color:var(--ink-mute);">${po.quantity} 件</span>` : ''}
-                <span style="font-size:10px;color:var(--ink-mute);margin-left:4px;">· ${escapeHtml(reasonText)}</span>
-              </div>
-              <div style="display:flex;gap:6px;margin-top:4px;">
-                <button style="font-size:10px;padding:2px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg-elevated);cursor:pointer;color:var(--ok);" onclick="event.stopPropagation(); restoreArchivedPO('${s.id}','${po.id}')">↩ 恢复</button>
-                <button style="font-size:10px;padding:2px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg-elevated);cursor:pointer;color:var(--danger);" onclick="event.stopPropagation(); permanentlyDeletePO('${s.id}','${po.id}')">✕ 彻底删除</button>
-              </div>
-            </div>
-          `;}).join('')}
-        </div>
-      </div>
-    `;
-  }
-
   // 抽屉色条 class
   let drawerStageCls = 'dev';
   if (status.stage === 'AWAIT_FIT') drawerStageCls = 'await-fit';
@@ -14107,11 +13936,10 @@ function openDrawer(id) {
         <div class="detail-meta-strip">
           ${(() => {
             // 反单提示条：如果款式所有 PO 都是反单，显示提示让跟单员通知工厂做一件确认色
-            const _drawerPOs = getActivePOs(s);
-            if (_drawerPOs.length === 0) return '';
-            const allRepeat = _drawerPOs.every(p => p.orderType === 'repeat');
+            if (!s.pos || s.pos.length === 0) return '';
+            const allRepeat = s.pos.every(p => p.orderType === 'repeat');
             if (!allRepeat) return '';
-            const colors = _drawerPOs.map(p => p.color).filter(Boolean);
+            const colors = s.pos.map(p => p.color).filter(Boolean);
             const colorsText = colors.length > 0 ? '（' + colors.join(' / ') + '）' : '';
             return `<div class="repeat-order-banner">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -14135,7 +13963,6 @@ function openDrawer(id) {
         </div>
       ` : ''}
       ${poCard}
-      ${archivedPoCard}
 
       ${renderNotesSection(s)}
 
@@ -14764,7 +14591,7 @@ function openAddPOFromTopModal() {
             <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
           </div>
           <div class="po-style-pick-name">${escapeHtml(s.name)}</div>
-          <div class="po-style-pick-meta">${getActivePOs(s).length} 个 PO · ${escapeHtml(status.stageLabel)}</div>
+          <div class="po-style-pick-meta">${s.pos.length} 个 PO · ${escapeHtml(status.stageLabel)}</div>
         </div>
       </div>
     `;
@@ -15218,7 +15045,7 @@ function openFeedbackModal(styleId, cycleId) {
         <label>客户评语 / 修改要点（选填，板师可见）</label>
         <textarea id="u-feedback-note" placeholder="比如：袖口收紧 1cm，下摆开叉 5cm" style="width:100%;min-height:60px;background:var(--bg);border:1px solid var(--line-strong);padding:9px 11px;font-family:var(--font-sans);font-size:13px;color:var(--ink);border-radius: 5px;outline:none;resize:vertical;"></textarea>
       </div>
-      ${cycle.type === 'DEV' && getActivePOs(s).length === 0 ? `
+      ${cycle.type === 'DEV' && (!s.pos || s.pos.length === 0) ? `
         <div id="po-fields-section" class="po-fields-section">
           <div class="section-mini-title">📋 PO 信息 · 可添加多个颜色</div>
           <div id="po-rows-container">
@@ -15356,7 +15183,7 @@ async function saveFeedback() {
   if (noteEl && noteEl.value.trim()) cycle.feedbackNote = noteEl.value.trim();
 
   // 处理 PO 录入（仅 DEV cycle 第一次反馈时）
-  if (cycle.type === 'DEV' && outcome !== 'ARCHIVED' && getActivePOs(s).length === 0) {
+  if (cycle.type === 'DEV' && outcome !== 'ARCHIVED' && (!s.pos || s.pos.length === 0)) {
     const rows = document.querySelectorAll('#po-rows-container .po-color-card');
     const newPos = [];
     rows.forEach(row => {
@@ -15809,7 +15636,7 @@ function openEditPOModal(styleId, poId) {
     </div>
   `;
   document.getElementById('updateFooter').innerHTML = `
-    <button class="danger" onclick="deletePO()">归档此 PO</button>
+    <button class="danger" onclick="deletePO()">删除此 PO</button>
     <button class="cancel" onclick="closeUpdateModal()">取消</button>
     <button class="confirm" onclick="saveEditPO()">保存</button>
   `;
@@ -15841,15 +15668,10 @@ function saveEditPO() {
 }
 
 async function deletePO() {
-  if (!await showDialog({title:'确认归档', message:'确认归档此 PO？PO 将移入历史档案，可在历史档案中恢复或彻底删除。', confirmText:'移入归档', danger:true})) return;
+  if (!await showDialog({title:'确认删除', message:'确认删除此 PO？', confirmText:'删除', danger:true})) return;
   const { styleId, poId } = state.modalContext;
   const s = state.styles.find(x => x.id === styleId);
-  const po = s.pos.find(p => p.id === poId);
-  if (po) {
-    po.archived = true;
-    po.archivedDate = todayStr();
-    po.archiveReason = 'deleted';
-  }
+  s.pos = s.pos.filter(p => p.id !== poId);
   saveState(); closeUpdateModal(); render(); openDrawer(styleId);
 }
 
