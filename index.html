@@ -9149,8 +9149,28 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // Supabase 数据读写层
 // ============================================================
 
+// 本地缓存 key
+const CACHE_KEY = 'style-tracker-cache-v1';
+const CACHE_TIMESTAMP_KEY = 'style-tracker-cache-time';
+
+// 保存数据到本地缓存
+function saveToLocalCache(data) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+  } catch(e) { console.warn('缓存保存失败', e); }
+}
+
+// 从本地缓存读取
+function loadFromLocalCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { console.warn('缓存读取失败', e); return null; }
+}
+
 // 从 Supabase 读取所有 styles（含 cycles 和 pos）
-async function loadFromSupabase() {
+async function loadFromSupabase(fromCache = false) {
   try {
     const { data: styles, error } = await _supabase
       .from('styles')
@@ -9187,10 +9207,20 @@ async function loadFromSupabase() {
     state.handledToday = {};
     state.handledToday[today] = (handled || []).map(h => h.style_id);
 
+    // 保存到本地缓存
+    saveToLocalCache(state.styles);
+
     document.getElementById('storageNotice').innerHTML = '数据存储：<b style="color:var(--ok)">☁️ Supabase 云端</b> · 实时同步';
     return true;
   } catch(e) {
     console.error('Supabase 加载失败', e);
+    // 如果云端加载失败，尝试从缓存读取
+    const cached = loadFromLocalCache();
+    if (cached && !fromCache) {
+      state.styles = cached;
+      document.getElementById('storageNotice').innerHTML = '数据存储：<b style="color:var(--warn)">📱 离线模式</b> · 使用本地缓存';
+      return true;
+    }
     document.getElementById('storageNotice').innerHTML = '数据存储：<b style="color:var(--danger)">⚠️ 云端连接失败</b>';
     return false;
   }
@@ -15929,11 +15959,32 @@ if (devDateInput) {
 setupPasteHandler();
 setupCustomDatePickers();
 
-// 异步启动：先显示加载中，加载完再渲染
+// 智能启动：先读缓存快速显示，再后台同步云端
 (async () => {
-  document.getElementById('storageNotice').innerHTML = '数据存储：<b>连接中…</b>';
-  await loadState();
-  render();
+  // 第一步：读本地缓存，秒速显示
+  const cached = loadFromLocalCache();
+  if (cached && cached.length > 0) {
+    state.styles = cached;
+    document.getElementById('storageNotice').innerHTML = '数据存储：<b style="color:var(--warn)">📱 本地缓存</b> · 正在同步…';
+    render();
+  } else {
+    document.getElementById('storageNotice').innerHTML = '数据存储：<b>加载中…</b>';
+  }
+
+  // 第二步：后台从云端同步最新数据
+  const ok = await loadFromSupabase();
+  
+  // 如果云端加载成功，重新渲染
+  if (ok) {
+    render();
+  } else if (!cached || cached.length === 0) {
+    // 云端失败且没有缓存，显示示例数据
+    seedData();
+    render();
+  }
+  
+  // 订阅实时更新
+  subscribeRealtime();
 })();
 
 </script>
