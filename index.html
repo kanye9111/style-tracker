@@ -11198,54 +11198,35 @@ function renderTodayTab() {
     return;
   }
 
-  // 单独分出"等 fit comment"组
-  const fitItems = items.filter(it => it.isAwaitFit);
-  // 剩下的按紧迫度分组
-  const dangerItems = items.filter(it =>
-    !it.isAwaitFit && (it.efAlert?.level === 'danger' || it.status.level === 'danger')
-  );
-  const warnItems = items.filter(it =>
-    !it.isAwaitFit && !dangerItems.includes(it) && (it.efAlert?.level === 'warn' || it.status.level === 'warn')
-  );
+  // 按职责分组
+  // 版师待办：板房在做的（等收样板、修改、重做）
+  const patternItems = items.filter(it => {
+    const node = it.status.currentNode;
+    return node === 'PATTERN_MAKING' && !it.isAwaitFit;
+  });
 
-  const renderCard = (it) => {
-    const s = it.style;
-    const isDanger = it.efAlert?.level === 'danger' || it.status.level === 'danger';
-    const cls = isDanger ? 'danger' : 'warn';
-    const thumb = s.imageUrl
-      ? `<img class="thumb-mini thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-mini-placeholder&quot;>NO IMG</div>'">`
-      : `<div class="thumb-mini-placeholder">NO IMG</div>`;
-    let mainText, detailText;
-    if (it.efAlert?.level === 'danger') {
-      mainText = it.efAlert.message;
-      detailText = `${it.actionHint || '处理'} · ${it.who || ''}`;
-    } else {
-      mainText = it.actionHint;
-      detailText = `${it.status.currentNodeLabel} · 已 ${it.status.days} 天 · ${it.who || ''}`;
-    }
-    const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
-    const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
-    const _ob = getOrderTypeBadge(s);
-    const _orderTypeHtml = _ob ? `<span class="order-type-pill ${_ob.cls}">${escapeHtml(_ob.label)}</span>` : '';
-    return `
-      <div class="today-card ${cls} ${batchCls}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
-        <input type="checkbox" class="batch-checkbox today-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">
-        ${thumb}
-        <div class="today-card-body">
-          <div class="today-card-head">
-            <span class="today-card-sku">${escapeHtml(s.sku)}</span>
-            <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
-            ${_orderTypeHtml}
-            <span class="today-card-name">${escapeHtml(s.name)}</span>
-          </div>
-          <div class="today-card-action">
-            <span class="today-card-action-main ${cls}">${escapeHtml(mainText)}</span>
-            <span class="today-card-action-detail">${escapeHtml(detailText)}</span>
-          </div>
-        </div>
-      </div>
-    `;
-  };
+  // 跟单待办：等寄出、等客户反馈、催comment、等fit
+  const merchandiserItems = items.filter(it => {
+    const node = it.status.currentNode;
+    return !it.isAwaitFit && !patternItems.includes(it) &&
+      (node === 'AWAIT_SEND' || node === 'AWAIT_FB' || node === 'AWAIT_RECEIVE');
+  });
+
+  // 等fit comment：单独一组
+  const fitItems = items.filter(it => it.isAwaitFit);
+
+  // 大货跟进：船版相关 + 货期紧急
+  const prodItems = items.filter(it => {
+    if (it.isAwaitFit || patternItems.includes(it) || merchandiserItems.includes(it)) return false;
+    const ct = it.status.cycleType;
+    return ct === 'PROD' || (it.efAlert && it.efAlert.level !== 'ok');
+  });
+
+  // 其他未分类
+  const otherItems = items.filter(it =>
+    !patternItems.includes(it) && !merchandiserItems.includes(it) &&
+    !fitItems.includes(it) && !prodItems.includes(it)
+  );
 
   let html = '<div class="today-page">';
   const todayCollapsibleSection = (key, badgeCls, title, sub, items, renderFn) => {
@@ -11266,9 +11247,13 @@ function renderTodayTab() {
     `;
   };
 
-  html += todayCollapsibleSection('today_fit', 'fit', '等 fit comment', '客户已下 PO 但还没给评语 — 给 buyer 发邮件确认', fitItems, renderCard);
-  html += todayCollapsibleSection('today_danger', 'danger', '立刻处理', '货期紧 / 板房在拖 / 客户拖了太久 — 这些不能再等', dangerItems, renderCard);
-  html += todayCollapsibleSection('today_warn', 'warn', '该跟进了', '开始进入提醒区间，今天发个邮件确认下进度', warnItems, renderCard);
+  html += todayCollapsibleSection('today_pattern', 'danger', '✂️ 版师待办', '板房在做的 — 催板房出样板', patternItems, renderCard);
+  html += todayCollapsibleSection('today_merch', 'warn', '📋 跟单待办', '等寄出 / 等客户反馈 — 跟单负责推进', merchandiserItems, renderCard);
+  html += todayCollapsibleSection('today_fit', 'fit', '💬 等 fit comment', '客户已下 PO 但还没给评语 — 给 buyer 发邮件确认', fitItems, renderCard);
+  html += todayCollapsibleSection('today_prod', 'danger', '🏭 大货跟进', '船版已批 / 货期紧急 — 后端同事跟进出货', prodItems, renderCard);
+  if (otherItems.length > 0) {
+    html += todayCollapsibleSection('today_other', 'warn', '📌 其他待办', '其他需要关注的事项', otherItems, renderCard);
+  }
   html += '</div>';
   main.innerHTML = html;
 }
@@ -11452,11 +11437,13 @@ function renderArchiveRow(s, type) {
     const reasonText = s.archiveReason
       ? (reasonMap[s.archiveReason] || '未采用')
       : '未采用';
+    // 如果原因就是"未采用"，不重复显示
+    const showReason = (reasonText !== '未采用');
     info = `
       <div class="node-block">
         <div class="node-block-row1">
           <span class="stage-tag archived">未采用</span>
-          <span class="node-name" style="color:var(--ink-soft);">${escapeHtml(reasonText)}</span>
+          ${showReason ? `<span class="node-name" style="color:var(--ink-soft);">${escapeHtml(reasonText)}</span>` : ''}
         </div>
         <div class="node-block-row2">
           ${earliest ? `<span class="node-since">开发于 ${escapeHtml(formatDate(earliest))}</span>` : ''}
@@ -11518,21 +11505,29 @@ async function restoreArchivedStyle(styleId) {
 // 永久删除款式（不可恢复）
 async function permanentlyDeleteStyle(styleId) {
   if (!await showDialog({
-    title: '永久删除',
-    message: '确认要永久删除这个款式吗？删除后无法恢复！',
-    confirmText: '永久删除',
+    title: "永久删除",
+    message: "确认要永久删除这个款式吗？删除后无法恢复！",
+    confirmText: "永久删除",
     danger: true
   })) return;
 
-  // 从本地删除
-  state.styles = state.styles.filter(x => x.id !== styleId);
-  saveToLocalCache(state.styles);
+  try {
+    // 从 Supabase 先删关联数据
+    await _supabase.from("cycle_photos").delete().in("cycle_id",
+      (await _supabase.from("cycles").select("id").eq("style_id", styleId)).data?.map(c => c.id) || []);
+    await _supabase.from("cycles").delete().eq("style_id", styleId);
+    await _supabase.from("pos").delete().eq("style_id", styleId);
+    await _supabase.from("styles").delete().eq("id", styleId);
 
-  // 从 Supabase 删除
-  await _supabase.from('styles').delete().eq('id', styleId);
-
-  render();
-  showToast('已永久删除', 'ok');
+    // 从本地删除
+    state.styles = state.styles.filter(x => x.id !== styleId);
+    saveToLocalCache(state.styles);
+    render();
+    showToast("已永久删除", "ok");
+  } catch(e) {
+    console.error("删除失败", e);
+    showToast("删除失败: " + e.message, "warn");
+  }
 }
 
 // 批量永久删除
@@ -14345,7 +14340,10 @@ function saveCycleStep() {
     }
   }
   state.pendingCyclePhotos = [];
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+  // 同步到 Supabase（只保存当前修改的 style）
+  saveToLocalCache(state.styles);
+  saveStyleToSupabase(s);
+  closeUpdateModal(); render(); openDrawer(styleId);
 }
 
 function openFeedbackModal(styleId, cycleId) {
@@ -14672,7 +14670,36 @@ function openEditLogModal(styleId, cycleId, field) {
 
   document.getElementById('updateTitle').textContent = `编辑 · ${meta.label} · ${fieldLabel}`;
   let extra = '';
-  if (field === 'feedbackDate' && cycle.feedbackNote !== undefined) {
+
+  // 收到样板 → 可以编辑照片
+  if (field === 'receivedDate') {
+    extra = `
+      <div class="form-field">
+        <label>样板照片</label>
+        <div class="cycle-photo-zone" id="cyclePhotoZone">
+          <div id="cyclePhotoInner"></div>
+        </div>
+        <input type="file" id="cyclePhotoFile" accept="image/*" multiple style="display:none">
+      </div>
+    `;
+  }
+
+  // 寄出客户 → 可以编辑快递单号、预估到达日期
+  if (field === 'sentDate' && cycle.type !== 'PHOTO') {
+    extra = `
+      <div class="form-field">
+        <label>快递单号 <span class="optional-tag">选填</span></label>
+        <input type="text" id="u-tracking" value="${escapeHtml(cycle.shipTrackingNo || '')}" placeholder="SF / DHL / UPS 单号">
+      </div>
+      <div class="form-field">
+        <label>预估到达日期 <span class="optional-tag">选填</span></label>
+        <input type="date" id="u-arrival" value="${cycle.shipEstimatedArrival || ''}">
+      </div>
+    `;
+  }
+
+  // 客户评语 → 可以编辑评语内容
+  if (field === 'feedbackDate') {
     extra = `
       <div class="form-field">
         <label>评语 / 修改要点</label>
@@ -14694,13 +14721,20 @@ function openEditLogModal(styleId, cycleId, field) {
     <button class="confirm" onclick="saveEditLog()">保存</button>
   `;
   document.getElementById('updateBackdrop').classList.add('open');
+
+  // 如果是编辑收到样板，绑定照片上传
+  if (field === 'receivedDate') {
+    setTimeout(() => bindCyclePhotoUploader(cycle), 50);
+  }
 }
 
 function saveEditFit() {
   const { styleId } = state.modalContext;
   const s = state.styles.find(x => x.id === styleId);
   s.awaitingFit.since = document.getElementById('u-date').value;
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+  saveToLocalCache(state.styles);
+  saveStyleToSupabase(s);
+  closeUpdateModal(); render(); openDrawer(styleId);
 }
 
 function saveEditLog() {
@@ -14708,11 +14742,42 @@ function saveEditLog() {
   const s = state.styles.find(x => x.id === styleId);
   const cycle = s.cycles.find(c => c.id === cycleId);
   cycle[field] = document.getElementById('u-date').value;
+
+  // 保存照片（收到样板编辑）
+  if (field === 'receivedDate') {
+    if (state.pendingCyclePhotos && state.pendingCyclePhotos.length > 0) {
+      cycle.receivedPhotos = [...state.pendingCyclePhotos];
+    } else if (state.pendingCyclePhotos && state.pendingCyclePhotos.length === 0) {
+      delete cycle.receivedPhotos;
+    }
+    state.pendingCyclePhotos = [];
+  }
+
+  // 保存快递单号和预估到达（寄出客户编辑）
+  if (field === 'sentDate' && cycle.type !== 'PHOTO') {
+    const trackInput = document.getElementById('u-tracking');
+    const arrivalInput = document.getElementById('u-arrival');
+    if (trackInput) {
+      const v = trackInput.value.trim();
+      if (v) cycle.shipTrackingNo = v;
+      else delete cycle.shipTrackingNo;
+    }
+    if (arrivalInput) {
+      const v = arrivalInput.value;
+      if (v) cycle.shipEstimatedArrival = v;
+      else delete cycle.shipEstimatedArrival;
+    }
+  }
+
+  // 保存评语（客户评语编辑）
   if (field === 'feedbackDate') {
     const noteEl = document.getElementById('u-feedback-note');
     if (noteEl) cycle.feedbackNote = noteEl.value.trim();
   }
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+
+  saveToLocalCache(state.styles);
+  saveStyleToSupabase(s);
+  closeUpdateModal(); render(); openDrawer(styleId);
 }
 
 async function deleteLogEntry() {
