@@ -1015,6 +1015,16 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
   color: var(--ink-mute);
   letter-spacing: 0.02em;
 }
+/* 大货已到仓标签 */
+.cal-detail-done-tag {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px;
+  font-family: var(--font-mono); font-size: 10px;
+  font-weight: 600; letter-spacing: 0.04em;
+  background: var(--ok-bg); color: var(--ok-soft, var(--ok));
+  border-radius: 6px;
+  margin-left: auto;
+}
 .po-item-client-no {
   display: block;
   font-family: var(--font-mono); font-size: 10px;
@@ -7151,6 +7161,16 @@ body.batch-mode .today-card .thumb-mini-placeholder {
   border-color: rgba(255, 59, 48, 0.45);
   color: #FF8076;
 }
+.batch-btn-export {
+  background: rgba(52, 199, 89, 0.18);
+  border-color: rgba(52, 199, 89, 0.30);
+  color: #2FB344;
+}
+.batch-btn-export:hover {
+  background: rgba(52, 199, 89, 0.28);
+  border-color: rgba(52, 199, 89, 0.45);
+  color: #34C759;
+}
 
 /* 全局浮动铃铛 - 永远显示在右上角 */
 .alert-bell-floating {
@@ -9115,6 +9135,12 @@ main { animation: fadeInUp 0.25s ease-out; }
       </svg>
       <span id="batchSelectAllLabel">全选</span>
     </button>
+    <button class="batch-btn batch-btn-export" id="batchExportBtn" onclick="batchExportExcel()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      导出 Excel
+    </button>
     <button class="batch-btn" id="batchFollowBtn" onclick="batchMarkFollowed()" style="display:none;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>
@@ -9283,6 +9309,7 @@ main { animation: fadeInUp 0.25s ease-out; }
 <div class="storage-notice" id="storageNotice">数据存储：<b>连接中…</b></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script>
 
 // ============================================================
@@ -9419,6 +9446,7 @@ function dbPOToLocal(p) {
     exFactory: p.ex_factory_date || null,
     addedAt: p.added_at || todayStr(),
     status: p.status || 'pending',
+    barcode: p.barcode || '',
   };
 }
 
@@ -9468,6 +9496,7 @@ function localPOToDB(p, styleId) {
     ex_factory_date: p.exFactory || null,
     added_at: p.addedAt || todayStr(),
     status: p.status || 'pending',
+    barcode: p.barcode || null,
   };
 }
 
@@ -11810,30 +11839,105 @@ async function batchPermanentDelete() {
   render();
   showToast(`已永久删除 ${ids.length} 个款式`, 'ok');
 }
-  const s = state.styles.find(x => x.id === styleId);
-  if (!s) return;
-  const ok = await showDialog({
-    title: '恢复到开发追踪',
-    message: `将"${s.sku}"从历史档案恢复到开发追踪。后续可继续跟进。`,
-    confirmText: '恢复'
-  });
-  if (!ok) return;
 
-  s.archived = false;
-  delete s.archivedDate;
-  delete s.archiveReason;
-  delete s.archiveNote;
-  // 也清掉最后一个周期的 ARCHIVED 反馈（如果有）
-  if (s.cycles && s.cycles.length > 0) {
-    const lastCycle = s.cycles[s.cycles.length - 1];
-    if (lastCycle.feedbackOutcome === 'ARCHIVED') {
-      delete lastCycle.feedbackDate;
-      delete lastCycle.feedbackOutcome;
+// ============================================================
+// 批量导出 Excel（含图片、款号、PO号、条形号、样板类型）
+// ============================================================
+async function batchExportExcel() {
+  const ids = Object.keys(state.batchSelected || {}).filter(k => state.batchSelected[k]);
+  if (ids.length === 0) {
+    showToast('请先选中要导出的款式', 'warn');
+    return;
+  }
+  if (typeof XLSX === 'undefined') {
+    showToast('Excel 库加载中，请稍后重试…', 'warn');
+    return;
+  }
+
+  showToast('正在生成 Excel…', 'ok');
+
+  // 收集数据：每个 PO 一行
+  const rows = [];
+  for (const id of ids) {
+    const s = state.styles.find(x => x.id === id);
+    if (!s) continue;
+    const status = getStyleStatus(s);
+    // 获取最新周期类型作为"样板类型"
+    const latestCycle = s.cycles && s.cycles.length > 0 ? s.cycles[s.cycles.length - 1] : null;
+    const cycleTypeLabel = latestCycle ? ({
+      'DEV': '开发版', 'REVISE': '修改版', 'PHOTO': '拍照版', 'PROD': '船版/大货'
+    }[latestCycle.type] || latestCycle.type) : '—';
+
+    if (s.pos && s.pos.length > 0) {
+      for (const po of s.pos) {
+        rows.push({
+          '款号': s.sku || '',
+          '款名': s.name || '',
+          '客户': s.client || '',
+          '跟单员': s.owner || '',
+          'PO号': po.poNumber || '',
+          '大货款号': po.clientStyleNo || '',
+          '条形号': po.barcode || '',
+          '颜色': po.color || '',
+          '数量': po.quantity || '',
+          'Ex-Factory': po.exFactory || '',
+          '订单类型': po.orderType === 'repeat' ? '反单' : po.orderType === 'new' ? '新单' : '',
+          '样板类型': cycleTypeLabel,
+          '当前阶段': status.stageLabel || '',
+          '当前节点': status.currentNodeLabel || '',
+          '备注': s.notes || '',
+        });
+      }
+    } else {
+      rows.push({
+        '款号': s.sku || '',
+        '款名': s.name || '',
+        '客户': s.client || '',
+        '跟单员': s.owner || '',
+        'PO号': '',
+        '大货款号': '',
+        '条形号': '',
+        '颜色': '',
+        '数量': '',
+        'Ex-Factory': '',
+        '订单类型': '',
+        '样板类型': cycleTypeLabel,
+        '当前阶段': status.stageLabel || '',
+        '当前节点': status.currentNodeLabel || '',
+        '备注': s.notes || '',
+      });
     }
   }
-  saveState();
-  render();
-  showToast(`已恢复 ${s.sku}`, 'ok');
+
+  // 生成 workbook
+  const ws = XLSX.utils.json_to_sheet(rows);
+
+  // 设置列宽
+  ws['!cols'] = [
+    { wch: 14 }, // 款号
+    { wch: 28 }, // 款名
+    { wch: 8 },  // 客户
+    { wch: 8 },  // 跟单员
+    { wch: 18 }, // PO号
+    { wch: 14 }, // 大货款号
+    { wch: 16 }, // 条形号
+    { wch: 10 }, // 颜色
+    { wch: 8 },  // 数量
+    { wch: 12 }, // Ex-Factory
+    { wch: 8 },  // 订单类型
+    { wch: 12 }, // 样板类型
+    { wch: 12 }, // 当前阶段
+    { wch: 16 }, // 当前节点
+    { wch: 30 }, // 备注
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '款式导出');
+
+  // 导出
+  const dateStr = todayStr().replace(/-/g, '');
+  XLSX.writeFile(wb, `光采款式导出_${dateStr}.xlsx`);
+  showToast(`已导出 ${rows.length} 行数据`, 'ok');
 }
 
 
@@ -13296,8 +13400,10 @@ function renderCalendarDetailItem(s, po) {
   else if (status.level === 'warn') nodeCls = 'warn';
 
   let nodeText;
-  if (status.stage === 'DONE') nodeText = '船版已批';
+  if (status.stage === 'DONE') nodeText = '✓ 大货已到仓';
   else nodeText = `${status.currentNodeLabel} · 已 ${status.days} 天`;
+
+  const doneTag = (s.prodReceived && s.prodReceived.date) ? '<span class="cal-detail-done-tag">✓ 大货已到仓</span>' : '';
 
   return `
     <div class="cal-detail-item" onclick="openDrawer('${s.id}')">
@@ -13306,6 +13412,7 @@ function renderCalendarDetailItem(s, po) {
         <div class="cal-detail-item-row1">
           <span class="cal-detail-item-po-num">${escapeHtml(po.poNumber)}</span>
           <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
+          ${doneTag}
         </div>
         <div class="cal-detail-item-sub">
           <span class="cal-detail-item-sku">${escapeHtml(s.sku)}</span>
@@ -13334,15 +13441,17 @@ function renderCompactPORow(s, po) {
   else if (status.level === 'warn') nodeCls = 'warn';
 
   let nodeText;
-  if (status.stage === 'DONE') nodeText = '船版已批';
+  if (status.stage === 'DONE') nodeText = '✓ 大货已到仓';
   else nodeText = `${status.currentNodeLabel} · 已 ${status.days} 天`;
+
+  const doneTag = (s.prodReceived && s.prodReceived.date) ? ' <span style="color:var(--ok);font-weight:600;">✓ 到仓</span>' : '';
 
   return `
     <div class="compact-po-row" onclick="openDrawer('${s.id}')">
       ${thumb}
       <div class="compact-sku">${escapeHtml(s.sku)}</div>
       <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
-      <div class="compact-po-num">${escapeHtml(po.poNumber)}</div>
+      <div class="compact-po-num">${escapeHtml(po.poNumber)}${doneTag}</div>
       <div class="compact-po-color">${escapeHtml(po.color || '—')}${po.quantity ? ' · ' + po.quantity : ''}</div>
       <div class="compact-node ${nodeCls}">${escapeHtml(nodeText)}</div>
       <div class="compact-arrow">›</div>
@@ -13399,8 +13508,10 @@ function renderProductionBoardCard(s, po) {
   else if (status.level === 'warn') nodeInfoCls = 'warn';
 
   let nodeText;
-  if (status.stage === 'DONE') nodeText = '船版已批';
+  if (status.stage === 'DONE') nodeText = '✓ 大货已到仓';
   else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
+
+  const doneTag = (s.prodReceived && s.prodReceived.date) ? '<div style="font-family:var(--font-mono);font-size:10px;color:var(--ok);font-weight:600;margin-top:4px;">✓ 大货已到仓</div>' : '';
 
   const stageLabelText = status.stage === 'AWAIT_FIT' ? '等 fit'
                        : status.stage === 'REVISE' ? '修改版'
@@ -13425,6 +13536,7 @@ function renderProductionBoardCard(s, po) {
       </div>
       <div class="prod-board-card-bottom">
         <span class="node-info ${nodeInfoCls}">${escapeHtml(nodeText)}</span>
+        ${doneTag}
       </div>
     </div>
   `;
@@ -13495,7 +13607,8 @@ function renderProductionRow(s, po) {
       </div>
       <div class="po-cell">
         <div class="po-num">${escapeHtml(po.poNumber)}</div>
-        ${po.clientStyleNo ? `<div class="client-style-no">客户款号：${escapeHtml(po.clientStyleNo)}</div>` : ''}
+        ${po.clientStyleNo ? `<div class="client-style-no">大货款号：${escapeHtml(po.clientStyleNo)}</div>` : ''}
+        ${po.barcode ? `<div class="client-style-no">条形号：${escapeHtml(po.barcode)}</div>` : ''}
         <div class="po-qty">${escapeHtml(po.color || '—')}${po.quantity ? ' · ' + po.quantity + ' 件' : ''}</div>
       </div>
       <div class="exfactory-cell">
@@ -13613,7 +13726,8 @@ function openDrawer(id) {
                 ${po.quantity ? `<span class="po-item-qty">${po.quantity} 件</span>` : ''}
                 ${po.orderType ? `<span class="order-type-badge order-type-${po.orderType}">${po.orderType === 'repeat' ? '反单' : '新单'}</span>` : ''}
               </div>
-              ${po.clientStyleNo ? `<div class="po-item-client-no">客户款号：${escapeHtml(po.clientStyleNo)}</div>` : ''}
+              ${po.clientStyleNo ? `<div class="po-item-client-no">大货款号：${escapeHtml(po.clientStyleNo)}</div>` : ''}
+              ${po.barcode ? `<div class="po-item-client-no">条形号：${escapeHtml(po.barcode)}</div>` : ''}
               <div class="po-item-ef-row">
                 <div class="po-item-ef">
                   ${po.originalExFactory && po.originalExFactory !== po.exFactory
@@ -14189,14 +14303,112 @@ function createNewStyleForPO() {
   openNewStyleModal();
 }
 
+// 直接添加 PO（不先选款式，自动创建一个空款式挂 PO）
+function addPOWithoutStyle() {
+  state.modalContext = { type: 'addPO', step: 'fill', styleId: null };
+  document.getElementById('updateTitle').textContent = '直接添加 PO';
+  document.getElementById('updateBody').innerHTML = `
+    <p style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;">将自动创建一个款式来挂载此 PO，稍后可以补充款名和图片。</p>
+    <div class="form-row">
+      <div class="form-field">
+        <label>PO 号</label>
+        <input type="text" id="ap-po-num" placeholder="如 BPO-2024-1188">
+      </div>
+      <div class="form-field">
+        <label>客户</label>
+        <select id="ap-client">
+          <option value="BOOHOO">Boohoo</option>
+          <option value="PLT">PLT</option>
+          <option value="OTHER">其他</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>大货款号 <span class="optional-tag">选填</span></label>
+        <input type="text" id="ap-client-no" placeholder="客户内部编号">
+      </div>
+      <div class="form-field">
+        <label>条形号 <span class="optional-tag">选填</span></label>
+        <input type="text" id="ap-barcode" placeholder="如 5059621101">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>颜色 <span class="optional-tag">选填</span></label>
+        <input type="text" id="ap-color" placeholder="如 黑色 / 米色">
+      </div>
+      <div class="form-field">
+        <label>数量 <span class="optional-tag">选填</span></label>
+        <input type="number" id="ap-qty" placeholder="如 1500">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>EX-Factory 货期 <span class="optional-tag">选填</span></label>
+        <input type="date" id="ap-ef">
+      </div>
+      <div class="form-field">
+        <label>订单类型</label>
+        <select id="ap-order-type">
+          <option value="">— 不指定 —</option>
+          <option value="new">新单</option>
+          <option value="repeat">反单</option>
+        </select>
+      </div>
+    </div>
+  `;
+  document.getElementById('updateFooter').innerHTML = `
+    <button class="cancel" onclick="openAddPOFromTopModal()">‹ 返回选款</button>
+    <button class="confirm" onclick="saveNewPOWithoutStyle()">添加 PO</button>
+  `;
+  document.getElementById('updateBackdrop').classList.add('open');
+  setTimeout(() => document.getElementById('ap-po-num')?.focus(), 100);
+}
+
+function saveNewPOWithoutStyle() {
+  const poNum = document.getElementById('ap-po-num').value.trim();
+  if (!poNum) { showToast('PO 号必填', 'warn'); return; }
+  const client = document.getElementById('ap-client').value || 'OTHER';
+  const orderType = document.getElementById('ap-order-type').value;
+  const isRepeat = orderType === 'repeat';
+  const newPO = {
+    id: uid('p'),
+    poNumber: poNum,
+    clientStyleNo: document.getElementById('ap-client-no').value.trim(),
+    barcode: document.getElementById('ap-barcode').value.trim(),
+    color: document.getElementById('ap-color').value.trim(),
+    quantity: parseInt(document.getElementById('ap-qty').value) || 0,
+    exFactory: document.getElementById('ap-ef').value,
+    orderType,
+    addedAt: todayStr()
+  };
+  // 自动创建款式
+  const newId = uid('st');
+  const autoSku = poNum;  // 用 PO 号作为默认款号
+  state.styles.unshift({
+    id: newId,
+    sku: autoSku,
+    name: '(待补充)',
+    description: '',
+    client,
+    owner: '',
+    imageUrl: '',
+    createdAt: new Date().toISOString(),
+    cycles: [{ id: uid('c'), type: isRepeat ? 'PROD' : 'DEV', openDate: todayStr() }],
+    pos: [newPO]
+  });
+  saveState();
+  closeUpdateModal();
+  render();
+  showToast(`已创建款式 ${autoSku} 并添加 PO`, 'ok');
+  openDrawer(newId);
+}
+
 
 function openAddPOFromTopModal() {
   // 列出所有未归档的款式
   const styles = state.styles.filter(s => !s.archived);
-  if (styles.length === 0) {
-    showToast('请先创建一个款式', 'warn');
-    return;
-  }
 
   state.modalContext = { type: 'addPO', step: 'select' };
   document.getElementById('updateTitle').textContent = '为款式添加 PO';
@@ -14227,6 +14439,10 @@ function openAddPOFromTopModal() {
       <input type="text" id="addPoStyleSearch" placeholder="按款号 / 款名搜索…" oninput="filterAddPoStyles()">
     </div>
     <div class="po-style-pick-list" id="poStylePickList">
+      <div class="po-style-pick-create-new" onclick="addPOWithoutStyle()">
+        <span class="icon" style="font-size:16px;">📦</span>
+        <span>直接添加 PO（自动创建款式）</span>
+      </div>
       <div class="po-style-pick-create-new" onclick="createNewStyleForPO()">
         <span class="icon">+</span>
         <span>创建全新款式</span>
@@ -14262,33 +14478,37 @@ function selectStyleForNewPO(styleId) {
         <input type="text" id="ap-po-num" placeholder="如 BPO-2024-1188">
       </div>
       <div class="form-field">
-        <label>客户款号 <span class="optional-tag">选填</span></label>
+        <label>大货款号 <span class="optional-tag">选填</span></label>
         <input type="text" id="ap-client-no" placeholder="客户内部编号">
       </div>
     </div>
     <div class="form-row">
       <div class="form-field">
-        <label>颜色 <span class="optional-tag">选填</span></label>
-        <input type="text" id="ap-color" placeholder="如 黑色 / 米色">
+        <label>条形号 <span class="optional-tag">选填</span></label>
+        <input type="text" id="ap-barcode" placeholder="如 5059621101">
       </div>
       <div class="form-field">
-        <label>数量 <span class="optional-tag">选填</span></label>
-        <input type="number" id="ap-qty" placeholder="如 1500">
+        <label>颜色 <span class="optional-tag">选填</span></label>
+        <input type="text" id="ap-color" placeholder="如 黑色 / 米色">
       </div>
     </div>
     <div class="form-row">
       <div class="form-field">
+        <label>数量 <span class="optional-tag">选填</span></label>
+        <input type="number" id="ap-qty" placeholder="如 1500">
+      </div>
+      <div class="form-field">
         <label>EX-Factory 货期 <span class="optional-tag">选填</span></label>
         <input type="date" id="ap-ef">
       </div>
-      <div class="form-field">
-        <label>订单类型</label>
-        <select id="ap-order-type">
-          <option value="">— 不指定 —</option>
-          <option value="new">新单</option>
-          <option value="repeat">反单</option>
-        </select>
-      </div>
+    </div>
+    <div class="form-field">
+      <label>订单类型</label>
+      <select id="ap-order-type">
+        <option value="">— 不指定 —</option>
+        <option value="new">新单</option>
+        <option value="repeat">反单</option>
+      </select>
     </div>
   `;
   document.getElementById('updateFooter').innerHTML = `
@@ -14308,6 +14528,7 @@ function saveNewPOFromTop() {
     id: uid('p'),
     poNumber: poNum,
     clientStyleNo: document.getElementById('ap-client-no').value.trim(),
+    barcode: document.getElementById('ap-barcode').value.trim(),
     color: document.getElementById('ap-color').value.trim(),
     quantity: parseInt(document.getElementById('ap-qty').value) || 0,
     exFactory: document.getElementById('ap-ef').value,
@@ -14668,7 +14889,8 @@ function openFeedbackModal(styleId, cycleId) {
                 <div class="form-field"><label>颜色</label><input type="text" class="po-row-color" placeholder="如 黑色" oninput="updateColorSwatch(this)"></div>
                 <div class="form-field"><label>Ex-Factory 货期</label><input type="date" class="po-row-ef"></div>
                 <div class="form-field"><label>数量（选填）</label><input type="number" class="po-row-qty" placeholder="件" min="0"></div>
-                <div class="form-field full"><label>客户款号（选填）</label><input type="text" class="po-row-client-no" placeholder="如 BHO9988"></div>
+                <div class="form-field full"><label>大货款号（选填）</label><input type="text" class="po-row-client-no" placeholder="如 BHO9988"></div>
+                <div class="form-field full"><label>条形号（选填）</label><input type="text" class="po-row-barcode" placeholder="如 5059621101"></div>
               </div>
             </div>
           </div>
@@ -14754,7 +14976,7 @@ function updateFBPOFieldsVisibility() {
 function addPORow() {
   const c = document.getElementById('po-rows-container');
   const r = document.createElement('div'); r.className = 'po-color-card';
-  r.innerHTML = `<div class="po-color-card-header"><span class="po-color-card-label"><span class="po-color-swatch" data-swatch></span>颜色 PO</span><button type="button" class="po-color-card-remove" onclick="this.closest('.po-color-card').remove()" title="移除">×</button></div><div class="po-color-card-fields"><div class="form-field"><label>PO 号</label><input type="text" class="po-row-num" placeholder="如 BPO-2024-1188"></div><div class="form-field"><label>颜色</label><input type="text" class="po-row-color" placeholder="如 米色" oninput="updateColorSwatch(this)"></div><div class="form-field"><label>Ex-Factory 货期</label><input type="date" class="po-row-ef"></div><div class="form-field"><label>数量（选填）</label><input type="number" class="po-row-qty" placeholder="件" min="0"></div><div class="form-field full"><label>客户款号（选填）</label><input type="text" class="po-row-client-no" placeholder="如 BHO9988"></div></div>`;
+  r.innerHTML = `<div class="po-color-card-header"><span class="po-color-card-label"><span class="po-color-swatch" data-swatch></span>颜色 PO</span><button type="button" class="po-color-card-remove" onclick="this.closest('.po-color-card').remove()" title="移除">×</button></div><div class="po-color-card-fields"><div class="form-field"><label>PO 号</label><input type="text" class="po-row-num" placeholder="如 BPO-2024-1188"></div><div class="form-field"><label>颜色</label><input type="text" class="po-row-color" placeholder="如 米色" oninput="updateColorSwatch(this)"></div><div class="form-field"><label>Ex-Factory 货期</label><input type="date" class="po-row-ef"></div><div class="form-field"><label>数量（选填）</label><input type="number" class="po-row-qty" placeholder="件" min="0"></div><div class="form-field full"><label>大货款号（选填）</label><input type="text" class="po-row-client-no" placeholder="如 BHO9988"></div><div class="form-field full"><label>条形号（选填）</label><input type="text" class="po-row-barcode" placeholder="如 5059621101"></div></div>`;
   c.appendChild(r);
 }
 function updateColorSwatch(input) {
@@ -14800,9 +15022,11 @@ async function saveFeedback() {
       const ef = row.querySelector('.po-row-ef').value;
       const qty = parseInt(row.querySelector('.po-row-qty').value) || null;
       const cliNo = row.querySelector('.po-row-client-no')?.value.trim() || '';
+      const barcode = row.querySelector('.po-row-barcode')?.value.trim() || '';
       if (num && ef) {
         const po = { id: uid('po'), poNumber: num, color, quantity: qty, exFactory: ef, addedAt: date };
         if (cliNo) po.clientStyleNo = cliNo;
+        if (barcode) po.barcode = barcode;
         newPos.push(po);
       }
     });
@@ -15140,17 +15364,21 @@ function openAddPOModal(styleId) {
     </div>
     <div class="form-row">
       <div class="form-field">
-        <label>客户款号 <span class="optional-tag">选填</span></label>
+        <label>大货款号 <span class="optional-tag">选填</span></label>
         <input type="text" id="u-po-client-no" placeholder="如 BHO9988">
       </div>
       <div class="form-field">
-        <label>订单类型</label>
-        <select id="u-po-order-type">
-          <option value="">— 不指定 —</option>
-          <option value="new">新单</option>
-          <option value="repeat">反单</option>
-        </select>
+        <label>条形号 <span class="optional-tag">选填</span></label>
+        <input type="text" id="u-po-barcode" placeholder="如 5059621101">
       </div>
+    </div>
+    <div class="form-field">
+      <label>订单类型</label>
+      <select id="u-po-order-type">
+        <option value="">— 不指定 —</option>
+        <option value="new">新单</option>
+        <option value="repeat">反单</option>
+      </select>
     </div>
   `;
   document.getElementById('updateFooter').innerHTML = `
@@ -15168,11 +15396,13 @@ function saveAddPO() {
   const ef = document.getElementById('u-po-ef').value;
   const qty = parseInt(document.getElementById('u-po-qty').value) || null;
   const cliNo = document.getElementById('u-po-client-no').value.trim();
+  const barcode = document.getElementById('u-po-barcode')?.value.trim() || '';
   const orderType = document.getElementById('u-po-order-type')?.value || '';
   if (!num) { showToast('PO 号必填', 'warn'); return; }
   if (!s.pos) s.pos = [];
   const po = { id: uid('po'), poNumber: num, color, quantity: qty, exFactory: ef, orderType, addedAt: todayStr() };
   if (cliNo) po.clientStyleNo = cliNo;
+  if (barcode) po.barcode = barcode;
   s.pos.push(po);
   saveState(); closeUpdateModal(); render(); openDrawer(styleId);
 }
@@ -15206,17 +15436,21 @@ function openEditPOModal(styleId, poId) {
     </div>
     <div class="form-row">
       <div class="form-field">
-        <label>客户款号 <span class="optional-tag">选填</span></label>
+        <label>大货款号 <span class="optional-tag">选填</span></label>
         <input type="text" id="u-po-client-no" value="${escapeHtml(po.clientStyleNo || '')}" placeholder="如 BHO9988">
       </div>
       <div class="form-field">
-        <label>订单类型</label>
-        <select id="u-po-order-type">
-          <option value="" ${!po.orderType ? 'selected' : ''}>— 不指定 —</option>
-          <option value="new" ${po.orderType === 'new' ? 'selected' : ''}>新单</option>
-          <option value="repeat" ${po.orderType === 'repeat' ? 'selected' : ''}>反单</option>
-        </select>
+        <label>条形号 <span class="optional-tag">选填</span></label>
+        <input type="text" id="u-po-barcode" value="${escapeHtml(po.barcode || '')}" placeholder="如 5059621101">
       </div>
+    </div>
+    <div class="form-field">
+      <label>订单类型</label>
+      <select id="u-po-order-type">
+        <option value="" ${!po.orderType ? 'selected' : ''}>— 不指定 —</option>
+        <option value="new" ${po.orderType === 'new' ? 'selected' : ''}>新单</option>
+        <option value="repeat" ${po.orderType === 'repeat' ? 'selected' : ''}>反单</option>
+      </select>
     </div>
   `;
   document.getElementById('updateFooter').innerHTML = `
@@ -15242,6 +15476,9 @@ function saveEditPO() {
   const cliNo = document.getElementById('u-po-client-no').value.trim();
   if (cliNo) po.clientStyleNo = cliNo;
   else delete po.clientStyleNo;
+  const barcode = document.getElementById('u-po-barcode')?.value.trim() || '';
+  if (barcode) po.barcode = barcode;
+  else delete po.barcode;
   saveState(); closeUpdateModal(); render(); openDrawer(styleId);
 }
 
@@ -15399,15 +15636,20 @@ function addNewStylePoRow() {
         <input type="text" class="po-num" placeholder="如 32132132">
       </div>
       <div class="form-field">
-        <label>客户款号 <span class="optional-tag">选填</span></label>
+        <label>大货款号 <span class="optional-tag">选填</span></label>
         <input type="text" class="po-client-no" placeholder="如 BHO9988">
       </div>
     </div>
     <div class="form-row">
       <div class="form-field">
+        <label>条形号 <span class="optional-tag">选填</span></label>
+        <input type="text" class="po-barcode" placeholder="如 5059621101">
+      </div>
+      <div class="form-field">
         <label>颜色 <span class="optional-tag">选填</span></label>
         <input type="text" class="po-color" placeholder="如 黑色">
       </div>
+    </div>
       <div class="form-field">
         <label>数量 <span class="optional-tag">选填</span></label>
         <input type="number" class="po-qty" placeholder="如 1500">
@@ -15466,13 +15708,14 @@ function collectNewStylePoRows() {
     const r = rowEls[i];
     const num = r.querySelector('.po-num').value.trim();
     const cliNo = r.querySelector('.po-client-no').value.trim();
+    const barcode = r.querySelector('.po-barcode')?.value.trim() || '';
     const color = r.querySelector('.po-color').value.trim();
     const qty = parseInt(r.querySelector('.po-qty').value) || null;
     const ef = r.querySelector('.po-ef').value;
     const orderType = r.querySelector('.po-order-type').value;
 
     // 整行都没填的，跳过（不当作错误，让用户加了行又不想填也无所谓）
-    if (!num && !cliNo && !color && !qty && !ef && !orderType) continue;
+    if (!num && !cliNo && !color && !qty && !ef && !orderType && !barcode) continue;
 
     // 只要有任一字段填了，PO 号就必填
     if (!num) {
@@ -15490,6 +15733,7 @@ function collectNewStylePoRows() {
       addedAt: todayStr()
     };
     if (cliNo) po.clientStyleNo = cliNo;
+    if (barcode) po.barcode = barcode;
     pos.push(po);
   }
   return pos;
