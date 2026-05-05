@@ -11478,14 +11478,16 @@ function renderArchiveRow(s, type) {
       ${ckbox}
       ${thumb}
       <div class="sku">${escapeHtml(s.sku)}</div>
-      ${restoreBtn}
-      ${deleteBtn}
       <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
-      <div>
+      <div style="flex:1; min-width:0;">
         <div class="style-name">${escapeHtml(s.name)}</div>
         <div class="style-subinfo">${escapeHtml(s.owner || '')}</div>
       </div>
       ${info}
+      <div style="display:flex; gap:6px; align-items:center; margin-left:auto;">
+        ${restoreBtn}
+        ${deleteBtn}
+      </div>
       <div class="arrow">›</div>
     </div>
   `;
