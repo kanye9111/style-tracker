@@ -9323,6 +9323,11 @@ function localPOToDB(p, styleId) {
 // 保存单个 style 到 Supabase（upsert = 新增或更新）
 async function saveStyleToSupabase(style) {
   try {
+    // 立刻更新本地缓存（保证 UI 实时响应）
+    const _idx = state.styles.findIndex(x => x.id === style.id);
+    if (_idx >= 0) state.styles[_idx] = style;
+    saveToLocalCache(state.styles);
+
     // 1. upsert style
     const { error: se } = await _supabase
       .from('styles')
