@@ -14614,31 +14614,38 @@ function saveEditLog() {
 
 async function deleteLogEntry() {
   const { styleId, cycleId, field } = state.modalContext;
-  if (!await showDialog({title:'确认删除', message:'确认删除此条记录？后续状态推导会受影响。', confirmText:'删除', danger:true})) return;
+  if (!await showDialog({title:"确认删除", message:"确认删除此条记录？后续状态推导会受影响。", confirmText:"删除", danger:true})) return;
   const s = state.styles.find(x => x.id === styleId);
-  if (field === 'awaitingFit') s.awaitingFit = null;
-  else {
+  if (field === "awaitingFit") {
+    s.awaitingFit = null;
+  } else {
     const cycle = s.cycles.find(c => c.id === cycleId);
-    delete cycle[field];
-    if (field === 'feedbackDate') {
-      delete cycle.feedbackOutcome;
-      delete cycle.feedbackNote;
+    if (cycle) {
+      delete cycle[field];
+      if (field === "feedbackDate") { delete cycle.feedbackOutcome; delete cycle.feedbackNote; }
+      await _supabase.from("cycles").upsert(localCycleToDB(cycle, styleId));
     }
   }
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+  await saveStyleToSupabase(s);
+  closeUpdateModal(); render(); openDrawer(styleId);
+  showToast("已删除并同步", "ok");
 }
 
 async function quickDeleteLog(styleId, cycleId, field) {
-  if (!await showDialog({title:'确认删除', message:'确认删除此条记录？后续状态推导会受影响。', confirmText:'删除', danger:true})) return;
+  if (!await showDialog({title:"确认删除", message:"确认删除此条记录？后续状态推导会受影响。", confirmText:"删除", danger:true})) return;
   const s = state.styles.find(x => x.id === styleId);
-  if (field === 'awaitingFit') s.awaitingFit = null;
-  else {
+  if (field === "awaitingFit") {
+    s.awaitingFit = null;
+  } else {
     const cycle = s.cycles.find(c => c.id === cycleId);
     if (!cycle) return;
     delete cycle[field];
-    if (field === 'feedbackDate') { delete cycle.feedbackOutcome; delete cycle.feedbackNote; }
+    if (field === "feedbackDate") { delete cycle.feedbackOutcome; delete cycle.feedbackNote; }
+    await _supabase.from("cycles").upsert(localCycleToDB(cycle, styleId));
   }
-  saveState(); render(); openDrawer(styleId);
+  await saveStyleToSupabase(s);
+  render(); openDrawer(styleId);
+  showToast("已删除并同步", "ok");
 }
 
 /*
