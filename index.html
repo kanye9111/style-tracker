@@ -8992,6 +8992,12 @@ main { animation: fadeInUp 0.25s ease-out; }
       </svg>
       批量恢复
     </button>
+    <button class="batch-btn batch-btn-danger" id="batchDeleteBtn" onclick="batchPermanentDelete()" style="display:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+      </svg>
+      批量删除
+    </button>
     <button class="batch-btn batch-btn-cancel" onclick="exitBatchMode()">退出</button>
   </div>
 </div>
@@ -9611,6 +9617,7 @@ function syncBatchBarButtons() {
   const followBtn = document.getElementById('batchFollowBtn');
   const archiveBtn = document.getElementById('batchArchiveBtn');
   const restoreBtn = document.getElementById('batchRestoreBtn');
+  const deleteBtn = document.getElementById('batchDeleteBtn');
   if (!followBtn) return;
 
   const isArchive = (state.topTab === 'archive');
@@ -9622,6 +9629,8 @@ function syncBatchBarButtons() {
   if (archiveBtn) archiveBtn.style.display = isArchive ? 'none' : 'inline-flex';
   // 恢复只在历史 tab
   if (restoreBtn) restoreBtn.style.display = isArchive ? 'inline-flex' : 'none';
+  // 批量删除只在历史 tab
+  if (deleteBtn) deleteBtn.style.display = isArchive ? 'inline-flex' : 'none';
 
   // 全选标签：检查当前是否已全选
   const ids = collectVisibleStyleIds();
@@ -11415,11 +11424,12 @@ function renderArchiveRow(s, type) {
       'customer_cancel': '客户取消',
       'production_failed': '做不出',
       'price_no_deal': '价格谈不下',
+      'deleted': '未采用',
       'other': '其他原因'
     };
     const reasonText = s.archiveReason
-      ? (reasonMap[s.archiveReason] || s.archiveReason)
-      : '客户未下 PO';
+      ? (reasonMap[s.archiveReason] || '未采用')
+      : '未采用';
     info = `
       <div class="node-block">
         <div class="node-block-row1">
@@ -11438,11 +11448,21 @@ function renderArchiveRow(s, type) {
 
   // 已批船版的不显示恢复按钮（恢复到哪？没语义），只对"未采用"显示
   const restoreBtn = (type === 'archived')
-    ? `<button class="archive-restore-btn" onclick="event.stopPropagation(); restoreArchivedStyle('${s.id}')" title="恢复到开发追踪">
-         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    ? `<button class="archive-restore-btn success-btn" onclick="event.stopPropagation(); restoreArchivedStyle('${s.id}')" title="恢复到开发追踪">
+         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
            <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>
          </svg>
          恢复
+       </button>`
+    : '';
+
+  // 完全删除按钮（仅未采用类型）
+  const deleteBtn = (type === 'archived')
+    ? `<button class="archive-delete-btn danger-btn" onclick="event.stopPropagation(); permanentlyDeleteStyle('${s.id}')" title="永久删除，不可恢复">
+         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+           <path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+         </svg>
+         删除
        </button>`
     : '';
 
@@ -11458,13 +11478,14 @@ function renderArchiveRow(s, type) {
       ${ckbox}
       ${thumb}
       <div class="sku">${escapeHtml(s.sku)}</div>
+      ${restoreBtn}
+      ${deleteBtn}
       <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
       <div>
         <div class="style-name">${escapeHtml(s.name)}</div>
         <div class="style-subinfo">${escapeHtml(s.owner || '')}</div>
       </div>
       ${info}
-      ${restoreBtn}
       <div class="arrow">›</div>
     </div>
   `;
@@ -11472,6 +11493,55 @@ function renderArchiveRow(s, type) {
 
 // 恢复"未采用"款式 → 回到开发追踪
 async function restoreArchivedStyle(styleId) {
+
+// 永久删除款式（不可恢复）
+async function permanentlyDeleteStyle(styleId) {
+  if (!await showDialog({
+    title: '永久删除',
+    message: '确认要永久删除这个款式吗？删除后无法恢复！',
+    confirmText: '永久删除',
+    danger: true
+  })) return;
+
+  // 从本地删除
+  state.styles = state.styles.filter(x => x.id !== styleId);
+  saveToLocalCache(state.styles);
+
+  // 从 Supabase 删除
+  await _supabase.from('styles').delete().eq('id', styleId);
+
+  render();
+  showToast('已永久删除', 'ok');
+}
+
+// 批量永久删除
+async function batchPermanentDelete() {
+  const ids = Object.keys(state.batchSelected || {}).filter(k => state.batchSelected[k]);
+  if (ids.length === 0) {
+    showToast('没有选中的款式', 'warn');
+    return;
+  }
+
+  if (!await showDialog({
+    title: '批量永久删除',
+    message: `确认要永久删除选中的 ${ids.length} 个款式吗？删除后无法恢复！`,
+    confirmText: '永久删除',
+    danger: true
+  })) return;
+
+  // 从本地删除
+  state.styles = state.styles.filter(s => !ids.includes(s.id));
+  saveToLocalCache(state.styles);
+
+  // 从 Supabase 删除
+  for (const id of ids) {
+    await _supabase.from('styles').delete().eq('id', id);
+  }
+
+  clearBatchSelection();
+  render();
+  showToast(`已永久删除 ${ids.length} 个款式`, 'ok');
+}
   const s = state.styles.find(x => x.id === styleId);
   if (!s) return;
   const ok = await showDialog({
