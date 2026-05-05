@@ -10719,6 +10719,24 @@ function todayPlus(days) {
     }
   });
 
+  // 全局关闭浏览器自动填充（避免点击款号/款名等字段弹出历史记录）
+  (function() {
+    document.querySelectorAll('input').forEach(el => el.setAttribute('autocomplete', 'off'));
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        m.addedNodes.forEach(function(node) {
+          if (node.nodeType === 1) {
+            if (node.tagName === 'INPUT') node.setAttribute('autocomplete', 'off');
+            if (node.querySelectorAll) {
+              node.querySelectorAll('input').forEach(el => el.setAttribute('autocomplete', 'off'));
+            }
+          }
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  })();
+
   // 登录提交 —— 直接绑定（不依赖 DOMContentLoaded，避免事件已触发后绑不上的时序问题）
   function bindLoginForm() {
     const form = document.getElementById('loginForm');
