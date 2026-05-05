@@ -193,7 +193,7 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
   color: var(--ink-mute);
   font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em;
 }
-.sku { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--ink); }
+.sku { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--ink); word-break: break-all; line-height: 1.3; }
 .client-badge {
   display: inline-flex; align-items: center;
   padding: 3px 9px;
@@ -203,7 +203,7 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
 .client-boohoo { background: #1a1a1a; color: #fff; }
 .client-plt { background: #FFC9D9; color: #8B1E3F; }
 .client-other { background: var(--bg-sunken); color: var(--ink-soft); border: 1px solid var(--line-strong); }
-.style-name { font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.3; }
+.style-name { font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.3; word-break: break-word; overflow-wrap: break-word; }
 .style-subinfo { font-family: var(--font-mono); font-size: 11px; color: var(--ink-mute); margin-top: 3px; letter-spacing: 0.02em; }
 
 .stage-bar {
@@ -792,10 +792,10 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
 
 /* 大货跟进行加节点信息 */
 .production-row.with-node {
-  grid-template-columns: 80px 110px 90px 180px 110px 130px 1fr 36px;
+  grid-template-columns: 80px minmax(90px, 140px) 90px minmax(120px, 1fr) 110px 130px minmax(120px, 1fr) 36px;
 }
 .production-list-header.with-node {
-  grid-template-columns: 80px 110px 90px 180px 110px 130px 1fr 36px;
+  grid-template-columns: 80px minmax(90px, 140px) 90px minmax(120px, 1fr) 110px 130px minmax(120px, 1fr) 36px;
 }
 .production-current-node {
   display: flex; flex-direction: column; gap: 3px;
@@ -14420,13 +14420,30 @@ function saveNewPOWithoutStyle() {
     owner: '',
     imageUrl: '',
     createdAt: new Date().toISOString(),
-    cycles: [{ id: uid('c'), type: isRepeat ? 'PROD' : 'DEV', openDate: todayStr() }],
+    cycles: [(() => {
+      const openDate = todayStr();
+      if (isRepeat && client === 'BOOHOO') {
+        // Boohoo 反单：直接完成 PROD cycle，进入等大货
+        return { id: uid('c'), type: 'PROD', openDate, receivedDate: openDate, sentDate: openDate, feedbackDate: openDate, feedbackOutcome: 'APPROVED' };
+      } else if (isRepeat) {
+        // PLT 反单：需要船版流程
+        return { id: uid('c'), type: 'PROD', openDate };
+      } else {
+        return { id: uid('c'), type: 'DEV', openDate };
+      }
+    })()],
     pos: [newPO]
   });
   saveState();
   closeUpdateModal();
   render();
-  showToast(`已创建款式 ${autoSku} 并添加 PO`, 'ok');
+  if (isRepeat && client === 'BOOHOO') {
+    showToast(`Boohoo 反单 ${autoSku} · 直接等大货`, 'ok');
+  } else if (isRepeat) {
+    showToast(`PLT 反单 ${autoSku} · 进入船版阶段`, 'ok');
+  } else {
+    showToast(`已创建款式 ${autoSku} 并添加 PO`, 'ok');
+  }
   openDrawer(newId);
 }
 
@@ -15584,11 +15601,19 @@ function saveNewStyle() {
 
   // 检查是否有反单 PO
   const hasRepeatPo = newPos && newPos.some(p => p.orderType === 'repeat');
-  // 如果至少一个 PO 是反单，跳过开版直接进入 PROD（等大货）
-  // 同时，如果存在新单 PO 也存在反单 PO 的混合情况，按用户的意思以反单为主（也跳开版）
+  // 反单逻辑：
+  //   Boohoo 反单 → 直接等大货（不需要寄船版），自动走完 PROD cycle
+  //   PLT 反单 → 需要船版流程（寄船版 → 确认 → 大货）
   let cycles;
-  if (hasRepeatPo) {
-    // 反单：直接跳到 PROD cycle，跟单员后续在抽屉里跟进大货进度
+  if (hasRepeatPo && client === 'BOOHOO') {
+    // Boohoo 反单：创建已完成的 PROD cycle，直接进入等大货
+    cycles = [{
+      id: uid('c'), type: 'PROD', openDate,
+      receivedDate: openDate, sentDate: openDate,
+      feedbackDate: openDate, feedbackOutcome: 'APPROVED'
+    }];
+  } else if (hasRepeatPo) {
+    // PLT 或其他反单：需要船版流程
     cycles = [{ id: uid('c'), type: 'PROD', openDate }];
   } else {
     cycles = [{ id: uid('c'), type: 'DEV', openDate }];
@@ -15616,8 +15641,10 @@ function saveNewStyle() {
     cb(newId);
   } else {
     render();
-    if (hasRepeatPo) {
-      showToast('反单已创建 · 跳过开版，直接进入大货阶段', 'ok');
+    if (hasRepeatPo && client === 'BOOHOO') {
+      showToast('Boohoo 反单已创建 · 直接进入等大货阶段', 'ok');
+    } else if (hasRepeatPo) {
+      showToast('PLT 反单已创建 · 进入船版阶段', 'ok');
     } else if (newPos && newPos.length > 0) {
       showToast(`已创建款式并添加 ${newPos.length} 个 PO`, 'ok');
     }
