@@ -9286,6 +9286,8 @@ function localStyleToDB(s) {
     notes: s.notes || null,
     archived: s.archived || false,
     archived_date: s.archivedDate || null,
+    archive_reason: s.archiveReason || null,
+    archive_note: s.archiveNote || null,
     snoozed_until: s.snoozedUntil || null,
     awaiting_fit: s.awaitingFit ? JSON.stringify(s.awaitingFit) : null,
     order_type: s.orderType || null,
@@ -14816,16 +14818,17 @@ async function undoArchive(id) {
 }
 
 async function deleteStyle(id) {
-  if (!await showDialog({title:"确认操作", message:"删除这个款式吗？", confirmText:"删除", danger:true})) return;
+  if (!await showDialog({title:"确认操作", message:"删除这个款式，会移入历史档案。确认继续？", confirmText:"移入归档", danger:true})) return;
   const s = state.styles.find(x => x.id === id);
   if (!s) return;
-  // 从本地状态删掉
-  state.styles = state.styles.filter(x => x.id !== id);
+  s.archived = true;
+  s.archivedDate = todayStr();
+  s.archiveReason = "deleted";
+  state.styles = state.styles.map(x => x.id === id ? s : x);
   saveToLocalCache(state.styles);
-  // 从 Supabase 删掉
-  await _supabase.from("styles").delete().eq("id", id);
+  await saveStyleToSupabase(s);
   closeDrawer(); render();
-  showToast("已删除", "ok");
+  showToast("已移入历史档案", "ok");
 }
 
 function openNewStyleModal() {
