@@ -9843,11 +9843,13 @@ async function batchRestore() {
       count++;
     }
   });
-  saveState();
+  saveToLocalCache(state.styles);
+  const toSave = validIds.map(id => state.styles.find(x => x.id === id)).filter(Boolean);
+  for (const s of toSave) { await saveStyleToSupabase(s); }
   clearBatchSelection();
   exitBatchMode();
   render();
-  showToast(`已恢复 ${count} 个款到开发追踪`, 'ok');
+  showToast(`已恢复 ${count} 个款到开发追踪`, "ok");
 }
 
 
@@ -10003,6 +10005,7 @@ async function batchArchive() {
 
   let count = 0;
   const today = todayStr();
+  const toSave = [];
   ids.forEach(id => {
     const s = state.styles.find(x => x.id === id);
     if (s && !s.archived) {
@@ -10011,12 +10014,14 @@ async function batchArchive() {
       s.archiveReason = result.reason;
       if (result.note) s.archiveNote = result.note;
       count++;
+      toSave.push(s);
     }
   });
-  saveState();
+  saveToLocalCache(state.styles);
+  for (const s of toSave) { await saveStyleToSupabase(s); }
   clearBatchSelection();
   render();
-  showToast(`已归档 ${count} 个款，可在历史档案中恢复`, 'ok');
+  showToast(`已归档 ${count} 个款，可在历史档案中恢复`, "ok");
 }
 
 
@@ -14811,9 +14816,16 @@ async function undoArchive(id) {
 }
 
 async function deleteStyle(id) {
-  if (!await showDialog({title:'确认删除', message:'确认删除这个款式？', confirmText:'删除', danger:true})) return;
-  state.styles = state.styles.filter(s => s.id !== id);
-  saveState(); closeDrawer(); render();
+  if (!await showDialog({title:"确认操作", message:"删除这个款式，会移入历史档案。确认继续？", confirmText:"移入归档", danger:true})) return;
+  const s = state.styles.find(x => x.id === id);
+  if (!s) return;
+  s.archived = true;
+  s.archivedDate = todayStr();
+  s.archiveReason = "deleted";
+  saveToLocalCache(state.styles);
+  await saveStyleToSupabase(s);
+  closeDrawer(); render();
+  showToast("已移入历史档案", "ok");
 }
 
 function openNewStyleModal() {
