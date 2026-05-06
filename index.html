@@ -9504,6 +9504,8 @@ function dbCycleToLocal(c, photos) {
     shipActualArrival: c.ship_actual_arrival || null,
     receivedPhotos: photos || [],
     isVirtual: !!c.is_virtual,
+    patternMakerDone: !!c.pattern_maker_done,
+    patternMakerDoneDate: c.pattern_maker_done_date || null,
   };
 }
 function dbPOToLocal(p) {
@@ -9557,6 +9559,8 @@ function localCycleToDB(c, styleId) {
     ship_estimated_arrival: c.shipEstimatedArrival || null,
     ship_actual_arrival: c.shipActualArrival || null,
     is_virtual: !!c.isVirtual,
+    pattern_maker_done: !!c.patternMakerDone,
+    pattern_maker_done_date: c.patternMakerDoneDate || null,
   };
 }
 function localPOToDB(p, styleId) {
@@ -11077,6 +11081,7 @@ const CYCLE_TYPES = {
 // 该催谁
 function whoToFollowUp(node, cycleType) {
   if (node === 'PATTERN_MAKING') return '板房 / 板师';
+  if (node === 'AWAIT_DELIVERY') return '板房（送样回来）';
   if (node === 'AWAIT_SEND') return '自己处理（提醒寄出）';
   if (node === 'AWAIT_FB') {
     if (cycleType === 'PHOTO') return '客户买手（图审）';
@@ -11159,13 +11164,18 @@ function getStyleStatus(style) {
 
   if (!lastCycle.receivedDate) {
     const days = daysSince(lastCycle.openDate);
+    // 区分：版师还在做 vs 版师打完了等版房送
+    const pmDone = !!lastCycle.patternMakerDone;
     return {
       stage: lastCycle.type, stageLabel,
-      currentNode: 'PATTERN_MAKING', currentNodeLabel: '等收到样板',
-      startDate: lastCycle.openDate,
-      days, level: urgencyByDays(days, 3, 5),
+      currentNode: pmDone ? 'AWAIT_DELIVERY' : 'PATTERN_MAKING',
+      currentNodeLabel: pmDone ? '等版房送样' : '等收到样板',
+      startDate: pmDone && lastCycle.patternMakerDoneDate ? lastCycle.patternMakerDoneDate : lastCycle.openDate,
+      days: pmDone && lastCycle.patternMakerDoneDate ? daysSince(lastCycle.patternMakerDoneDate) : days,
+      level: urgencyByDays(pmDone && lastCycle.patternMakerDoneDate ? daysSince(lastCycle.patternMakerDoneDate) : days, 3, 5),
       awaitingClient: false, isActive: true, isArchived: false,
-      cycleType: lastCycle.type, cycleId: lastCycle.id
+      cycleType: lastCycle.type, cycleId: lastCycle.id,
+      patternMakerDone: pmDone
     };
   }
   if (!lastCycle.sentDate) {
@@ -11319,11 +11329,14 @@ function buildFullFlow(style) {
         photos: cycle.receivedPhotos || [], isVirtual: !!cycle.isVirtual
       });
     } else if (isLastCycle && !style.archived) {
+      const pmDone = !!cycle.patternMakerDone;
       nodes.push({
-        label: cycle.type === 'PHOTO' ? '等收到拍照版' : '等收到样板',
+        label: pmDone
+          ? (cycle.type === 'PHOTO' ? '等版房送拍照版' : '等版房送样')
+          : (cycle.type === 'PHOTO' ? '等收到拍照版' : '等收到样板'),
         date: null, status: 'current', cycleType: cycle.type,
         level: status.level, daysText: formatDaysText(status.days),
-        startDate: cycle.openDate
+        startDate: pmDone && cycle.patternMakerDoneDate ? cycle.patternMakerDoneDate : cycle.openDate
       });
     }
 
@@ -11477,6 +11490,10 @@ function getTodayList(activeStyles) {
       if (isPoActive) actionHint = '⚡ 催板房（已下PO）';
       else actionHint = '催板房';
     }
+    else if (status.currentNode === 'AWAIT_DELIVERY') {
+      if (isPoActive) actionHint = '⚡ 催版房送样（已下PO）';
+      else actionHint = '催版房送样';
+    }
     else if (status.currentNode === 'AWAIT_SEND') {
       if (isPoActive) actionHint = '⚡ 赶紧寄出（已下PO）';
       else actionHint = '该寄了';
@@ -11535,17 +11552,17 @@ function renderTodayTab() {
   }
 
   // 按职责分组
-  // 版师待办：板房在做的（等收样板、修改、重做）
+  // 版师待办：板房在做的（版师还没打完）
   const patternItems = items.filter(it => {
     const node = it.status.currentNode;
     return node === 'PATTERN_MAKING' && !it.isAwaitFit;
   });
 
-  // 跟单待办：等寄出、等客户反馈、催comment、等fit
+  // 跟单待办：等版房送样、等寄出、等客户反馈、催comment、等fit
   const merchandiserItems = items.filter(it => {
     const node = it.status.currentNode;
     return !it.isAwaitFit && !patternItems.includes(it) &&
-      (node === 'AWAIT_SEND' || node === 'AWAIT_FB' || node === 'AWAIT_RECEIVE');
+      (node === 'AWAIT_DELIVERY' || node === 'AWAIT_SEND' || node === 'AWAIT_FB' || node === 'AWAIT_RECEIVE');
   });
 
   // 等fit comment：单独一组
@@ -12749,6 +12766,7 @@ function isRecentlyUpdated(s) {
 function renderBoard(styles) {
   const cols = [
     { key: 'making', title: '板师在做', match: (s, st) => st.currentNode === 'PATTERN_MAKING' },
+    { key: 'await_delivery', title: '等版房送样', match: (s, st) => st.currentNode === 'AWAIT_DELIVERY' },
     { key: 'sending', title: '待寄出', match: (s, st) => st.currentNode === 'AWAIT_SEND' },
     { key: 'await_fb', title: '等客户评语', match: (s, st) => st.currentNode === 'AWAIT_FB' && st.cycleType !== 'PHOTO' && st.cycleType !== 'PROD' },
     { key: 'await_fit', title: '等 fit comment', match: (s, st) => st.currentNode === 'AWAIT_FIT' },
@@ -12756,7 +12774,7 @@ function renderBoard(styles) {
     { key: 'await_prod', title: '等船版批准', match: (s, st) => st.currentNode === 'AWAIT_FB' && st.cycleType === 'PROD' }
   ];
   return `
-    <div class="board" style="grid-template-columns: repeat(6, minmax(200px, 1fr));">
+    <div class="board" style="grid-template-columns: repeat(7, minmax(200px, 1fr));">
       ${cols.map(col => {
         const items = styles.filter(s => col.match(s, getStyleStatus(s)));
         return `
@@ -13894,6 +13912,10 @@ function openDrawer(id) {
     actions = `<button onclick="undoArchive('${s.id}')">取消归档</button>`;
   } else if (status.currentNode === 'PATTERN_MAKING') {
     actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
+    actions += ` <button onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')" title="版师已打完版，等版房送过来">✂️ 版师已打完</button>`;
+  } else if (status.currentNode === 'AWAIT_DELIVERY') {
+    actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
+    actions += ` <button onclick="undoPatternMakerDone('${s.id}', '${lastCycle.id}')" title="撤销·版师还在做">↶ 撤销「已打完」</button>`;
   } else if (status.currentNode === 'AWAIT_SEND') {
     const lbl = lastCycle.type === 'PHOTO' ? '拍照发图审' : '寄出客户';
     actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'sent')">登记 · ${lbl}</button>`;
@@ -13909,8 +13931,8 @@ function openDrawer(id) {
     actions = `<span style="font-family:var(--font-mono);font-size:12px;color:var(--ok);padding:9px 14px;">✓ 大货已到仓 · 流程完结</span>`;
   }
 
-  // "我已催过"按钮（仅在等客户/等板房时显示）
-  if (status.awaitingClient || status.currentNode === 'PATTERN_MAKING') {
+  // "我已催过"按钮（仅在等客户/等板房/等送样时显示）
+  if (status.awaitingClient || status.currentNode === 'PATTERN_MAKING' || status.currentNode === 'AWAIT_DELIVERY') {
     actions += ` <button onclick="markFollowUp('${s.id}')">✎ 我已催过</button>`;
   }
   actions += ` <button class="danger" onclick="deleteStyle('${s.id}')">删除款式</button>`;
@@ -14634,6 +14656,30 @@ function markFollowUp(id) {
   saveState(); render(); openDrawer(id);
 }
 
+// 版师勾选「已打完版」 - 不再提醒版师，进入"等版房送样"阶段
+function markPatternMakerDone(styleId, cycleId) {
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle) return;
+  cycle.patternMakerDone = true;
+  cycle.patternMakerDoneDate = todayStr();
+  saveState(); render(); openDrawer(styleId);
+  showToast('✓ 已记录·版师打完版，转为等版房送样', 'ok');
+}
+
+// 撤销「已打完版」
+function undoPatternMakerDone(styleId, cycleId) {
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle) return;
+  cycle.patternMakerDone = false;
+  cycle.patternMakerDoneDate = null;
+  saveState(); render(); openDrawer(styleId);
+  showToast('已撤销·回到版师待办', 'ok');
+}
+
 // 取消 snooze（在抽屉里手动取消）
 function unsnooze(id) {
   const s = state.styles.find(x => x.id === id);
@@ -15250,6 +15296,11 @@ function saveCycleStep() {
   if (!date) { showToast('请选择日期', 'warn'); return; }
   if (field === 'received') {
     cycle.receivedDate = date;
+    // 收到样板就清除"版师已打完"标记，进入下一阶段
+    if (cycle.patternMakerDone) {
+      cycle.patternMakerDone = false;
+      cycle.patternMakerDoneDate = null;
+    }
     if (state.pendingCyclePhotos && state.pendingCyclePhotos.length > 0) {
       cycle.receivedPhotos = [...state.pendingCyclePhotos];
     } else if (state.pendingCyclePhotos && state.pendingCyclePhotos.length === 0 && cycle.receivedPhotos) {
