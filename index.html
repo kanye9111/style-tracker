@@ -8959,10 +8959,10 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
 .gallery-delete-btn { width: 22px; height: 22px; border-radius: 50%; background: rgba(168,50,29,0.85); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1; transition: background 0.12s; }
 .gallery-delete-btn:hover { background: #C73428; }
 /* 图片上传区（Gallery组内底部） */
-.grp-upload-zone { border: 1.5px dashed var(--line-strong); border-radius: 8px; padding: 14px 10px; text-align: center; cursor: pointer; color: var(--ink-mute); font-family: var(--font-sans); font-size: 11px; transition: all 0.15s; background: var(--bg-sunken); margin: 0 14px 14px; }
+.grp-upload-zone { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; border: 1.5px dashed var(--line-strong); border-radius: 8px; padding: 16px 12px; text-align: center; cursor: pointer; color: var(--ink-mute); font-family: var(--font-sans); font-size: 11px; transition: all 0.15s; background: var(--bg-sunken); margin: 8px 14px 14px; min-height: 50px; box-sizing: border-box; }
 .grp-upload-zone:hover, .grp-upload-zone.drag-over { border-color: #007AFF; background: rgba(0,122,255,0.04); color: var(--ink-soft); }
 .grp-upload-zone input { display: none; }
-.grp-upload-icon { font-size: 18px; margin-bottom: 4px; display: block; }
+.grp-upload-icon { font-size: 18px; line-height: 1; }
 /* === Global Animations === */
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -9503,6 +9503,7 @@ function dbCycleToLocal(c, photos) {
     shipEstimatedArrival: c.ship_estimated_arrival || null,
     shipActualArrival: c.ship_actual_arrival || null,
     receivedPhotos: photos || [],
+    isVirtual: !!c.is_virtual,
   };
 }
 function dbPOToLocal(p) {
@@ -9555,6 +9556,7 @@ function localCycleToDB(c, styleId) {
     tracking_no: c.trackingNo || null,
     ship_estimated_arrival: c.shipEstimatedArrival || null,
     ship_actual_arrival: c.shipActualArrival || null,
+    is_virtual: !!c.isVirtual,
   };
 }
 function localPOToDB(p, styleId) {
@@ -11392,12 +11394,23 @@ function buildFullFlow(style) {
 function getEarliestOpenDate(style) {
   if (!style.cycles || style.cycles.length === 0) return null;
   let earliest = null;
+  // 先只看真实（非虚拟）的 cycle
   style.cycles.forEach(c => {
+    if (c.isVirtual) return;
     if (!c.openDate) return;
     if (!earliest || new Date(c.openDate) < new Date(earliest)) {
       earliest = c.openDate;
     }
   });
+  // 如果没有真实 cycle（全是虚拟），兜底用任何 openDate
+  if (!earliest) {
+    style.cycles.forEach(c => {
+      if (!c.openDate) return;
+      if (!earliest || new Date(c.openDate) < new Date(earliest)) {
+        earliest = c.openDate;
+      }
+    });
+  }
   return earliest;
 }
 
@@ -13817,7 +13830,7 @@ function renderProductionRow(s, po) {
   } else {
     const startInfo = status.startDate ? ` · 起 ${formatDate(status.startDate)}` : '';
     nodeDisplay = `
-      <div class="node-name ${nodeNameCls}">${escapeHtml(status.currentNodeLabel)} · ${formatDaysText(status.days)}</div>
+      <div class="node-name ${nodeNameCls}">${escapeHtml(withDays(status.currentNodeLabel, status.days))}</div>
       <div style="font-family:var(--font-mono);font-size:10px;color:var(--ink-mute);">${escapeHtml(status.stageLabel)}${startInfo}</div>
     `;
   }
@@ -14240,8 +14253,8 @@ function renderBigFlow(style) {
       if (n.status === 'done' && nextStatus !== 'future') connCls += ' done';
       if (n.status === 'virtual' || nextStatus === 'virtual') connCls += ' virtual-conn';
       if (nextStatus === 'future') connCls += ' dashed';
-      // 虚拟节点之间的耗时不显示（避免误导）
-      if (n.isVirtual && nodes[i+1]?.isVirtual) durLabel = '';
+      // 任何涉及虚拟节点的耗时都不显示（虚拟日期算出的天数会误导）
+      if (n.isVirtual || nodes[i+1]?.isVirtual) durLabel = '';
       html += `<div class="${connCls}">${durLabel ? `<span class="connector-dur">${durLabel}</span>` : ''}</div>`;
     }
   });
@@ -14254,7 +14267,7 @@ function renderStyleGallery(s) {
   s.cycles?.forEach((cycle) => {
     const meta = CYCLE_TYPES[cycle.type]; const label = meta ? meta.label : cycle.type;
     const subLabel = cycle.type === 'PHOTO' ? '收到拍照版' : '收到样板'; const key = cycle.type;
-    if (!groups[key]) groups[key] = { label, subLabel, date: cycle.receivedDate || '—', photos: [], cycleId: cycle.id };
+    if (!groups[key]) groups[key] = { label, subLabel, date: cycle.receivedDate || '', photos: [], cycleId: cycle.id };
     (cycle.receivedPhotos || []).forEach((src) => { allSrcs.push(src); groups[key].photos.push({ src, idx: gIdx++ }); });
   });
   const gKeys = Object.keys(groups); if (gKeys.length === 0) return '';
@@ -14291,23 +14304,28 @@ function renderStyleGallery(s) {
     html += '</button>';
     html += '</div></div>';
     
-    html += `<div class="style-gallery-group-grid" data-group="${key}">`;
-    g.photos.forEach(p => {
-      html += `<div class="gallery-card" data-photo-key="${key}">`;
-      html += '<label class="gallery-card-check">';
-      html += `<input type="checkbox" class="photo-check" data-src="${escapeHtml(p.src).replace(/"/g,'&quot;')}">`;
-      html += '<span class="check-mark"></span>';
-      html += '</label>';
-      html += `<img class="gallery-card-thumb" src="${escapeHtml(p.src)}" loading="lazy" onclick="openImageViewer(${allSrcsJSON},${p.idx})">`;
-      html += '<div class="gallery-card-delete">';
-      html += `<button class="gallery-delete-btn" onclick="deleteOnePhoto('${key}',${p.idx}); event.stopPropagation();" title="删除这张">×</button>`;
+    if (g.photos.length > 0) {
+      html += `<div class="style-gallery-group-grid" data-group="${key}">`;
+      g.photos.forEach(p => {
+        html += `<div class="gallery-card" data-photo-key="${key}">`;
+        html += '<label class="gallery-card-check">';
+        html += `<input type="checkbox" class="photo-check" data-src="${escapeHtml(p.src).replace(/"/g,'&quot;')}">`;
+        html += '<span class="check-mark"></span>';
+        html += '</label>';
+        html += `<img class="gallery-card-thumb" src="${escapeHtml(p.src)}" loading="lazy" onclick="openImageViewer(${allSrcsJSON},${p.idx})">`;
+        html += '<div class="gallery-card-delete">';
+        html += `<button class="gallery-delete-btn" onclick="deleteOnePhoto('${key}',${p.idx}); event.stopPropagation();" title="删除这张">×</button>`;
+        html += '</div>';
+        html += `<div class="gallery-card-info" onclick="openImageViewer(${allSrcsJSON},${p.idx})">`;
+        html += `<div class="gallery-card-label">${escapeHtml(g.label)}</div>`;
+        if (g.date) html += `<div class="gallery-card-date">${escapeHtml(g.date)}</div>`;
+        html += '</div></div>';
+      });
       html += '</div>';
-      html += `<div class="gallery-card-info" onclick="openImageViewer(${allSrcsJSON},${p.idx})">`;
-      html += `<div class="gallery-card-label">${escapeHtml(g.label)}</div>`;
-      html += `<div class="gallery-card-date">${escapeHtml(g.date)}</div>`;
-      html += '</div></div>';
-    });
-    html += '</div>';
+    } else {
+      // 占位 grid 容器（保持选择/下载查询能找到）
+      html += `<div class="style-gallery-group-grid" data-group="${key}" style="display:none;"></div>`;
+    }
     
     html += `<label class="grp-upload-zone" id="grpUploadZone_${key}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleGalleryDrop(event,'${key}')">`;
     html += '<span class="grp-upload-icon">＋</span>';
