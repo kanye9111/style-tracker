@@ -11499,12 +11499,14 @@ function getTodayList(activeStyles) {
     const hasPoOrder = hasPO(s);
     const isAwaitFit = status.currentNode === 'AWAIT_FIT';
     const isProdShipping = status.stage === 'PROD_SHIPPING';
+    const isPatternMaking = status.currentNode === 'PATTERN_MAKING';  // 版师打版中
+    const isAwaitDelivery = status.currentNode === 'AWAIT_DELIVERY';  // 等版房送样
     // 有PO的款（REVISE/PHOTO/PROD）强制进入今日跟进
     const isPoActive = hasPoOrder && status.isActive && (
       status.cycleType === 'REVISE' || status.cycleType === 'PHOTO' || status.cycleType === 'PROD'
     );
-    // 等fit、等大货也强制进入
-    if (!isUrgent && !isExUrgent && !isPoActive && !isAwaitFit && !isProdShipping) return;
+    // 版师打版中、等版房送样、等fit、等大货都强制进入（不管天数）
+    if (!isUrgent && !isExUrgent && !isPoActive && !isAwaitFit && !isProdShipping && !isPatternMaking && !isAwaitDelivery) return;
 
     const who = whoToFollowUp(status.currentNode, status.cycleType);
     let actionHint = '';
@@ -11724,7 +11726,14 @@ function renderTodayTab() {
 
   // 如果筛选后没有内容
   if (sub !== 'all') {
-    const subItems = sub === 'pattern' ? patternItems : sub === 'merch' ? merchandiserItems : sub === 'fit' ? fitItems : [...prodItems, ...otherItems];
+    let subItems = [];
+    if (sub === 'pattern') subItems = patternItems;
+    else if (sub === 'workshop') subItems = workshopItems;
+    else if (sub === 'shipping') subItems = shippingItems;
+    else if (sub === 'feedback') subItems = feedbackItems;
+    else if (sub === 'fit') subItems = fitItems;
+    else if (sub === 'prod') subItems = [...prodItems, ...otherItems];
+    
     if (subItems.length === 0) {
       html += `<div class="today-empty"><span class="icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></span><h3>这个分组没有待办</h3><p>当前没有需要处理的事项。</p></div>`;
     }
@@ -14725,20 +14734,47 @@ function markPatternMakerDone(styleId, cycleId) {
         <input type="date" id="pm-done-date" value="${defaultDate}" 
                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
       </div>
-      <div style="color: var(--ink-mute); font-size: 12px; margin-bottom: 16px;">
+      <div style="color: var(--ink-mute); font-size: 12px;">
         默认今天，可改成昨天或前天（如果版师说"昨天打完的"）
-      </div>
-      <div style="display: flex; gap: 8px; justify-content: flex-end;">
-        <button onclick="closeUpdateModal()" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">取消</button>
-        <button onclick="confirmPatternMakerDone('${styleId}', '${cycleId}')" style="padding: 8px 16px; border: none; background: var(--primary); color: white; border-radius: 4px; cursor: pointer;">确认</button>
       </div>
     </div>
   `;
   
+  // 设置确认按钮的回调
+  state.modalContext = {
+    type: 'patternMakerDone',
+    styleId: styleId,
+    cycleId: cycleId
+  };
+  
   document.getElementById('updateTitle').textContent = '✂️ 版师已打完';
   document.getElementById('updateBody').innerHTML = html;
-  document.getElementById('updateFooter').style.display = 'none';  // 隐藏默认按钮
+  document.getElementById('updateFooter').style.display = '';  // 显示默认按钮
   document.getElementById('updateBackdrop').classList.add('open');
+}
+
+// 通用的弹窗确认处理
+function saveUpdate() {
+  if (!state.modalContext) return;
+  
+  if (state.modalContext.type === 'patternMakerDone') {
+    const doneDate = document.getElementById('pm-done-date')?.value;
+    if (!doneDate) {
+      showToast('请选择打完时间', 'warn');
+      return;
+    }
+    
+    const s = state.styles.find(x => x.id === state.modalContext.styleId);
+    if (!s) return;
+    const cycle = s.cycles?.find(c => c.id === state.modalContext.cycleId);
+    if (!cycle) return;
+    
+    cycle.patternMakerDone = true;
+    cycle.patternMakerDoneDate = doneDate;
+    closeUpdateModal();
+    saveState(); render(); openDrawer(state.modalContext.styleId);
+    showToast(`✓ 已记录·版师 ${doneDate} 打完版，转为等版房送样`, 'ok');
+  }
 }
 
 function confirmPatternMakerDone(styleId, cycleId) {
