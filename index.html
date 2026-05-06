@@ -11402,9 +11402,14 @@ function getEarliestOpenDate(style) {
 }
 
 function formatDaysText(days) {
-  if (days === null || days === undefined) return '—';
+  if (days === null || days === undefined) return null;
   if (days === 0) return '今天';
   return `已 ${days} 天`;
+}
+// 安全拼接天数，null 时不加 · 
+function withDays(label, days) {
+  const t = formatDaysText(days);
+  return t ? `${label} · ${t}` : label;
 }
 function formatDate(d) { if (!d) return ''; return d.slice(5).replace('-', '.'); }
 function escapeHtml(s) {
@@ -11560,7 +11565,7 @@ function renderTodayTab() {
       detailText = `${it.actionHint || '处理'} · ${it.who || ''}`;
     } else {
       mainText = it.actionHint;
-      detailText = `${it.status.currentNodeLabel} · ${formatDaysText(it.status.days)} · ${it.who || ''}`;
+      detailText = `${withDays(it.status.currentNodeLabel, it.status.days)} · ${it.who || ''}`;
     }
     const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
     const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
@@ -11575,7 +11580,8 @@ function renderTodayTab() {
             <span class="today-card-sku">${escapeHtml(s.sku)}</span>
             <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
             ${_orderTypeHtml}
-            <span class="today-card-name">${escapeHtml(s.name)}</span>
+            ${renderStyleNameText(s) ? `<span class="today-card-name">${renderStyleNameText(s)}</span>` : ''}
+            ${renderSampleTypeBadge(s)}
           </div>
           <div class="today-card-action">
             <span class="today-card-action-main ${cls}">${escapeHtml(mainText)}</span>
@@ -12474,7 +12480,7 @@ function renderGridCard(s, idx) {
 
   let nodeText;
   if (status.stage === 'DONE') nodeText = '已完成';
-  else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
+  else nodeText = `${withDays(status.currentNodeLabel, status.days)}`;
 
   const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
   const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
@@ -12607,7 +12613,7 @@ function renderSingleStyleRow(s, idx) {
   } else if (status.stage === 'DONE') {
     timeInfo = `<span class="node-since done">已完成</span>`;
   } else if (status.startDate) {
-    timeInfo = `<span class="node-since ${status.level === 'danger' ? 'danger' : status.level === 'warn' ? 'warn' : ''}">${escapeHtml(formatDate(status.startDate))} · ${formatDaysText(status.days)}</span>`;
+    timeInfo = `<span class="node-since ${status.level === 'danger' ? 'danger' : status.level === 'warn' ? 'warn' : ''}">${escapeHtml(formatDate(status.startDate))}${formatDaysText(status.days) ? " · " + formatDaysText(status.days) : ""}</span>`;
   }
 
   const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
@@ -12674,7 +12680,7 @@ function renderList(styles) {
     } else if (status.stage === 'DONE') {
       timeInfo = `<span class="node-since done">已完成</span>`;
     } else if (status.startDate) {
-      timeInfo = `<span class="node-since ${status.level === 'danger' ? 'danger' : status.level === 'warn' ? 'warn' : ''}">${escapeHtml(formatDate(status.startDate))} · ${formatDaysText(status.days)}</span>`;
+      timeInfo = `<span class="node-since ${status.level === 'danger' ? 'danger' : status.level === 'warn' ? 'warn' : ''}">${escapeHtml(formatDate(status.startDate))}${formatDaysText(status.days) ? " · " + formatDaysText(status.days) : ""}</span>`;
     }
 
     return `
@@ -13221,7 +13227,7 @@ function renderProdFolderCard(s, po) {
 
   let nodeText;
   if (status.stage === 'DONE') nodeText = '船版已批';
-  else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
+  else nodeText = `${withDays(status.currentNodeLabel, status.days)}`;
 
   // PO 选中态（独立于款式选中）
   const poSel = state.poBatchSelected && state.poBatchSelected[po.id] ? 'checked' : '';
@@ -13628,7 +13634,7 @@ function renderCalendarDetailItem(s, po) {
 
   let nodeText;
   if (status.stage === 'DONE') nodeText = '✓ 大货已到仓';
-  else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
+  else nodeText = `${withDays(status.currentNodeLabel, status.days)}`;
 
   const doneTag = (s.prodReceived && s.prodReceived.date) ? '<span class="cal-detail-done-tag">✓ 大货已到仓</span>' : '';
 
@@ -13669,7 +13675,7 @@ function renderCompactPORow(s, po) {
 
   let nodeText;
   if (status.stage === 'DONE') nodeText = '✓ 大货已到仓';
-  else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
+  else nodeText = `${withDays(status.currentNodeLabel, status.days)}`;
 
   const doneTag = (s.prodReceived && s.prodReceived.date) ? ' <span style="color:var(--ok);font-weight:600;">✓ 到仓</span>' : '';
 
@@ -13736,7 +13742,7 @@ function renderProductionBoardCard(s, po) {
 
   let nodeText;
   if (status.stage === 'DONE') nodeText = '✓ 大货已到仓';
-  else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
+  else nodeText = `${withDays(status.currentNodeLabel, status.days)}`;
 
   const doneTag = (s.prodReceived && s.prodReceived.date) ? '<div style="font-family:var(--font-mono);font-size:10px;color:var(--ok);font-weight:600;margin-top:4px;">✓ 大货已到仓</div>' : '';
 
@@ -13832,7 +13838,9 @@ function renderProductionRow(s, po) {
       <div class="sku">${escapeHtml(s.sku)}</div>
       <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
       <div>
-        <div class="style-name">${escapeHtml(s.name)}</div>
+        <div class="style-name" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+          ${renderStyleNameText(s)}${renderSampleTypeBadge(s)}
+        </div>
         <div class="style-subinfo">${escapeHtml(s.owner || '')}</div>
       </div>
       <div class="po-cell">
