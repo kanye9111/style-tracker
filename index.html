@@ -9548,6 +9548,7 @@ function localStyleToDB(s) {
     id: s.id,
     sku: s.sku,
     name: s.name,
+    description: s.description || null,
     client: s.client || null,
     owner: s.owner || null,
     image_url: s.imageUrl || null,
@@ -15260,7 +15261,7 @@ function saveEditInfo() {
     });
     earliestCycle.openDate = openDate;
   }
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); closeUpdateModal(); render(); openDrawer(styleId);
 }
 
 function toggleDetailCollapse() {
