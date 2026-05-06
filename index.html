@@ -9250,9 +9250,20 @@ main { animation: fadeInUp 0.25s ease-out; }
         <label>款名 <span class="optional-tag">选填</span></label>
         <input type="text" id="f-name" placeholder="如 Satin Slip Midi Dress（选填）">
       </div>
-      <div class="form-field">
-        <label>描述 <span class="optional-tag">选填</span></label>
-        <input type="text" id="f-desc" placeholder="如 面料、工艺、特殊要求（选填）">
+      <div class="form-row">
+        <div class="form-field">
+          <label>版型类型 <span class="optional-tag">选填·列表快速识别</span></label>
+          <select id="f-sample-type">
+            <option value="">— 不标注 —</option>
+            <option value="new">新版</option>
+            <option value="remake">重做板</option>
+            <option value="photo">拍照板</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>描述 <span class="optional-tag">选填</span></label>
+          <input type="text" id="f-desc" placeholder="面料、工艺、特殊要求">
+        </div>
       </div>
       <div class="form-row">
         <div class="form-field">
@@ -9519,6 +9530,7 @@ function dbPOToLocal(p) {
     status: p.status || 'pending',
     barcode: p.barcode || '',
     description: p.description || '',
+    orderType: p.order_type || '',
   };
 }
 
@@ -9575,6 +9587,7 @@ function localPOToDB(p, styleId) {
     status: p.status || 'pending',
     barcode: p.barcode || null,
     description: p.description || null,
+    order_type: p.orderType || null,
   };
 }
 
@@ -11657,7 +11670,7 @@ function renderTodayTab() {
     html += todayCollapsibleSection('today_pattern', 'danger', '✂️ 版师待办', '板房在做的 — 催板房出样板', patternItems, renderCard);
   }
   if (sub === 'all' || sub === 'merch') {
-    html += todayCollapsibleSection('today_merch', 'warn', '📋 跟单待办', '等寄出 / 等客户反馈 — 跟单负责推进', merchandiserItems, renderCard);
+    html += todayCollapsibleSection('today_merch', 'warn', '📋 跟单待办', '等版房送样 / 等寄出 / 等客户反馈 — 跟单负责推进', merchandiserItems, renderCard);
   }
   if (sub === 'all' || sub === 'fit') {
     html += todayCollapsibleSection('today_fit', 'fit', '💬 等 fit comment', '客户已下 PO 但还没给评语 — 给 buyer 发邮件确认', fitItems, renderCard);
@@ -16140,6 +16153,7 @@ function saveNewStyle() {
   const client = document.getElementById('f-client').value;
   const owner = document.getElementById('f-owner').value;
   const openDate = document.getElementById('f-open-date').value || todayStr();
+  const sampleType = document.getElementById('f-sample-type')?.value || '';
   if (!sku && !name) {
     showToast('款号和款名至少填一个', 'warn');
     return;
@@ -16187,6 +16201,7 @@ function saveNewStyle() {
     client: client || 'OTHER',
     owner: owner || '',
     imageUrl: state.pendingImageData || '',
+    sampleType: sampleType || '',
     createdAt: new Date().toISOString(),
     cycles: cycles,
     pos: newPos || []
