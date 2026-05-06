@@ -9027,19 +9027,27 @@ main { animation: fadeInUp 0.25s ease-out; }
           <span class="today-sub-count" id="sub-count-all">0</span>
         </button>
         <button class="today-sub-item" data-today-sub="pattern" onclick="switchTodaySub('pattern')">
-          <span>✂️ 版师待办</span>
+          <span>✂️ 版师</span>
           <span class="today-sub-count" id="sub-count-pattern">0</span>
         </button>
-        <button class="today-sub-item" data-today-sub="merch" onclick="switchTodaySub('merch')">
-          <span>📋 跟单待办</span>
-          <span class="today-sub-count" id="sub-count-merch">0</span>
+        <button class="today-sub-item" data-today-sub="workshop" onclick="switchTodaySub('workshop')">
+          <span>📦 版房</span>
+          <span class="today-sub-count" id="sub-count-workshop">0</span>
+        </button>
+        <button class="today-sub-item" data-today-sub="shipping" onclick="switchTodaySub('shipping')">
+          <span>✉️ 寄样</span>
+          <span class="today-sub-count" id="sub-count-shipping">0</span>
+        </button>
+        <button class="today-sub-item" data-today-sub="feedback" onclick="switchTodaySub('feedback')">
+          <span>⏳ 反馈</span>
+          <span class="today-sub-count" id="sub-count-feedback">0</span>
         </button>
         <button class="today-sub-item" data-today-sub="fit" onclick="switchTodaySub('fit')">
-          <span>💬 等fit</span>
+          <span>💬 fit</span>
           <span class="today-sub-count" id="sub-count-fit">0</span>
         </button>
         <button class="today-sub-item" data-today-sub="prod" onclick="switchTodaySub('prod')">
-          <span>🏭 大货跟进</span>
+          <span>🏭 大货</span>
           <span class="today-sub-count" id="sub-count-prod">0</span>
         </button>
       </div>
@@ -11335,6 +11343,17 @@ function buildFullFlow(style) {
       isVirtual: !!cycle.isVirtual
     });
 
+    // 如果版师已打完，加一个"版师打完"节点
+    if (cycle.patternMakerDone && cycle.patternMakerDoneDate) {
+      nodes.push({
+        label: '版师打完',
+        date: cycle.patternMakerDoneDate,
+        status: 'done',
+        cycleType: cycle.type,
+        isPatternMakerDone: true  // 标记这是版师打完节点
+      });
+    }
+
     if (cycle.receivedDate) {
       nodes.push({
         label: cycle.type === 'PHOTO' ? '收到拍照版' : '收到样板',
@@ -11564,18 +11583,29 @@ function renderTodayTab() {
     return;
   }
 
-  // 按职责分组
-  // 版师待办：板房在做的（版师还没打完）
+  // 按职责分组（4个独立组）
+  // 1. 版师待办：版师打版中（所有款，不管天数）
   const patternItems = items.filter(it => {
     const node = it.status.currentNode;
     return node === 'PATTERN_MAKING' && !it.isAwaitFit;
   });
 
-  // 跟单待办：等版房送样、等寄出、等客户反馈、催comment、等fit
-  const merchandiserItems = items.filter(it => {
+  // 2. 版房待办：等版房送样
+  const workshopItems = items.filter(it => {
     const node = it.status.currentNode;
-    return !it.isAwaitFit && !patternItems.includes(it) &&
-      (node === 'AWAIT_DELIVERY' || node === 'AWAIT_SEND' || node === 'AWAIT_FB' || node === 'AWAIT_RECEIVE');
+    return node === 'AWAIT_DELIVERY' && !it.isAwaitFit;
+  });
+
+  // 3. 待寄出：待寄出客户
+  const shippingItems = items.filter(it => {
+    const node = it.status.currentNode;
+    return (node === 'AWAIT_SEND' || node === 'AWAIT_RECEIVE') && !it.isAwaitFit;
+  });
+
+  // 4. 等客户反馈：等客户反馈
+  const feedbackItems = items.filter(it => {
+    const node = it.status.currentNode;
+    return node === 'AWAIT_FB' && !it.isAwaitFit;
   });
 
   // 等fit comment：单独一组
@@ -11583,7 +11613,8 @@ function renderTodayTab() {
 
   // 大货跟进：船版相关 + PROD_SHIPPING + 货期紧急
   const prodItems = items.filter(it => {
-    if (it.isAwaitFit || patternItems.includes(it) || merchandiserItems.includes(it)) return false;
+    if (it.isAwaitFit || patternItems.includes(it) || workshopItems.includes(it) || 
+        shippingItems.includes(it) || feedbackItems.includes(it)) return false;
     if (it.isProdShipping) return true;
     const ct = it.status.cycleType;
     return ct === 'PROD' || (it.efAlert && it.efAlert.level !== 'ok');
@@ -11591,7 +11622,8 @@ function renderTodayTab() {
 
   // 其他未分类
   const otherItems = items.filter(it =>
-    !patternItems.includes(it) && !merchandiserItems.includes(it) &&
+    !patternItems.includes(it) && !workshopItems.includes(it) && 
+    !shippingItems.includes(it) && !feedbackItems.includes(it) &&
     !fitItems.includes(it) && !prodItems.includes(it)
   );
 
@@ -11639,7 +11671,9 @@ function renderTodayTab() {
   const _sc = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
   _sc('sub-count-all', items.length);
   _sc('sub-count-pattern', patternItems.length);
-  _sc('sub-count-merch', merchandiserItems.length);
+  _sc('sub-count-workshop', workshopItems.length);
+  _sc('sub-count-shipping', shippingItems.length);
+  _sc('sub-count-feedback', feedbackItems.length);
   _sc('sub-count-fit', fitItems.length);
   _sc('sub-count-prod', prodItems.length + otherItems.length);
 
@@ -11667,10 +11701,16 @@ function renderTodayTab() {
 
   const sub = state.todaySub || 'all';
   if (sub === 'all' || sub === 'pattern') {
-    html += todayCollapsibleSection('today_pattern', 'danger', '✂️ 版师待办', '板房在做的 — 催板房出样板', patternItems, renderCard);
+    html += todayCollapsibleSection('today_pattern', 'danger', '✂️ 版师待办', '版师打版中 — 待打版样板池（2位版师自选）', patternItems, renderCard);
   }
-  if (sub === 'all' || sub === 'merch') {
-    html += todayCollapsibleSection('today_merch', 'warn', '📋 跟单待办', '等版房送样 / 等寄出 / 等客户反馈 — 跟单负责推进', merchandiserItems, renderCard);
+  if (sub === 'all' || sub === 'workshop') {
+    html += todayCollapsibleSection('today_workshop', 'warn', '📦 版房待办', '等版房送样 — 版已打好，催版房送回', workshopItems, renderCard);
+  }
+  if (sub === 'all' || sub === 'shipping') {
+    html += todayCollapsibleSection('today_shipping', 'warn', '✉️ 待寄出', '待寄出客户 — 跟单负责寄样', shippingItems, renderCard);
+  }
+  if (sub === 'all' || sub === 'feedback') {
+    html += todayCollapsibleSection('today_feedback', 'warn', '⏳ 等客户反馈', '等客户反馈 — 跟单负责催买手', feedbackItems, renderCard);
   }
   if (sub === 'all' || sub === 'fit') {
     html += todayCollapsibleSection('today_fit', 'fit', '💬 等 fit comment', '客户已下 PO 但还没给评语 — 给 buyer 发邮件确认', fitItems, renderCard);
@@ -14675,10 +14715,48 @@ function markPatternMakerDone(styleId, cycleId) {
   if (!s) return;
   const cycle = s.cycles?.find(c => c.id === cycleId);
   if (!cycle) return;
+  
+  // 弹窗选择打完时间
+  const defaultDate = todayStr();
+  const html = `
+    <div style="padding: 20px;">
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 500;">版师打完时间</label>
+        <input type="date" id="pm-done-date" value="${defaultDate}" 
+               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+      </div>
+      <div style="color: var(--ink-mute); font-size: 12px; margin-bottom: 16px;">
+        默认今天，可改成昨天或前天（如果版师说"昨天打完的"）
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button onclick="closeUpdateModal()" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">取消</button>
+        <button onclick="confirmPatternMakerDone('${styleId}', '${cycleId}')" style="padding: 8px 16px; border: none; background: var(--primary); color: white; border-radius: 4px; cursor: pointer;">确认</button>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('updateTitle').textContent = '✂️ 版师已打完';
+  document.getElementById('updateBody').innerHTML = html;
+  document.getElementById('updateBackdrop').classList.add('open');
+}
+
+function confirmPatternMakerDone(styleId, cycleId) {
+  const doneDate = document.getElementById('pm-done-date')?.value;
+  if (!doneDate) {
+    showToast('请选择打完时间', 'warn');
+    return;
+  }
+  
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle) return;
+  
   cycle.patternMakerDone = true;
-  cycle.patternMakerDoneDate = todayStr();
+  cycle.patternMakerDoneDate = doneDate;
+  closeUpdateModal();
   saveState(); render(); openDrawer(styleId);
-  showToast('✓ 已记录·版师打完版，转为等版房送样', 'ok');
+  showToast(`✓ 已记录·版师 ${doneDate} 打完版，转为等版房送样`, 'ok');
 }
 
 // 撤销「已打完版」
