@@ -14737,6 +14737,7 @@ function markPatternMakerDone(styleId, cycleId) {
   
   document.getElementById('updateTitle').textContent = '✂️ 版师已打完';
   document.getElementById('updateBody').innerHTML = html;
+  document.getElementById('updateFooter').style.display = 'none';  // 隐藏默认按钮
   document.getElementById('updateBackdrop').classList.add('open');
 }
 
@@ -16729,6 +16730,7 @@ function saveImageChange() {
 }
 function closeUpdateModal() {
   document.getElementById('updateBackdrop').classList.remove('open');
+  document.getElementById('updateFooter').style.display = '';  // 恢复默认按钮
   state.modalContext = null;
 }
 
