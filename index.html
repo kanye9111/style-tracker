@@ -271,6 +271,11 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
 .flow-connector.done { background: var(--ink); }
 .flow-connector.dashed { background: transparent; border-top: 2px dashed var(--line-strong); height: 0; }
 
+/* 虚拟/迁移历史节点样式 */
+.big-flow-dot.virtual { background: var(--bg-sunken); border-color: var(--line-strong); opacity: 0.55; }
+.big-flow-label-top.virtual { color: var(--ink-mute); opacity: 0.6; font-style: italic; }
+.big-flow-connector.virtual-conn { background: transparent; border-top: 2px dashed var(--line); opacity: 0.45; height: 0; }
+
 .current-stage-pill {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 3px 8px;
@@ -8812,6 +8817,20 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
   margin-top: 4px;
 }
 
+/* 版型类型 badge */
+.sample-type-badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 7px;
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.04em; border-radius: 5px; white-space: nowrap; flex-shrink: 0;
+}
+.sample-type-new { background: rgba(43,106,63,0.10); color: var(--ok); border: 1px solid rgba(43,106,63,0.18); }
+.sample-type-remake { background: rgba(168,50,29,0.10); color: var(--danger); border: 1px solid rgba(168,50,29,0.18); }
+.sample-type-photo { background: rgba(107,91,181,0.10); color: var(--stage-dev); border: 1px solid rgba(107,91,181,0.18); }
+/* 版型筛选按钮组 */
+#sample-type-filters { display: none; }
+#sample-type-filters.visible { display: flex; }
+
 /* 抽屉 PO 列表里：原货期 → 现货期 */
 .po-original-ef {
   font-family: var(--font-mono, monospace);
@@ -8934,6 +8953,16 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
 .check-mark::after { content: ''; display: none; width: 5px; height: 9px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); margin-top: -1px; }
 .gallery-card-check input:checked + .check-mark { background: var(--ink); border-color: var(--ink); }
 .gallery-card-check input:checked + .check-mark::after { display: block; }
+/* 图片删除按钮 */
+.gallery-card-delete { position: absolute; top: 5px; right: 5px; z-index: 3; opacity: 0; transition: opacity 0.12s; }
+.gallery-card:hover .gallery-card-delete { opacity: 1; }
+.gallery-delete-btn { width: 22px; height: 22px; border-radius: 50%; background: rgba(168,50,29,0.85); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1; transition: background 0.12s; }
+.gallery-delete-btn:hover { background: #C73428; }
+/* 图片上传区（Gallery组内底部） */
+.grp-upload-zone { border: 1.5px dashed var(--line-strong); border-radius: 8px; padding: 14px 10px; text-align: center; cursor: pointer; color: var(--ink-mute); font-family: var(--font-sans); font-size: 11px; transition: all 0.15s; background: var(--bg-sunken); margin: 0 14px 14px; }
+.grp-upload-zone:hover, .grp-upload-zone.drag-over { border-color: #007AFF; background: rgba(0,122,255,0.04); color: var(--ink-soft); }
+.grp-upload-zone input { display: none; }
+.grp-upload-icon { font-size: 18px; margin-bottom: 4px; display: block; }
 /* === Global Animations === */
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -9098,6 +9127,12 @@ main { animation: fadeInUp 0.25s ease-out; }
     <button class="filter-btn active" data-client="all">全部客户</button>
     <button class="filter-btn" data-client="BOOHOO">Boohoo</button>
     <button class="filter-btn" data-client="PLT">PLT</button>
+  </div>
+  <div class="filter-group" id="sample-type-filters">
+    <button class="filter-btn active" data-stype="all">全部版型</button>
+    <button class="filter-btn" data-stype="new">新版</button>
+    <button class="filter-btn" data-stype="remake">重做板</button>
+    <button class="filter-btn" data-stype="photo">拍照板</button>
   </div>
   <label class="show-po-toggle" id="showPoToggle">
     <input type="checkbox" id="showPoCheckbox">
@@ -9448,6 +9483,8 @@ function dbStyleToLocal(s, cycles, pos) {
     awaitingFit: s.awaiting_fit ? JSON.parse(s.awaiting_fit) : null,
     orderType: s.order_type || null,
     prodReceived: s.prod_received ? JSON.parse(s.prod_received) : null,
+    specialNote: s.special_note || '',
+    sampleType: s.sample_type || '',
     cycles: cycles || [],
     pos: pos || [],
   };
@@ -9500,6 +9537,8 @@ function localStyleToDB(s) {
     awaiting_fit: s.awaitingFit ? JSON.stringify(s.awaitingFit) : null,
     order_type: s.orderType || null,
     prod_received: s.prodReceived ? JSON.stringify(s.prodReceived) : null,
+    special_note: s.specialNote || null,
+    sample_type: s.sampleType || null,
   };
 }
 function localCycleToDB(c, styleId) {
@@ -9738,6 +9777,13 @@ function getStyleUrgentBadge(s) {
 function renderSpecialNoteTag(s) {
   if (!s.specialNote) return '';
   return `<span class="special-note-tag" title="${escapeHtml(s.specialNote)}">! ${escapeHtml(s.specialNote.length > 14 ? s.specialNote.slice(0, 14) + '…' : s.specialNote)}</span>`;
+}
+
+function renderSampleTypeBadge(s) {
+  const map = { new: ['新版', 'new'], remake: ['重做板', 'remake'], photo: ['拍照板', 'photo'] };
+  const t = map[s.sampleType];
+  if (!t) return '';
+  return `<span class="sample-type-badge sample-type-${t[1]}">${t[0]}</span>`;
 }
 
 
@@ -10935,6 +10981,7 @@ let state = {
   filterPO: 'all',
   filterUrgency: 'all',
   filterClient: 'all',
+  filterSampleType: 'all',  // 版型筛选：'all' | 'new' | 'remake' | 'photo'
   search: '',
   view: 'list',
   selectedId: null,
@@ -11253,14 +11300,15 @@ function buildFullFlow(style) {
 
     nodes.push({
       label: cycle.type === 'DEV' ? '开版' : `${meta.label} 开版`,
-      date: cycle.openDate, status: 'done', cycleType: cycle.type
+      date: cycle.openDate, status: cycle.isVirtual ? 'virtual' : 'done', cycleType: cycle.type,
+      isVirtual: !!cycle.isVirtual
     });
 
     if (cycle.receivedDate) {
       nodes.push({
         label: cycle.type === 'PHOTO' ? '收到拍照版' : '收到样板',
-        date: cycle.receivedDate, status: 'done', cycleType: cycle.type,
-        photos: cycle.receivedPhotos || []
+        date: cycle.receivedDate, status: cycle.isVirtual ? 'virtual' : 'done', cycleType: cycle.type,
+        photos: cycle.receivedPhotos || [], isVirtual: !!cycle.isVirtual
       });
     } else if (isLastCycle && !style.archived) {
       nodes.push({
@@ -11274,11 +11322,11 @@ function buildFullFlow(style) {
     if (cycle.sentDate) {
       nodes.push({
         label: cycle.type === 'PHOTO' ? '拍照发图审' : '寄出客户',
-        date: cycle.sentDate, status: 'done', cycleType: cycle.type,
+        date: cycle.sentDate, status: cycle.isVirtual ? 'virtual' : 'done', cycleType: cycle.type,
         tracking: cycle.shipTrackingNo || null,
         estArrival: cycle.shipEstimatedArrival || null,
         actualArrival: cycle.shipActualArrival || null,
-        cycleId: cycle.id
+        cycleId: cycle.id, isVirtual: !!cycle.isVirtual
       });
     } else if (isLastCycle && cycle.receivedDate && !style.archived) {
       nodes.push({
@@ -11308,9 +11356,9 @@ function buildFullFlow(style) {
       );
       nodes.push({
         label: fbLabel, date: cycle.feedbackDate,
-        status: isFinal ? 'current' : 'done',
+        status: isFinal ? 'current' : (cycle.isVirtual ? 'virtual' : 'done'),
         level: isFinal ? (o === 'ARCHIVED' ? 'archived' : 'final-approved') : null,
-        cycleType: cycle.type
+        cycleType: cycle.type, isVirtual: !!cycle.isVirtual
       });
     } else if (isLastCycle && cycle.sentDate && !style.archived) {
       nodes.push({
@@ -11348,7 +11396,7 @@ function getEarliestOpenDate(style) {
 }
 
 function formatDaysText(days) {
-  if (days === null || days === undefined) return null;
+  if (days === null || days === undefined) return '—';
   if (days === 0) return '今天';
   return `已 ${days} 天`;
 }
@@ -11506,7 +11554,7 @@ function renderTodayTab() {
       detailText = `${it.actionHint || '处理'} · ${it.who || ''}`;
     } else {
       mainText = it.actionHint;
-      detailText = `${it.status.currentNodeLabel} · 已 ${it.status.days} 天 · ${it.who || ''}`;
+      detailText = `${it.status.currentNodeLabel} · ${formatDaysText(it.status.days)} · ${it.who || ''}`;
     }
     const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
     const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
@@ -12103,6 +12151,9 @@ function updateTabCounts() {
 function showDevControls() {
   document.getElementById('controlsBar').style.display = 'flex';
   document.getElementById('newStyleBtn').style.display = 'inline-block';
+  // 版型筛选只在开发追踪 tab 显示
+  const stf = document.getElementById('sample-type-filters');
+  if (stf) stf.classList.add('visible');
 }
 
 
@@ -12132,6 +12183,7 @@ function filterStyles() {
     }
     if (state.filterUrgency === 'danger' && status.level !== 'danger') return false;
     if (state.filterClient !== 'all' && s.client !== state.filterClient) return false;
+    if (state.filterSampleType !== 'all' && (s.sampleType || '') !== state.filterSampleType) return false;
     if (state.filterDevDate) {
       const earliest = getEarliestOpenDate(s);
       if (earliest !== state.filterDevDate) return false;
@@ -12416,7 +12468,7 @@ function renderGridCard(s, idx) {
 
   let nodeText;
   if (status.stage === 'DONE') nodeText = '已完成';
-  else nodeText = `${status.currentNodeLabel} · 已 ${status.days} 天`;
+  else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
 
   const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
   const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
@@ -12546,7 +12598,7 @@ function renderSingleStyleRow(s, idx) {
   } else if (status.stage === 'DONE') {
     timeInfo = `<span class="node-since done">已完成</span>`;
   } else if (status.startDate) {
-    timeInfo = `<span class="node-since ${status.level === 'danger' ? 'danger' : status.level === 'warn' ? 'warn' : ''}">${escapeHtml(formatDate(status.startDate))} · 已 ${status.days} 天</span>`;
+    timeInfo = `<span class="node-since ${status.level === 'danger' ? 'danger' : status.level === 'warn' ? 'warn' : ''}">${escapeHtml(formatDate(status.startDate))} · ${formatDaysText(status.days)}</span>`;
   }
 
   const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
@@ -12555,6 +12607,7 @@ function renderSingleStyleRow(s, idx) {
   const urgentBadge = getStyleUrgentBadge(s);
   const orderTypeHtml = orderBadge ? `<span class="order-type-pill ${orderBadge.cls}">${escapeHtml(orderBadge.label)}</span>` : '';
   const specialNoteHtml = renderSpecialNoteTag(s);
+  const sampleTypeBadgeHtml = renderSampleTypeBadge(s);
   return `
     <div class="style-row simplified stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass} ${batchCls}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
       <input type="checkbox" class="batch-checkbox row-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">
@@ -12562,7 +12615,7 @@ function renderSingleStyleRow(s, idx) {
       <div class="sku">${escapeHtml(s.sku)}${orderTypeHtml}</div>
       <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
       <div>
-        <div class="style-name">${escapeHtml(s.name)}</div>
+        <div class="style-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${escapeHtml(s.name)}${sampleTypeBadgeHtml}</div>
         <div class="style-subinfo">${escapeHtml(s.owner || '')}</div>
       </div>
       <div class="node-block">
@@ -12612,7 +12665,7 @@ function renderList(styles) {
     } else if (status.stage === 'DONE') {
       timeInfo = `<span class="node-since done">已完成</span>`;
     } else if (status.startDate) {
-      timeInfo = `<span class="node-since ${status.level === 'danger' ? 'danger' : status.level === 'warn' ? 'warn' : ''}">${escapeHtml(formatDate(status.startDate))} · 已 ${status.days} 天</span>`;
+      timeInfo = `<span class="node-since ${status.level === 'danger' ? 'danger' : status.level === 'warn' ? 'warn' : ''}">${escapeHtml(formatDate(status.startDate))} · ${formatDaysText(status.days)}</span>`;
     }
 
     return `
@@ -13156,7 +13209,7 @@ function renderProdFolderCard(s, po) {
 
   let nodeText;
   if (status.stage === 'DONE') nodeText = '船版已批';
-  else nodeText = `${status.currentNodeLabel} · ${status.days} 天`;
+  else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
 
   // PO 选中态（独立于款式选中）
   const poSel = state.poBatchSelected && state.poBatchSelected[po.id] ? 'checked' : '';
@@ -13558,7 +13611,7 @@ function renderCalendarDetailItem(s, po) {
 
   let nodeText;
   if (status.stage === 'DONE') nodeText = '✓ 大货已到仓';
-  else nodeText = `${status.currentNodeLabel} · 已 ${status.days} 天`;
+  else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
 
   const doneTag = (s.prodReceived && s.prodReceived.date) ? '<span class="cal-detail-done-tag">✓ 大货已到仓</span>' : '';
 
@@ -13599,7 +13652,7 @@ function renderCompactPORow(s, po) {
 
   let nodeText;
   if (status.stage === 'DONE') nodeText = '✓ 大货已到仓';
-  else nodeText = `${status.currentNodeLabel} · 已 ${status.days} 天`;
+  else nodeText = `${status.currentNodeLabel} · ${formatDaysText(status.days)}`;
 
   const doneTag = (s.prodReceived && s.prodReceived.date) ? ' <span style="color:var(--ok);font-weight:600;">✓ 到仓</span>' : '';
 
@@ -14023,10 +14076,10 @@ function openDrawer(id) {
             <div class="meta-item">
               <div class="label">停留天数</div>
               <div class="value">
-                ${status.days !== null ? `
+                ${status.days !== null && status.days !== undefined ? `
                   <span class="days-cell days-${status.level}">
                     <span class="days-indicator"></span>
-                    <span>${status.days} 天</span>
+                    <span>${formatDaysText(status.days)}</span>
                   </span>
                 ` : (status.isArchived ? '未采用' : '已完成')}
               </div>
@@ -14103,6 +14156,7 @@ function renderBigFlow(style) {
     let labelCls = 'big-flow-label-top';
     let dateCls = 'big-flow-date';
     if (n.status === 'done') { dotCls += ' done'; labelCls += ' done'; }
+    if (n.status === 'virtual') { dotCls += ' virtual'; labelCls += ' virtual'; }
     if (n.status === 'current') {
       dotCls += ' current';
       labelCls += ' current';
@@ -14134,7 +14188,7 @@ function renderBigFlow(style) {
       : '';
     html += `
       <div class="big-flow-node">
-        <div class="${labelCls}">${escapeHtml(n.label)}</div>
+        <div class="${labelCls}">${escapeHtml(n.label)}${n.isVirtual ? '<span style="display:block;font-size:8px;color:var(--ink-mute);font-style:normal;opacity:0.7;margin-top:1px;">迁移数据</span>' : ''}</div>
         <div class="${dotCls}"></div>
         ${dateStr ? `<div class="${dateCls}">${dateStr}</div>` : ''}
         ${photoBadge}
@@ -14156,7 +14210,10 @@ function renderBigFlow(style) {
       }
       let connCls = 'big-flow-connector';
       if (n.status === 'done' && nextStatus !== 'future') connCls += ' done';
+      if (n.status === 'virtual' || nextStatus === 'virtual') connCls += ' virtual-conn';
       if (nextStatus === 'future') connCls += ' dashed';
+      // 虚拟节点之间的耗时不显示（避免误导）
+      if (n.isVirtual && nodes[i+1]?.isVirtual) durLabel = '';
       html += `<div class="${connCls}">${durLabel ? `<span class="connector-dur">${durLabel}</span>` : ''}</div>`;
     }
   });
@@ -14169,12 +14226,12 @@ function renderStyleGallery(s) {
   s.cycles?.forEach((cycle) => {
     const meta = CYCLE_TYPES[cycle.type]; const label = meta ? meta.label : cycle.type;
     const subLabel = cycle.type === 'PHOTO' ? '收到拍照版' : '收到样板'; const key = cycle.type;
-    if (!groups[key]) groups[key] = { label, subLabel, date: cycle.receivedDate || '—', photos: [] };
+    if (!groups[key]) groups[key] = { label, subLabel, date: cycle.receivedDate || '—', photos: [], cycleId: cycle.id };
     (cycle.receivedPhotos || []).forEach((src) => { allSrcs.push(src); groups[key].photos.push({ src, idx: gIdx++ }); });
   });
   const gKeys = Object.keys(groups); if (gKeys.length === 0) return '';
   const allSrcsJSON = JSON.stringify(allSrcs).replace(/"/g, '&quot;');
-  return `<div class="style-gallery"><div class="style-gallery-header"><div class="style-gallery-title">📷 款式图片<span class="style-gallery-count">${allSrcs.length}张</span></div><div class="style-gallery-filter"><input type="text" id="galleryFilter" placeholder="搜索阶段…" oninput="filterGallery()"></div></div><div class="style-gallery-body" id="styleGalleryBody">${gKeys.map(key => { const g = groups[key]; return `<div class="style-gallery-group open" data-cycle-type="${key}"><div class="style-gallery-group-header"><div class="grp-left" onclick="toggleGalleryGroup(this.closest('.style-gallery-group'))"><div class="grp-label">${g.label} · ${g.subLabel}<span class="grp-count">${g.photos.length}张</span></div><span class="grp-chevron">▶</span></div><div class="grp-actions" onclick="event.stopPropagation()"><button class="grp-act-btn" onclick="toggleGroupSelect(this,'${key}')" title="全选/取消"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg></button><button class="grp-act-btn" onclick="downloadSelectedPhotos('${key}')" title="下载选中"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button><button class="grp-act-btn grp-act-primary" onclick="downloadAllGroupPhotos('${key}')" title="下载全部"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span style="font-size:10px;">全部</span></button></div></div><div class="style-gallery-group-grid" data-group="${key}">${g.photos.map(p => `<div class="gallery-card" data-photo-key="${key}"><label class="gallery-card-check"><input type="checkbox" class="photo-check" data-src="${escapeHtml(p.src).replace(/"/g,'&quot;')}"><span class="check-mark"></span></label><img class="gallery-card-thumb" src="${escapeHtml(p.src)}" loading="lazy" onclick="openImageViewer(${allSrcsJSON},${p.idx})"><div class="gallery-card-info" onclick="openImageViewer(${allSrcsJSON},${p.idx})"><div class="gallery-card-label">${escapeHtml(g.label)}</div><div class="gallery-card-date">${escapeHtml(g.date)}</div></div></div>`).join('')}</div></div>`; }).join('')}</div></div>`;
+  return `<div class="style-gallery"><div class="style-gallery-header"><div class="style-gallery-title">📷 款式图片<span class="style-gallery-count">${allSrcs.length}张</span></div><div class="style-gallery-filter"><input type="text" id="galleryFilter" placeholder="搜索阶段…" oninput="filterGallery()"></div></div><div class="style-gallery-body" id="styleGalleryBody">${gKeys.map(key => { const g = groups[key]; return `<div class="style-gallery-group open" data-cycle-type="${key}"><div class="style-gallery-group-header"><div class="grp-left" onclick="toggleGalleryGroup(this.closest('.style-gallery-group'))"><div class="grp-label">${g.label} · ${g.subLabel}<span class="grp-count">${g.photos.length}张</span></div><span class="grp-chevron">▶</span></div><div class="grp-actions" onclick="event.stopPropagation()"><button class="grp-act-btn" onclick="toggleGroupSelect(this,'${key}')" title="全选/取消"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg></button><button class="grp-act-btn" onclick="deleteSelectedPhotos('${key}')" title="删除选中" style="color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button><button class="grp-act-btn" onclick="downloadSelectedPhotos('${key}')" title="下载选中"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button><button class="grp-act-btn grp-act-primary" onclick="downloadAllGroupPhotos('${key}')" title="下载全部"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span style="font-size:10px;">全部</span></button></div></div><div class="style-gallery-group-grid" data-group="${key}">${g.photos.map(p => `<div class="gallery-card" data-photo-key="${key}"><label class="gallery-card-check"><input type="checkbox" class="photo-check" data-src="${escapeHtml(p.src).replace(/"/g,'&quot;')}"><span class="check-mark"></span></label><img class="gallery-card-thumb" src="${escapeHtml(p.src)}" loading="lazy" onclick="openImageViewer(${allSrcsJSON},${p.idx})"><div class="gallery-card-delete"><button class="gallery-delete-btn" onclick="deleteOnePhoto('${key}',${p.idx}); event.stopPropagation();" title="删除这张">×</button></div><div class="gallery-card-info" onclick="openImageViewer(${allSrcsJSON},${p.idx})"><div class="gallery-card-label">${escapeHtml(g.label)}</div><div class="gallery-card-date">${escapeHtml(g.date)}</div></div></div>`).join('')}</div><label class="grp-upload-zone" id="grpUploadZone_${key}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleGalleryDrop(event,'${key}')"><span class="grp-upload-icon">＋</span><span>拖拽图片到这里，或点击上传</span><input type="file" accept="image/*" multiple onchange="handleGalleryFileInput(event,'${key}')"></label></div></div>`; }).join('')}</div></div>`;
 }
 function toggleGalleryGroup(el) { el.classList.toggle('open'); }
 function toggleGroupSelect(btn, key) { const cbs = document.querySelectorAll('.style-gallery-group-grid[data-group="'+key+'"] .photo-check'); const all = Array.from(cbs).every(cb => cb.checked); cbs.forEach(cb => { cb.checked = !all; }); btn.classList.toggle('active', !all); }
@@ -14257,6 +14314,94 @@ function getSelectedInGroup(key) { return Array.from(document.querySelectorAll('
 function downloadSelectedPhotos(key) { downloadPhotos(getSelectedInGroup(key), key); }
 function downloadAllGroupPhotos(key) { downloadPhotos(Array.from(document.querySelectorAll('.style-gallery-group-grid[data-group="'+key+'"] .photo-check')).map(cb => cb.dataset.src), key); }
 function filterGallery() { const q = (document.getElementById('galleryFilter')?.value || '').toLowerCase().trim(); document.querySelectorAll('#styleGalleryBody .style-gallery-group').forEach(g => { const t = (g.dataset.cycleType||'').toLowerCase(); const l = (g.querySelector('.grp-label')?.textContent||'').toLowerCase(); const cards = g.querySelectorAll('.gallery-card'); let v=0; cards.forEach(c => { const m = !q || t.includes(q) || l.includes(q); c.style.display = m ? '' : 'none'; if (m) v++; }); g.style.display = (q && v===0) ? 'none' : ''; if (q) g.classList.add('open'); }); }
+
+// 删除单张图片（gallery中）
+function deleteOnePhoto(cycleType, globalIdx) {
+  const s = state.styles.find(x => x.id === state.selectedId);
+  if (!s) return;
+  // 找到对应的 cycle
+  const cycle = s.cycles?.find(c => c.type === cycleType);
+  if (!cycle) return;
+  // globalIdx 是 allSrcs 的全局索引，需要找到在本 cycle 的局部索引
+  // 重新算：在 allSrcs 中，globalIdx 对应的 src
+  let gIdx = 0;
+  let localIdx = -1;
+  s.cycles?.forEach(c => {
+    (c.receivedPhotos || []).forEach((src, li) => {
+      if (gIdx === globalIdx && c.type === cycleType) localIdx = li;
+      gIdx++;
+    });
+  });
+  if (localIdx === -1) {
+    // 兜底：按照图片src查找
+    return;
+  }
+  cycle.receivedPhotos.splice(localIdx, 1);
+  saveState();
+  // 重新渲染 gallery 区域
+  const galleryEl = document.querySelector('.style-gallery');
+  if (galleryEl) {
+    galleryEl.outerHTML = renderStyleGallery(s) || '';
+  }
+  openDrawer(s.id);
+  showToast('已删除图片', 'ok');
+}
+
+// 批量删除选中图片
+function deleteSelectedPhotos(cycleType) {
+  const s = state.styles.find(x => x.id === state.selectedId);
+  if (!s) return;
+  const selected = getSelectedInGroup(cycleType);
+  if (selected.length === 0) { showToast('没有选中的图片', 'warn'); return; }
+  const cycle = s.cycles?.find(c => c.type === cycleType);
+  if (!cycle) return;
+  cycle.receivedPhotos = (cycle.receivedPhotos || []).filter(src => !selected.includes(src));
+  saveState();
+  openDrawer(s.id);
+  showToast(`已删除 ${selected.length} 张图片`, 'ok');
+}
+
+// Gallery 文件选择上传
+function handleGalleryFileInput(event, cycleType) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+  addPhotosToGalleryCycle(files, cycleType);
+  event.target.value = '';
+}
+
+// Gallery 拖拽上传
+function handleGalleryDrop(event, cycleType) {
+  event.preventDefault();
+  const zone = document.getElementById('grpUploadZone_' + cycleType);
+  if (zone) zone.classList.remove('drag-over');
+  const files = event.dataTransfer.files;
+  if (!files || files.length === 0) return;
+  addPhotosToGalleryCycle(files, cycleType);
+}
+
+// 读取文件并添加到对应 cycle
+function addPhotosToGalleryCycle(files, cycleType) {
+  const s = state.styles.find(x => x.id === state.selectedId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.type === cycleType);
+  if (!cycle) return;
+  let loaded = 0;
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (!cycle.receivedPhotos) cycle.receivedPhotos = [];
+      cycle.receivedPhotos.push(e.target.result);
+      loaded++;
+      if (loaded === files.length) {
+        saveState();
+        openDrawer(s.id);
+        showToast(`已上传 ${loaded} 张图片`, 'ok');
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 function renderEventLog(s) {
   const entries = [];
@@ -14763,9 +14908,20 @@ function openEditInfoModal(styleId) {
       <label>款名</label>
       <input type="text" id="ei-name" value="${escapeHtml(s.name)}">
     </div>
-    <div class="form-field">
-      <label>描述</label>
-      <input type="text" id="ei-desc" value="${escapeHtml(s.description || '')}" placeholder="面料、工艺、特殊要求">
+    <div class="form-row">
+      <div class="form-field">
+        <label>版型类型 <span class="optional-tag">列表快速识别</span></label>
+        <select id="ei-sample-type">
+          <option value="" ${!s.sampleType ? 'selected' : ''}>— 不标注 —</option>
+          <option value="new" ${s.sampleType === 'new' ? 'selected' : ''}>新版</option>
+          <option value="remake" ${s.sampleType === 'remake' ? 'selected' : ''}>重做板</option>
+          <option value="photo" ${s.sampleType === 'photo' ? 'selected' : ''}>拍照板</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>描述</label>
+        <input type="text" id="ei-desc" value="${escapeHtml(s.description || '')}" placeholder="面料、工艺、特殊要求">
+      </div>
     </div>
     <div class="form-row">
       <div class="form-field">
@@ -14806,12 +14962,15 @@ function saveEditInfo() {
   const specialNote = document.getElementById('ei-special-note').value.trim();
   const owner = document.getElementById('ei-owner').value;
   const openDate = document.getElementById('ei-open-date').value;
+  const sampleType = document.getElementById('ei-sample-type')?.value || '';
   if (!sku && !name) { showToast('款号和款名至少填一个', 'warn'); return; }
   s.sku = sku || '未命名';
   s.name = name || '(无款名)';
   s.description = description || '';
   s.client = client;
   s.owner = owner;
+  s.specialNote = specialNote || '';
+  s.sampleType = sampleType || '';
   // 同步更新最早 cycle 的 openDate
   if (openDate && s.cycles && s.cycles.length > 0) {
     let earliestCycle = s.cycles[0];
@@ -15768,41 +15927,45 @@ function buildCyclesForStartStage(startStage, openDate) {
   }
 
   if (startStage === 'REVISE') {
-    // DEV 已完成 + REVISE 进行中
+    // DEV 已完成（虚拟历史节点）+ REVISE 进行中
     return [
       {
         id: uid('c'), type: 'DEV', openDate: past(30),
         receivedDate: past(20), sentDate: past(18),
-        feedbackDate: past(2), feedbackOutcome: 'REVISE'
+        feedbackDate: past(2), feedbackOutcome: 'REVISE',
+        isVirtual: true  // 迁移填充的虚拟历史节点，不参与真实计时
       },
       { id: uid('c'), type: 'REVISE', openDate: od }
     ];
   }
 
   if (startStage === 'PROD') {
-    // DEV 已通过 + PROD 进行中（要寄船版）
+    // DEV 已通过（虚拟历史节点）+ PROD 进行中（要寄船版）
     return [
       {
         id: uid('c'), type: 'DEV', openDate: past(45),
         receivedDate: past(35), sentDate: past(33),
-        feedbackDate: past(2), feedbackOutcome: 'APPROVED'
+        feedbackDate: past(2), feedbackOutcome: 'APPROVED',
+        isVirtual: true  // 迁移填充的虚拟历史节点
       },
       { id: uid('c'), type: 'PROD', openDate: od }
     ];
   }
 
   if (startStage === 'PROD_SHIPPING') {
-    // DEV 已通过 + PROD 已批，进入等大货
+    // DEV + PROD 均为虚拟历史节点，进入等大货
     return [
       {
         id: uid('c'), type: 'DEV', openDate: past(60),
         receivedDate: past(50), sentDate: past(48),
-        feedbackDate: past(30), feedbackOutcome: 'APPROVED'
+        feedbackDate: past(30), feedbackOutcome: 'APPROVED',
+        isVirtual: true  // 迁移填充的虚拟历史节点
       },
       {
         id: uid('c'), type: 'PROD', openDate: past(28),
         receivedDate: past(20), sentDate: past(18),
-        feedbackDate: past(2), feedbackOutcome: 'APPROVED'
+        feedbackDate: past(2), feedbackOutcome: 'APPROVED',
+        isVirtual: true  // 迁移填充的虚拟历史节点
       }
     ];
   }
@@ -16381,6 +16544,12 @@ document.querySelectorAll('#client-filters .filter-btn').forEach(b => {
   b.addEventListener('click', () => {
     document.querySelectorAll('#client-filters .filter-btn').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); state.filterClient = b.dataset.client; render();
+  });
+});
+document.querySelectorAll('#sample-type-filters .filter-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#sample-type-filters .filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); state.filterSampleType = b.dataset.stype; render();
   });
 });
 document.querySelectorAll('.view-toggle button').forEach(b => {
