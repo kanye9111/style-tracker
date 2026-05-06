@@ -16084,62 +16084,27 @@ function onStartStageChange() {
 // 前置 cycles 全部标记为已完成，使用合理的占位日期，让流程图和日志看起来连贯
 function buildCyclesForStartStage(startStage, openDate) {
   const od = openDate || todayStr();
-  // 占位日期：开版往前推 30 天，反馈往前推 1 天
-  const past = (days) => {
-    const d = new Date(od);
-    d.setDate(d.getDate() - days);
-    return d.toISOString().slice(0, 10);
-  };
 
   if (startStage === 'DEV') {
     return [{ id: uid('c'), type: 'DEV', openDate: od }];
   }
 
   if (startStage === 'REVISE') {
-    // DEV 已完成（虚拟历史节点）+ REVISE 进行中
-    return [
-      {
-        id: uid('c'), type: 'DEV', openDate: past(30),
-        receivedDate: past(20), sentDate: past(18),
-        feedbackDate: past(2), feedbackOutcome: 'REVISE',
-        isVirtual: true  // 迁移填充的虚拟历史节点，不参与真实计时
-      },
-      { id: uid('c'), type: 'REVISE', openDate: od }
-    ];
+    // 只创建修改版 cycle，不再自动加虚拟的开发版历史
+    return [{ id: uid('c'), type: 'REVISE', openDate: od }];
   }
 
   if (startStage === 'PROD') {
-    // DEV 已通过（虚拟历史节点）+ PROD 进行中（要寄船版）
-    return [
-      {
-        id: uid('c'), type: 'DEV', openDate: past(45),
-        receivedDate: past(35), sentDate: past(33),
-        feedbackDate: past(2), feedbackOutcome: 'APPROVED',
-        isVirtual: true  // 迁移填充的虚拟历史节点
-      },
-      { id: uid('c'), type: 'PROD', openDate: od }
-    ];
+    // 只创建船版 cycle，不再自动加虚拟的开发版历史
+    return [{ id: uid('c'), type: 'PROD', openDate: od }];
   }
 
   if (startStage === 'PROD_SHIPPING') {
-    // DEV + PROD 均为虚拟历史节点，进入等大货
-    return [
-      {
-        id: uid('c'), type: 'DEV', openDate: past(60),
-        receivedDate: past(50), sentDate: past(48),
-        feedbackDate: past(30), feedbackOutcome: 'APPROVED',
-        isVirtual: true  // 迁移填充的虚拟历史节点
-      },
-      {
-        id: uid('c'), type: 'PROD', openDate: past(28),
-        receivedDate: past(20), sentDate: past(18),
-        feedbackDate: past(2), feedbackOutcome: 'APPROVED',
-        isVirtual: true  // 迁移填充的虚拟历史节点
-      }
-    ];
+    // 等大货阶段不创建任何 cycle，直接加 PO 即可
+    return [];
   }
 
-  // 兜底
+  // 兜底：默认开发版
   return [{ id: uid('c'), type: 'DEV', openDate: od }];
 }
 function closeNewStyleModal() {
