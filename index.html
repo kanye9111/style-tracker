@@ -910,7 +910,7 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
   background: var(--bg-elevated);
   border: 1px solid var(--line-strong);
   border-radius: 4px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   cursor: pointer;
   display: flex; gap: 12px;
   transition: transform 0.1s, box-shadow 0.1s;
@@ -937,27 +937,39 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
 }
 .today-card-body {
   flex: 1; min-width: 0;
-  display: flex; flex-direction: column; gap: 6px;
+  display: flex; flex-direction: column; gap: 5px;
 }
 .today-card-head {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
   flex-wrap: wrap;
 }
 .today-card-sku {
   font-family: var(--font-mono); font-size: 13px;
-  font-weight: 600; color: var(--ink);
+  font-weight: 700; color: var(--ink);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 .today-card-name {
-  font-size: 13px; color: var(--ink-soft);
+  font-size: 12.5px; color: var(--ink-soft);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  flex: 1; min-width: 0;
+  font-weight: 500;
+}
+/* 今日卡片标签紧凑化 */
+.today-card .client-badge,
+.today-card .order-type-pill,
+.today-card .sample-type-badge {
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+  white-space: nowrap;
 }
 .today-card-action {
-  display: flex; flex-direction: column; gap: 3px;
+  display: flex; flex-direction: column; gap: 2px;
+  margin-top: 2px;
 }
 .today-card-action-main {
   font-size: 14px; font-weight: 600;
   color: var(--ink);
+  line-height: 1.3;
 }
 .today-card-action-main.danger { color: var(--danger); }
 .today-card-action-main.warn { color: var(--warn); }
@@ -5106,7 +5118,7 @@ input[type="date"]:hover {
   padding: 12px 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .grid-card-row1 {
   display: flex;
@@ -5123,9 +5135,9 @@ input[type="date"]:hover {
 }
 .grid-card-name {
   font-family: var(--font-sans);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--ink);
+  color: var(--ink-soft);
   letter-spacing: -0.005em;
   line-height: 1.35;
   overflow: hidden;
@@ -5133,7 +5145,6 @@ input[type="date"]:hover {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  min-height: 2.7em;
 }
 .grid-card-status {
   font-family: var(--font-sans);
@@ -5425,32 +5436,41 @@ main#main {
 
 .grid-card-body {
   flex: 1;
-  padding: 12px 14px !important;
+  padding: 10px 12px !important;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   min-width: 0;
   justify-content: space-between;
 }
 .grid-card-row1 {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
-  margin-bottom: 2px;
+  row-gap: 4px;
 }
 .grid-card-sku {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--ink);
   letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+/* 横向卡片中标签紧凑化 */
+.grid-card .client-badge,
+.grid-card .order-type-pill,
+.grid-card .sample-type-badge {
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+  white-space: nowrap;
 }
 .grid-card-name {
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
-  color: var(--ink);
+  color: var(--ink-soft);
   letter-spacing: -0.005em;
   line-height: 1.3;
   overflow: hidden;
@@ -5458,7 +5478,6 @@ main#main {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  min-height: 1.3em;
 }
 .grid-card-status {
   font-family: var(--font-sans);
@@ -5811,7 +5830,7 @@ main#main {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 4px;
   padding-top: 8px;
   border-top: 1px solid var(--line);
   flex-wrap: wrap;
@@ -5824,8 +5843,8 @@ main#main {
 }
 .grid-card-node {
   font-family: var(--font-sans);
-  font-size: 11px;
-  color: var(--ink-soft);
+  font-size: 11.5px;
+  color: var(--ink);
   font-weight: 500;
   letter-spacing: -0.005em;
   flex: 1;
@@ -9620,7 +9639,14 @@ async function saveStyleToSupabase(style) {
       const { error: ce } = await _supabase.from('cycles').upsert(cycleRows);
       if (ce) throw ce;
 
-      // 3. upsert photos（只存非空的）
+      // 3. 先删除所有 cycle 的旧照片，再重新插入当前的照片
+      // （这样可以确保删除操作生效）
+      const cycleIds = style.cycles.map(c => c.id);
+      if (cycleIds.length > 0) {
+        await _supabase.from('cycle_photos').delete().in('cycle_id', cycleIds);
+      }
+      
+      // 重新插入当前的照片
       for (const c of style.cycles) {
         if (c.receivedPhotos && c.receivedPhotos.length > 0) {
           const photoRows = c.receivedPhotos
@@ -11511,6 +11537,8 @@ function getTodayList(activeStyles) {
 
     const who = whoToFollowUp(status.currentNode, status.cycleType);
     let actionHint = '';
+    
+    // 大货跟进阶段
     if (status.currentNode === 'PROD_SHIPPING') {
       if (status.exFactory) {
         const daysLeft = daysBetween(today, status.exFactory);
@@ -11521,23 +11549,39 @@ function getTodayList(activeStyles) {
       } else {
         actionHint = '等大货完成';
       }
-    } else if (status.currentNode === 'PATTERN_MAKING') {
-      if (isPoActive) actionHint = '⚡ 催板房（已下PO）';
-      else actionHint = '催板房';
+    } 
+    // 版师打版中
+    else if (status.currentNode === 'PATTERN_MAKING') {
+      if (isPoActive) actionHint = '⚡ 催版师打版（已下PO）';
+      else actionHint = '催版师出样板';
     }
+    // 版已打好，等版房送样
     else if (status.currentNode === 'AWAIT_DELIVERY') {
       if (isPoActive) actionHint = '⚡ 催版房送样（已下PO）';
       else actionHint = '催版房送样';
     }
+    // 样板已到，待寄出客户
     else if (status.currentNode === 'AWAIT_SEND') {
       if (isPoActive) actionHint = '⚡ 赶紧寄出（已下PO）';
-      else actionHint = '该寄了';
+      else actionHint = '该寄样了';
     }
+    // 已寄出，等客户反馈
     else if (status.currentNode === 'AWAIT_FB') {
-      if (status.cycleType === 'PHOTO') actionHint = isPoActive ? '⚡ 催图审（已下PO）' : '催图审';
-      else if (status.cycleType === 'PROD') actionHint = '催船版批准';
-      else actionHint = '催客户回评语';
-    } else if (status.currentNode === 'AWAIT_FIT') actionHint = '催 fit comment';
+      if (status.cycleType === 'PHOTO') {
+        // 拍照版 - 等图审
+        actionHint = isPoActive ? '⚡ 催图审（已下PO）' : '催图审';
+      } else if (status.cycleType === 'PROD') {
+        // 船版 - 一定有PO
+        actionHint = '⚡ 催船版批准';
+      } else {
+        // 开发版/修改版 - 等客户评语
+        actionHint = isPoActive ? '⚡ 催客户评语（已下PO）' : '催客户回评语';
+      }
+    }
+    // 等 fit comment（一定是已下PO的款）
+    else if (status.currentNode === 'AWAIT_FIT') {
+      actionHint = '⚡ 催 fit comment';
+    }
 
     let priority = 99;
     // 有PO + 有货期的最优先
@@ -11649,6 +11693,7 @@ function renderTodayTab() {
     const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
     const _ob = getOrderTypeBadge(s);
     const _orderTypeHtml = _ob ? `<span class="order-type-pill ${_ob.cls}">${escapeHtml(_ob.label)}</span>` : '';
+    const hasName = s.name && s.name !== '(无款名)';
     return `
       <div class="today-card ${cls} ${batchCls}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
         <input type="checkbox" class="batch-checkbox today-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">
@@ -11657,10 +11702,10 @@ function renderTodayTab() {
           <div class="today-card-head">
             <span class="today-card-sku">${escapeHtml(s.sku)}</span>
             <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
-            ${_orderTypeHtml}
-            ${renderStyleNameText(s) ? `<span class="today-card-name">${renderStyleNameText(s)}</span>` : ''}
             ${renderSampleTypeBadge(s)}
+            ${_orderTypeHtml}
           </div>
+          ${hasName ? `<div class="today-card-name">${renderStyleNameText(s)}</div>` : ''}
           <div class="today-card-action">
             <span class="today-card-action-main ${cls}">${escapeHtml(mainText)}</span>
             <span class="today-card-action-detail">${escapeHtml(detailText)}</span>
@@ -12587,12 +12632,10 @@ function renderGridCard(s, idx) {
         <div class="grid-card-row1">
           <span class="grid-card-sku">${escapeHtml(s.sku)}</span>
           <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
+          ${renderSampleTypeBadge(s)}
           ${(() => { const ob = getOrderTypeBadge(s); return ob ? `<span class="order-type-pill ${ob.cls}">${escapeHtml(ob.label)}</span>` : ''; })()}
         </div>
-        <div class="grid-card-name" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-          <span>${renderStyleNameText(s)}</span>
-          ${renderSampleTypeBadge(s)}
-        </div>
+        ${s.name && s.name !== '(无款名)' ? `<div class="grid-card-name">${renderStyleNameText(s)}</div>` : ''}
         <div class="grid-card-status-row">
           <span class="stage-tag ${stageTagCls}">${escapeHtml(status.stageLabel)}</span>
           <span class="grid-card-node ${nodeNameCls}">${escapeHtml(nodeText)}</span>
@@ -14509,30 +14552,38 @@ function filterGallery() { const q = (document.getElementById('galleryFilter')?.
 function deleteOnePhoto(cycleType, globalIdx) {
   const s = state.styles.find(x => x.id === state.selectedId);
   if (!s) return;
-  // 找到对应的 cycle
-  const cycle = s.cycles?.find(c => c.type === cycleType);
-  if (!cycle) return;
-  // globalIdx 是 allSrcs 的全局索引，需要找到在本 cycle 的局部索引
-  // 重新算：在 allSrcs 中，globalIdx 对应的 src
+  
+  // 通过 globalIdx 找到具体的 cycle 和局部 index
   let gIdx = 0;
-  let localIdx = -1;
-  s.cycles?.forEach(c => {
-    (c.receivedPhotos || []).forEach((src, li) => {
-      if (gIdx === globalIdx && c.type === cycleType) localIdx = li;
-      gIdx++;
-    });
-  });
-  if (localIdx === -1) {
-    // 兜底：按照图片src查找
+  let targetCycle = null;
+  let targetLocalIdx = -1;
+  
+  for (const c of (s.cycles || [])) {
+    if (c.type !== cycleType) {
+      gIdx += (c.receivedPhotos || []).length;
+      continue;
+    }
+    const photos = c.receivedPhotos || [];
+    if (globalIdx < gIdx + photos.length) {
+      targetCycle = c;
+      targetLocalIdx = globalIdx - gIdx;
+      break;
+    }
+    gIdx += photos.length;
+  }
+  
+  if (!targetCycle || targetLocalIdx === -1) {
+    showToast('找不到要删除的图片', 'warn');
     return;
   }
-  cycle.receivedPhotos.splice(localIdx, 1);
-  saveState();
-  // 重新渲染 gallery 区域
-  const galleryEl = document.querySelector('.style-gallery');
-  if (galleryEl) {
-    galleryEl.outerHTML = renderStyleGallery(s) || '';
-  }
+  
+  // 本地删除
+  targetCycle.receivedPhotos.splice(targetLocalIdx, 1);
+  
+  // 保存（saveStyleToSupabase 会自动同步删除云端的 photo 记录）
+  saveOneStyle(s.id);
+  
+  // 重新渲染
   openDrawer(s.id);
   showToast('已删除图片', 'ok');
 }
@@ -14543,12 +14594,21 @@ function deleteSelectedPhotos(cycleType) {
   if (!s) return;
   const selected = getSelectedInGroup(cycleType);
   if (selected.length === 0) { showToast('没有选中的图片', 'warn'); return; }
-  const cycle = s.cycles?.find(c => c.type === cycleType);
-  if (!cycle) return;
-  cycle.receivedPhotos = (cycle.receivedPhotos || []).filter(src => !selected.includes(src));
-  saveState();
+  
+  // 在所有相同类型的 cycle 里删除
+  let totalDeleted = 0;
+  (s.cycles || []).forEach(c => {
+    if (c.type !== cycleType) return;
+    const before = (c.receivedPhotos || []).length;
+    c.receivedPhotos = (c.receivedPhotos || []).filter(src => !selected.includes(src));
+    const after = c.receivedPhotos.length;
+    totalDeleted += (before - after);
+  });
+  
+  // 保存（saveStyleToSupabase 会自动同步删除云端的 photo 记录）
+  saveOneStyle(s.id);
   openDrawer(s.id);
-  showToast(`已删除 ${selected.length} 张图片`, 'ok');
+  showToast(`已删除 ${totalDeleted} 张图片`, 'ok');
 }
 
 // Gallery 文件选择上传
