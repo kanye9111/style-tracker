@@ -5082,7 +5082,7 @@ input[type="date"]:hover {
 
 .grid-card-img-wrap {
   position: relative;
-  aspect-ratio: 4 / 5;
+  height: 280px;  /* 固定高度，不再用 aspect-ratio */
   overflow: hidden;
   background: var(--bg-sunken);
 }
@@ -5119,6 +5119,7 @@ input[type="date"]:hover {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-height: 140px;  /* 统一卡片下半部分高度 */
 }
 .grid-card-row1 {
   display: flex;
@@ -12434,7 +12435,8 @@ function filterStyles() {
 
 // 通用排序：按 state.sortBy 决定
 function sortStyles(a, b) {
-  const sortBy = state.sortBy || 'createdAt_desc';
+  const sortBy = state.sortBy;
+  if (!sortBy) return 0;  // 无排序
   if (sortBy === 'createdAt_desc') {
     // 时间倒序（最新在最上）
     return (b.createdAt || '').localeCompare(a.createdAt || '');
@@ -12461,14 +12463,19 @@ function sortStyles(a, b) {
 
 // 列头点击循环切换排序
 function cycleSortBy(field) {
-  const cur = state.sortBy || 'createdAt_desc';
+  const cur = state.sortBy || '';
   if (field === 'sku') {
     if (cur === 'sku_asc') state.sortBy = 'sku_desc';
     else state.sortBy = 'sku_asc';
   } else if (field === 'time') {
-    if (cur === 'createdAt_desc') state.sortBy = 'createdAt_asc';
-    else if (cur === 'createdAt_asc') state.sortBy = 'urgency';
-    else state.sortBy = 'createdAt_desc';
+    // 循环：无排序 → 最早 → 最新 → 无排序
+    if (!cur || cur === 'urgency' || cur.startsWith('sku')) {
+      state.sortBy = 'createdAt_asc';  // 最早（从旧到新）
+    } else if (cur === 'createdAt_asc') {
+      state.sortBy = 'createdAt_desc';  // 最新（从新到旧）
+    } else {
+      state.sortBy = '';  // 无排序
+    }
   }
   render();
 }
@@ -12780,7 +12787,7 @@ function renderListByStage(styles) {
               <div class="sortable ${state.sortBy && state.sortBy.startsWith('sku') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('sku')">款号 <span class="sort-arrow">${state.sortBy === 'sku_asc' ? '↑' : state.sortBy === 'sku_desc' ? '↓' : '⇅'}</span></div>
               <div>客户</div>
               <div>款名</div>
-              <div class="sortable ${state.sortBy && (state.sortBy.startsWith('createdAt') || state.sortBy === 'urgency') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('time')">当前进度 <span class="sort-arrow">${state.sortBy === 'createdAt_desc' ? '↓ 最新' : state.sortBy === 'createdAt_asc' ? '↑ 最早' : state.sortBy === 'urgency' ? '紧迫' : '⇅'}</span></div>
+              <div class="sortable ${state.sortBy && state.sortBy.startsWith('createdAt') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('time')">当前进度 <span class="sort-arrow">${state.sortBy === 'createdAt_asc' ? '↑ 最早' : state.sortBy === 'createdAt_desc' ? '↓ 最新' : '⇅'}</span></div>
               <div></div>
             </div>
             ${g.items.map(s => {
