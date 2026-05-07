@@ -9236,6 +9236,12 @@ main { animation: fadeInUp 0.25s ease-out; }
       </svg>
       批量已催
     </button>
+    <button class="batch-btn batch-btn-primary" id="batchTodayCompleteBtn" onclick="handleBatchTodayComplete()" style="display:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <span id="batchTodayCompleteLabel">批量完成</span>
+    </button>
     <button class="batch-btn batch-btn-danger" id="batchArchiveBtn" onclick="batchArchive()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" x2="14" y1="12" y2="12"/>
@@ -9935,10 +9941,13 @@ function syncBatchBarButtons() {
   const archiveBtn = document.getElementById('batchArchiveBtn');
   const restoreBtn = document.getElementById('batchRestoreBtn');
   const deleteBtn = document.getElementById('batchDeleteBtn');
+  const todayCompleteBtn = document.getElementById('batchTodayCompleteBtn');
+  const todayCompleteLabel = document.getElementById('batchTodayCompleteLabel');
   if (!followBtn) return;
 
   const isArchive = (state.topTab === 'archive');
   const isToday = (state.topTab === 'today');
+  const todaySub = state.todaySub || 'all';
 
   // 已催只在今日
   followBtn.style.display = isToday ? 'inline-flex' : 'none';
@@ -9948,6 +9957,25 @@ function syncBatchBarButtons() {
   if (restoreBtn) restoreBtn.style.display = isArchive ? 'inline-flex' : 'none';
   // 批量删除只在历史 tab
   if (deleteBtn) deleteBtn.style.display = isArchive ? 'inline-flex' : 'none';
+  
+  // 批量完成按钮：只在今日跟进的特定子菜单显示
+  if (todayCompleteBtn && todayCompleteLabel) {
+    if (isToday && todaySub !== 'all') {
+      todayCompleteBtn.style.display = 'inline-flex';
+      // 根据子菜单设置按钮文案
+      const labels = {
+        'pattern': '批量打版完成',
+        'workshop': '批量收到样板',
+        'shipping': '批量已寄出',
+        'feedback': '批量收到反馈',
+        'fit': '批量收到 fit',
+        'prod': '批量到仓'
+      };
+      todayCompleteLabel.textContent = labels[todaySub] || '批量完成';
+    } else {
+      todayCompleteBtn.style.display = 'none';
+    }
+  }
 
   // 全选标签：检查当前是否已全选
   const ids = collectVisibleStyleIds();
@@ -11687,14 +11715,55 @@ function renderTodayTab() {
     const thumb = s.imageUrl
       ? `<img class="thumb-mini thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-mini-placeholder&quot;>NO IMG</div>'">`
       : `<div class="thumb-mini-placeholder">NO IMG</div>`;
-    let mainText, detailText;
+    
+    // 简化状态文字
+    let mainText;
+    const days = it.status.days || 0;
+    const daysText = days > 0 ? ` · 已 ${days} 天` : '';
+    const node = it.status.currentNode;
+    
     if (it.efAlert?.level === 'danger') {
+      // 货期紧急的情况
       mainText = it.efAlert.message;
-      detailText = `${it.actionHint || '处理'} · ${it.who || ''}`;
+    } else if (it.isProdShipping) {
+      // 大货发货中
+      const efDays = it.efAlert?.daysLeft;
+      if (efDays !== null && efDays <= 0) {
+        mainText = `⚠️ 已逾期 ${-efDays} 天`;
+      } else if (efDays !== null && efDays <= 7) {
+        mainText = `⚡ 距货期 ${efDays} 天`;
+      } else if (efDays !== null) {
+        mainText = `距货期 ${efDays} 天`;
+      } else {
+        mainText = '等大货完成';
+      }
+    } else if (it.isAwaitFit) {
+      // 等 fit
+      mainText = `⚡ 等 fit${daysText}`;
+    } else if (node === 'PATTERN_MAKING') {
+      // 版师打版
+      mainText = `⚡ 打版中${daysText}`;
+    } else if (node === 'AWAIT_DELIVERY') {
+      // 版房送样
+      mainText = `⚡ 等送样${daysText}`;
+    } else if (node === 'AWAIT_SEND' || node === 'AWAIT_RECEIVE') {
+      // 待寄出
+      mainText = `⚡ 待寄出${daysText}`;
+    } else if (node === 'AWAIT_FB') {
+      // 等反馈
+      const cycleType = it.status.cycleType;
+      if (cycleType === 'PHOTO') {
+        mainText = `⚡ 等图审${daysText}`;
+      } else if (cycleType === 'PROD') {
+        mainText = `⚡ 等船版批准${daysText}`;
+      } else {
+        mainText = `⚡ 等反馈${daysText}`;
+      }
     } else {
-      mainText = it.actionHint;
-      detailText = `${withDays(it.status.currentNodeLabel, it.status.days)} · ${it.who || ''}`;
+      // 其他状态，使用原有的 actionHint
+      mainText = it.actionHint || '处理中';
     }
+    
     const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
     const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
     const _ob = getOrderTypeBadge(s);
@@ -11714,7 +11783,6 @@ function renderTodayTab() {
           ${hasName ? `<div class="today-card-name">${renderStyleNameText(s)}</div>` : ''}
           <div class="today-card-action">
             <span class="today-card-action-main ${cls}">${escapeHtml(mainText)}</span>
-            <span class="today-card-action-detail">${escapeHtml(detailText)}</span>
           </div>
         </div>
       </div>
@@ -11738,8 +11806,9 @@ function renderTodayTab() {
   const todayCollapsibleSection = (key, badgeCls, title, sub, items, renderFn) => {
     if (items.length === 0) return '';
     const collapsed = state.collapsedSections[key];
+    
     return `
-      <div class="today-section ${badgeCls === 'fit' ? 'section-fit' : ''} ${collapsed ? 'collapsed' : ''}">
+      <div class="today-section ${badgeCls === 'fit' ? 'section-fit' : ''} ${collapsed ? 'collapsed' : ''}" data-section-key="${key}">
         <h2 class="collapsible-header" onclick="toggleSection('${key}')">
           <span class="section-chevron">▼</span>
           <span>${title}</span>
@@ -17170,6 +17239,353 @@ setupCustomDatePickers();
   // 初始化子菜单
   updateTodaySubNav();
 })();
+
+/*
+========================================================================
+ 今日跟进 - 批量完成功能
+========================================================================
+*/
+
+// 底部 bar 的批量完成按钮处理
+function handleBatchTodayComplete() {
+  const todaySub = state.todaySub || 'all';
+  if (todaySub === 'all') {
+    showToast('请先选择具体的分组（版师/版房/寄样等）', 'warn');
+    return;
+  }
+  openBatchCompleteModal(todaySub);
+}
+
+// 打开批量完成模态框
+function openBatchCompleteModal(actionType) {
+  const selectedIds = Object.keys(state.batchSelected || {});
+  if (selectedIds.length === 0) {
+    showToast('请先选择款式', 'warn');
+    return;
+  }
+  
+  const selectedStyles = state.styles.filter(s => selectedIds.includes(s.id));
+  
+  let title, content;
+  
+  switch (actionType) {
+    case 'pattern':
+      title = '批量标记打版完成';
+      content = renderPatternCompleteModal(selectedStyles);
+      break;
+    case 'workshop':
+      title = '批量标记收到样板';
+      content = renderWorkshopCompleteModal(selectedStyles);
+      break;
+    case 'shipping':
+      title = '批量标记已寄出';
+      content = renderShippingCompleteModal(selectedStyles);
+      break;
+    case 'feedback':
+      title = '批量标记收到反馈';
+      content = renderFeedbackCompleteModal(selectedStyles);
+      break;
+    case 'fit':
+      title = '批量标记收到 fit';
+      content = renderFitCompleteModal(selectedStyles);
+      break;
+    case 'prod':
+      title = '批量标记大货到仓';
+      content = renderProdCompleteModal(selectedStyles);
+      break;
+    default:
+      return;
+  }
+  
+  document.getElementById('updateTitle').textContent = title;
+  document.getElementById('updateBody').innerHTML = content;
+  document.getElementById('updateFooter').innerHTML = `
+    <button class="cancel" onclick="closeUpdateModal()">取消</button>
+    <button class="primary" onclick="confirmBatchComplete('${actionType}')">确认完成</button>
+  `;
+  document.getElementById('updateBackdrop').classList.add('open');
+}
+
+// 渲染各个板块的批量完成模态框内容
+function renderPatternCompleteModal(styles) {
+  return `
+    <div style="padding: 24px;">
+      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
+        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
+          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
+        </div>
+      </div>
+      <div>
+        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">打版完成日期</label>
+        <input type="date" id="batchPatternDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
+      </div>
+    </div>
+  `;
+}
+
+function renderWorkshopCompleteModal(styles) {
+  return `
+    <div style="padding: 24px;">
+      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
+        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
+          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
+        </div>
+      </div>
+      <div>
+        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">收样日期</label>
+        <input type="date" id="batchReceiveDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
+      </div>
+    </div>
+  `;
+}
+
+function renderShippingCompleteModal(styles) {
+  return `
+    <div style="padding: 24px;">
+      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
+        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
+          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">寄出日期</label>
+        <input type="date" id="batchSentDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
+      </div>
+      <div>
+        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">快递单号 <span style="color: var(--ink-mute); font-weight: 400;">(可选)</span></label>
+        <input type="text" id="batchTrackingNumber" placeholder="多个款可留空" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px;">
+      </div>
+    </div>
+  `;
+}
+
+function renderFeedbackCompleteModal(styles) {
+  return `
+    <div style="padding: 24px;">
+      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
+        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
+          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">反馈日期</label>
+        <input type="date" id="batchFeedbackDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
+      </div>
+      <div>
+        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">批量反馈结果</label>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; transition: background 0.2s;">
+            <input type="radio" name="batchFeedbackType" value="approve" checked style="margin: 0;">
+            <span style="font-size: 13px;">✓ 全部通过 - 准备下单</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; transition: background 0.2s;">
+            <input type="radio" name="batchFeedbackType" value="revise" style="margin: 0;">
+            <span style="font-size: 13px;">↻ 全部需修改 - 开新改版</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderFitCompleteModal(styles) {
+  return `
+    <div style="padding: 24px;">
+      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
+        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
+          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">fit 日期</label>
+        <input type="date" id="batchFitDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
+      </div>
+      <div>
+        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">fit 结果 <span style="color: var(--ink-mute); font-weight: 400;">(可选)</span></label>
+        <textarea id="batchFitComment" placeholder="fit comment..." style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; min-height: 80px; resize: vertical; font-family: inherit;"></textarea>
+      </div>
+    </div>
+  `;
+}
+
+function renderProdCompleteModal(styles) {
+  return `
+    <div style="padding: 24px;">
+      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
+        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
+          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
+        </div>
+      </div>
+      <div>
+        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">到仓日期</label>
+        <input type="date" id="batchArriveDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
+      </div>
+    </div>
+  `;
+}
+
+// 确认批量完成
+async function confirmBatchComplete(actionType) {
+  const selectedIds = Object.keys(state.batchSelected || {});
+  if (selectedIds.length === 0) return;
+  
+  let processedCount = 0;
+  
+  try {
+    switch (actionType) {
+      case 'pattern':
+        const patternDate = document.getElementById('batchPatternDate').value;
+        if (!patternDate) {
+          showToast('请选择打版完成日期', 'warn');
+          return;
+        }
+        for (const id of selectedIds) {
+          const s = state.styles.find(x => x.id === id);
+          if (!s) continue;
+          const cycle = s.cycles?.find(c => c.type === 'DEV' && c.status === 'PATTERN_MAKING');
+          if (cycle) {
+            cycle.status = 'AWAIT_DELIVERY';
+            cycle.patternCompletedDate = patternDate;
+            await saveOneStyle(s.id);
+            processedCount++;
+          }
+        }
+        break;
+        
+      case 'workshop':
+        const receiveDate = document.getElementById('batchReceiveDate').value;
+        if (!receiveDate) {
+          showToast('请选择收样日期', 'warn');
+          return;
+        }
+        for (const id of selectedIds) {
+          const s = state.styles.find(x => x.id === id);
+          if (!s) continue;
+          const cycle = s.cycles?.find(c => c.status === 'AWAIT_DELIVERY');
+          if (cycle) {
+            cycle.status = 'AWAIT_SEND';
+            cycle.receivedDate = receiveDate;
+            await saveOneStyle(s.id);
+            processedCount++;
+          }
+        }
+        break;
+        
+      case 'shipping':
+        const sentDate = document.getElementById('batchSentDate').value;
+        const trackingNumber = document.getElementById('batchTrackingNumber').value;
+        if (!sentDate) {
+          showToast('请选择寄出日期', 'warn');
+          return;
+        }
+        for (const id of selectedIds) {
+          const s = state.styles.find(x => x.id === id);
+          if (!s) continue;
+          const cycle = s.cycles?.find(c => c.status === 'AWAIT_SEND');
+          if (cycle) {
+            cycle.status = 'AWAIT_FB';
+            cycle.sentDate = sentDate;
+            if (trackingNumber) cycle.trackingNumber = trackingNumber;
+            await saveOneStyle(s.id);
+            processedCount++;
+          }
+        }
+        break;
+        
+      case 'feedback':
+        const feedbackDate = document.getElementById('batchFeedbackDate').value;
+        const feedbackType = document.querySelector('input[name="batchFeedbackType"]:checked').value;
+        if (!feedbackDate) {
+          showToast('请选择反馈日期', 'warn');
+          return;
+        }
+        if (feedbackType === 'individual') {
+          showToast('逐个录入功能暂不支持，请单独处理', 'warn');
+          return;
+        }
+        for (const id of selectedIds) {
+          const s = state.styles.find(x => x.id === id);
+          if (!s) continue;
+          const cycle = s.cycles?.find(c => c.status === 'AWAIT_FB' && c.type !== 'PROD');
+          if (cycle) {
+            cycle.feedbackDate = feedbackDate;
+            if (feedbackType === 'approve') {
+              cycle.feedback = 'APPROVED';
+              cycle.feedbackNote = '批量通过';
+            } else if (feedbackType === 'revise') {
+              cycle.feedback = 'REVISE';
+              cycle.feedbackNote = '批量需修改';
+            }
+            await saveOneStyle(s.id);
+            processedCount++;
+          }
+        }
+        break;
+        
+      case 'fit':
+        const fitDate = document.getElementById('batchFitDate').value;
+        const fitComment = document.getElementById('batchFitComment').value;
+        if (!fitDate) {
+          showToast('请选择 fit 日期', 'warn');
+          return;
+        }
+        for (const id of selectedIds) {
+          const s = state.styles.find(x => x.id === id);
+          if (!s) continue;
+          const po = s.pos?.[0]; // 简化处理，只处理第一个 PO
+          if (po && !po.fitComment) {
+            po.fitComment = fitComment || '已收到 fit';
+            po.fitDate = fitDate;
+            await saveOneStyle(s.id);
+            processedCount++;
+          }
+        }
+        break;
+        
+      case 'prod':
+        const arriveDate = document.getElementById('batchArriveDate').value;
+        if (!arriveDate) {
+          showToast('请选择到仓日期', 'warn');
+          return;
+        }
+        for (const id of selectedIds) {
+          const s = state.styles.find(x => x.id === id);
+          if (!s) continue;
+          if (s.pos && s.pos.length > 0) {
+            s.pos.forEach(po => {
+              if (!po.arrivedDate) {
+                po.arrivedDate = arriveDate;
+              }
+            });
+            await saveOneStyle(s.id);
+            processedCount++;
+          }
+        }
+        break;
+    }
+    
+    // 清空选择
+    state.batchSelected = {};
+    
+    // 关闭模态框
+    closeUpdateModal();
+    
+    // 刷新今日跟进
+    renderTodayTab();
+    
+    showToast(`✓ 已完成 ${processedCount} 个款的批量操作`, 'ok');
+    
+  } catch (e) {
+    console.error('批量完成失败', e);
+    showToast('批量操作失败：' + e.message, 'error');
+  }
+}
 
 /*
 ========================================================================
