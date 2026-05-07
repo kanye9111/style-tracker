@@ -14092,9 +14092,11 @@ function openDrawer(id) {
   if (s.archived) {
     actions = `<button onclick="undoArchive('${s.id}')">取消归档</button>`;
   } else if (status.currentNode === 'PATTERN_MAKING') {
-    actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
-    actions += ` <button onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')" title="版师已打完版，等版房送过来">✂️ 版师已打完</button>`;
+    // 版师打版中 - 只有"版师已打完"按钮（给版师未来用）
+    // 跟单不在这里登记，去"版房"或"开发追踪"里登记
+    actions = `<button onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')" title="版师已打完版，等版房送过来">✂️ 版师已打完</button>`;
   } else if (status.currentNode === 'AWAIT_DELIVERY') {
+    // 版房送样 - 跟单在这里登记收到样板
     actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
     actions += ` <button onclick="undoPatternMakerDone('${s.id}', '${lastCycle.id}')" title="撤销·版师还在做">↶ 撤销「已打完」</button>`;
   } else if (status.currentNode === 'AWAIT_SEND') {
@@ -15562,7 +15564,6 @@ function saveCycleStep() {
   if (!date) { showToast('请选择日期', 'warn'); return; }
   if (field === 'received') {
     cycle.receivedDate = date;
-    cycle.status = 'AWAIT_SEND';  // 收到样板后，状态变成"待寄出"
     // 收到样板就清除"版师已打完"标记，进入下一阶段
     if (cycle.patternMakerDone) {
       cycle.patternMakerDone = false;
@@ -15576,7 +15577,6 @@ function saveCycleStep() {
   }
   else if (field === 'sent') {
     cycle.sentDate = date;
-    cycle.status = 'AWAIT_FB';  // 寄出后，状态变成"等反馈"
     if (cycle.type !== 'PHOTO') {
       const trackInput = document.getElementById('u-tracking');
       const arrivalInput = document.getElementById('u-arrival');
@@ -17452,10 +17452,11 @@ async function confirmBatchComplete(actionType) {
         for (const id of selectedIds) {
           const s = state.styles.find(x => x.id === id);
           if (!s) continue;
-          const cycle = s.cycles?.find(c => c.type === 'DEV' && c.status === 'PATTERN_MAKING');
-          if (cycle) {
-            cycle.status = 'AWAIT_DELIVERY';
-            cycle.patternCompletedDate = patternDate;
+          // 找到最后一个 cycle，且没有 receivedDate（还在打版）
+          const cycle = s.cycles?.[s.cycles.length - 1];
+          if (cycle && !cycle.receivedDate) {
+            cycle.patternMakerDone = true;
+            cycle.patternMakerDoneDate = patternDate;
             await saveOneStyle(s.id);
             processedCount++;
           }
@@ -17471,10 +17472,15 @@ async function confirmBatchComplete(actionType) {
         for (const id of selectedIds) {
           const s = state.styles.find(x => x.id === id);
           if (!s) continue;
-          const cycle = s.cycles?.find(c => c.status === 'AWAIT_DELIVERY');
-          if (cycle) {
-            cycle.status = 'AWAIT_SEND';
+          // 找到最后一个 cycle，且有 patternMakerDone 或 openDate，没有 receivedDate
+          const cycle = s.cycles?.[s.cycles.length - 1];
+          if (cycle && !cycle.receivedDate) {
             cycle.receivedDate = receiveDate;
+            // 清除版师打完标记
+            if (cycle.patternMakerDone) {
+              cycle.patternMakerDone = false;
+              cycle.patternMakerDoneDate = null;
+            }
             await saveOneStyle(s.id);
             processedCount++;
           }
@@ -17491,11 +17497,11 @@ async function confirmBatchComplete(actionType) {
         for (const id of selectedIds) {
           const s = state.styles.find(x => x.id === id);
           if (!s) continue;
-          const cycle = s.cycles?.find(c => c.status === 'AWAIT_SEND');
-          if (cycle) {
-            cycle.status = 'AWAIT_FB';
+          // 找到最后一个 cycle，有 receivedDate，没有 sentDate
+          const cycle = s.cycles?.[s.cycles.length - 1];
+          if (cycle && cycle.receivedDate && !cycle.sentDate) {
             cycle.sentDate = sentDate;
-            if (trackingNumber) cycle.trackingNumber = trackingNumber;
+            if (trackingNumber) cycle.shipTrackingNo = trackingNumber;
             await saveOneStyle(s.id);
             processedCount++;
           }
@@ -17516,14 +17522,15 @@ async function confirmBatchComplete(actionType) {
         for (const id of selectedIds) {
           const s = state.styles.find(x => x.id === id);
           if (!s) continue;
-          const cycle = s.cycles?.find(c => c.status === 'AWAIT_FB' && c.type !== 'PROD');
-          if (cycle) {
+          // 找到最后一个 cycle，有 sentDate，没有 feedbackDate，且不是 PROD
+          const cycle = s.cycles?.[s.cycles.length - 1];
+          if (cycle && cycle.sentDate && !cycle.feedbackDate && cycle.type !== 'PROD') {
             cycle.feedbackDate = feedbackDate;
             if (feedbackType === 'approve') {
-              cycle.feedback = 'APPROVED';
+              cycle.feedbackOutcome = 'APPROVED';
               cycle.feedbackNote = '批量通过';
             } else if (feedbackType === 'revise') {
-              cycle.feedback = 'REVISE';
+              cycle.feedbackOutcome = 'REVISE';
               cycle.feedbackNote = '批量需修改';
             }
             await saveOneStyle(s.id);
