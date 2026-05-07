@@ -14908,7 +14908,9 @@ function saveUpdate() {
     cycle.patternMakerDone = true;
     cycle.patternMakerDoneDate = doneDate;
     closeUpdateModal();
-    saveState(); render(); openDrawer(state.modalContext.styleId);
+    saveOneStyle(s.id);
+    render();
+    openDrawer(state.modalContext.styleId);
     showToast(`✓ 已记录·版师 ${doneDate} 打完版，转为等版房送样`, 'ok');
   }
 }
@@ -15560,6 +15562,7 @@ function saveCycleStep() {
   if (!date) { showToast('请选择日期', 'warn'); return; }
   if (field === 'received') {
     cycle.receivedDate = date;
+    cycle.status = 'AWAIT_SEND';  // 收到样板后，状态变成"待寄出"
     // 收到样板就清除"版师已打完"标记，进入下一阶段
     if (cycle.patternMakerDone) {
       cycle.patternMakerDone = false;
@@ -15573,6 +15576,7 @@ function saveCycleStep() {
   }
   else if (field === 'sent') {
     cycle.sentDate = date;
+    cycle.status = 'AWAIT_FB';  // 寄出后，状态变成"等反馈"
     if (cycle.type !== 'PHOTO') {
       const trackInput = document.getElementById('u-tracking');
       const arrivalInput = document.getElementById('u-arrival');
