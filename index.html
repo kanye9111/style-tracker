@@ -9106,6 +9106,12 @@ main { animation: fadeInUp 0.25s ease-out; }
         </svg>
         <span>新增款式</span>
       </button>
+      <button class="sidebar-logout-btn" id="backupBtn" onclick="openBackupModal()" title="备份/恢复数据">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+        </svg>
+        <span>备份</span>
+      </button>
       <button class="sidebar-logout-btn" id="logoutBtn" onclick="logout()" title="退出登录">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>
@@ -17164,6 +17170,137 @@ setupCustomDatePickers();
   // 初始化子菜单
   updateTodaySubNav();
 })();
+
+/*
+========================================================================
+ 备份 & 恢复系统
+========================================================================
+*/
+
+function openBackupModal() {
+  const totalStyles = state.styles.length;
+  const totalPhotos = state.styles.reduce((sum, s) => {
+    return sum + (s.cycles || []).reduce((cSum, c) => cSum + (c.receivedPhotos || []).length, 0);
+  }, 0);
+  
+  const html = `
+    <div style="padding: 20px;">
+      <div style="background: var(--bg-sunken); padding: 14px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; font-weight: 600;">
+          备份内容包括：
+        </div>
+        <ul style="font-size: 12px; color: var(--ink-mute); margin: 0; padding-left: 20px; line-height: 1.8;">
+          <li>所有款式数据（SKU、客户、日期、标签等）</li>
+          <li>所有开发节点（开版、收样、寄样、反馈）</li>
+          <li>所有 PO 订单（订单号、货期、延期记录）</li>
+          <li>所有照片（Base64 格式）</li>
+          <li>备注、归档信息等</li>
+        </ul>
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 11px; color: var(--ink-mute);">
+          当前数据：<strong style="color: var(--ink);">${totalStyles}</strong> 个款式，<strong style="color: var(--ink);">${totalPhotos}</strong> 张照片
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button onclick="exportBackup()" style="padding: 14px; background: #007AFF; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+          📥 导出备份文件
+        </button>
+        
+        <button onclick="document.getElementById('restoreFileInput').click()" style="padding: 14px; background: #34C759; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+          📤 恢复备份文件
+        </button>
+        <input type="file" id="restoreFileInput" accept=".json" style="display: none;" onchange="importBackup(event)">
+
+        <div style="font-size: 11px; color: #FF3B30; padding: 10px; background: rgba(255,59,48,0.08); border-radius: 4px; margin-top: 4px; border-left: 3px solid #FF3B30;">
+          ⚠️ 恢复备份会<strong>覆盖当前所有数据</strong>，请确保在操作前导出当前数据作为备份！
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('updateTitle').textContent = '💾 数据备份';
+  document.getElementById('updateBody').innerHTML = html;
+  document.getElementById('updateFooter').innerHTML = `
+    <button class="cancel" onclick="closeUpdateModal()">关闭</button>
+  `;
+  document.getElementById('updateBackdrop').classList.add('open');
+}
+
+// 导出备份
+function exportBackup() {
+  try {
+    const backup = {
+      version: '1.0',
+      timestamp: new Date().toISOString(),
+      data: {
+        styles: state.styles,
+        // 可以添加其他需要备份的数据
+      }
+    };
+    
+    const json = JSON.stringify(backup, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    a.href = url;
+    a.download = `光采服装备份_${timestamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast(`✓ 备份文件已导出（${state.styles.length} 个款式）`, 'ok');
+  } catch (e) {
+    console.error('导出备份失败', e);
+    showToast('导出失败，请重试', 'error');
+  }
+}
+
+// 导入备份
+async function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (!confirm(`⚠️ 恢复备份会覆盖当前所有数据！\n\n确定要继续吗？\n\n建议先导出当前数据作为备份。`)) {
+    event.target.value = '';
+    return;
+  }
+  
+  try {
+    const text = await file.text();
+    const backup = JSON.parse(text);
+    
+    if (!backup.version || !backup.data || !backup.data.styles) {
+      throw new Error('备份文件格式不正确');
+    }
+    
+    // 恢复数据到本地
+    state.styles = backup.data.styles;
+    
+    // 保存到本地缓存
+    saveToLocalCache(state.styles);
+    
+    // 保存到 Supabase
+    showToast('正在恢复数据到云端...', 'ok');
+    
+    // 批量保存到 Supabase
+    for (const style of state.styles) {
+      await saveStyleToSupabase(style);
+    }
+    
+    // 重新渲染
+    render();
+    closeUpdateModal();
+    
+    showToast(`✓ 成功恢复 ${state.styles.length} 个款式！`, 'ok');
+  } catch (e) {
+    console.error('导入备份失败', e);
+    showToast('导入失败：' + e.message, 'error');
+  } finally {
+    event.target.value = '';
+  }
+}
 
 </script>
 </body>
