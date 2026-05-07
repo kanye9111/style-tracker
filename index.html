@@ -14092,9 +14092,21 @@ function openDrawer(id) {
   if (s.archived) {
     actions = `<button onclick="undoArchive('${s.id}')">取消归档</button>`;
   } else if (status.currentNode === 'PATTERN_MAKING') {
-    // 版师打版中 - 只有"版师已打完"按钮（给版师未来用）
-    // 跟单不在这里登记，去"版房"或"开发追踪"里登记
-    actions = `<button onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')" title="版师已打完版，等版房送过来">✂️ 版师已打完</button>`;
+    // 版师打版中
+    const inTodayPattern = (state.topTab === 'today' && state.todaySub === 'pattern');
+    const inDevTracking = (state.topTab === 'dev');
+    
+    if (inTodayPattern) {
+      // 在"今日跟进→版师"里 - 只显示"版师已打完"
+      actions = `<button onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')" title="版师已打完版，等版房送过来">✂️ 版师已打完</button>`;
+    } else if (inDevTracking) {
+      // 在"开发追踪"里 - 只显示"登记·收到样板"
+      actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
+    } else {
+      // 在其他地方（今日跟进→全部、版房等）- 两个按钮都显示
+      actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
+      actions += ` <button onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')" title="版师已打完版，等版房送过来">✂️ 版师已打完</button>`;
+    }
   } else if (status.currentNode === 'AWAIT_DELIVERY') {
     // 版房送样 - 跟单在这里登记收到样板
     actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
@@ -15592,7 +15604,19 @@ function saveCycleStep() {
   // 同步到 Supabase（只保存当前修改的 style）
   saveToLocalCache(state.styles);
   saveStyleToSupabase(s);
-  closeUpdateModal(); render(); openDrawer(styleId);
+  closeUpdateModal();
+  
+  // 如果在今日跟进视图，且登记的是收样，自动切换到"寄样"tab
+  if (field === 'received' && state.topTab === 'today') {
+    state.todaySub = 'shipping';
+  }
+  
+  render();
+  
+  // 如果切换了 tab，不要重新打开抽屉
+  if (!(field === 'received' && state.topTab === 'today')) {
+    openDrawer(styleId);
+  }
 }
 
 function openFeedbackModal(styleId, cycleId) {
