@@ -15325,6 +15325,8 @@ function openDrawer(id) {
       const returnLbl = getReworkReturnLabel(activeRev.returnTo);
       const reworkDays = getReworkDays(activeRev);
       actions = `<button class="primary btn-rework-receive" onclick="markReworkReceived('${s.id}', '${lastCycle.id}', '${activeRev.id}')" title="样板从${returnLbl}返修后再次到手">✓ 返修件已收回${reworkDays > 0 ? '（已退回 ' + reworkDays + ' 天）' : ''}</button>`;
+      // 取消返修标记 — 误操作或返修不再需要时使用，款会回到"待寄出"状态
+      actions += ` <button class="btn-revert-step" onclick="cancelRework('${s.id}', '${lastCycle.id}', '${activeRev.id}')" title="取消返修标记，款回到待寄出">↶ 取消返修</button>`;
     } else {
       const lbl = lastCycle.type === 'PHOTO' ? '拍照发图审' : '寄出客户';
       actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'sent')">登记 · ${lbl}</button>`;
@@ -16295,6 +16297,47 @@ function markReworkReceived(styleId, cycleId, revisionId) {
       render();
       openDrawer(styleId);
       showToast('已撤销·返修件回到返修中状态', 'ok');
+    }
+  });
+}
+
+// 取消返修标记 — 误发起返修或返修不再需要时调用
+// 把当前 active 的返修记录从 cycle.revisions[] 里移除，款回到正常的"待寄出"状态
+function cancelRework(styleId, cycleId, revisionId) {
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle || !cycle.revisions) return;
+  const idx = cycle.revisions.findIndex(r => r.id === revisionId);
+  if (idx < 0) {
+    showToast('找不到这条返修记录', 'warn');
+    return;
+  }
+  const removed = cycle.revisions[idx];
+  // 已收回的返修不应通过这个入口退（会破坏历史记录）
+  if (removed.receivedAgainAt) {
+    showToast('这条返修已经收回过了，不能再撤销', 'warn');
+    return;
+  }
+  // 移除这条记录
+  cycle.revisions.splice(idx, 1);
+  if (cycle.revisions.length === 0) delete cycle.revisions;
+
+  saveOneStyle(s.id);
+  render();
+  openDrawer(styleId);
+
+  showUndoToast(`↶ 已取消返修标记 · 回到待寄出`, () => {
+    const s2 = state.styles.find(x => x.id === styleId);
+    const c2 = s2?.cycles?.find(c => c.id === cycleId);
+    if (c2) {
+      if (!c2.revisions) c2.revisions = [];
+      // 把刚移除的记录放回原位
+      c2.revisions.splice(idx, 0, removed);
+      saveOneStyle(styleId);
+      render();
+      openDrawer(styleId);
+      showToast('已撤销·返修标记已恢复', 'ok');
     }
   });
 }
