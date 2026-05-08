@@ -10096,6 +10096,131 @@ const SUPABASE_KEY = 'sb_publishable_heKXggWwAmAc0bJmOBTkWA_zsYS0FNn';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ============================================================
+// 🗄️  数据库抽象层 (db)
+// ============================================================
+// 所有对云端的读写都走这一层，业务代码只调 db.xxx，不直接调 _supabase。
+// 以后要换后端（比如迁阿里云），只需要重写这个对象的内部实现，
+// 业务代码 0 改动。
+//
+// 当前实现：基于 Supabase
+// 以后实现：可以替换成 阿里云 RDS REST API / Tablestore / 自建后端
+// ============================================================
+const db = {
+  // ─── 1. 加载所有数据 ───
+  // 用于首次进入应用、或实时订阅触发后的全量刷新
+  // 返回 { styles: [], handledToday: { date: [styleIds] } }
+  async loadAll() {
+    const { data: styles, error } = await _supabase
+      .from('styles').select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    const { data: cycles } = await _supabase.from('cycles').select('*');
+    const { data: pos } = await _supabase.from('pos').select('*');
+    const { data: photos } = await _supabase.from('cycle_photos').select('*');
+
+    const today = todayStr();
+    const { data: handled } = await _supabase
+      .from('handled_log').select('style_id').eq('date', today);
+
+    return {
+      styles: styles || [],
+      cycles: cycles || [],
+      pos: pos || [],
+      photos: photos || [],
+      handledTodayIds: (handled || []).map(h => h.style_id),
+      today,
+    };
+  },
+
+  // ─── 2. 完整保存一个 style（含 cycles/pos/photos）───
+  // 这是最常用的写入方法。内部用 _smartUpsert 自动容错缺失的列。
+  async upsertStyle(style) {
+    // 1. upsert style 本体
+    await _smartUpsert('styles', localStyleToDB(style));
+
+    // 2. upsert cycles
+    if (style.cycles && style.cycles.length > 0) {
+      const cycleRows = style.cycles.map(c => localCycleToDB(c, style.id));
+      await _smartUpsert('cycles', cycleRows);
+
+      // 3. 同步照片：先删旧再插新（确保删除生效）
+      const cycleIds = style.cycles.map(c => c.id);
+      if (cycleIds.length > 0) {
+        await _supabase.from('cycle_photos').delete().in('cycle_id', cycleIds);
+      }
+      for (const c of style.cycles) {
+        if (c.receivedPhotos && c.receivedPhotos.length > 0) {
+          const photoRows = c.receivedPhotos
+            .filter(p => p && p.length > 0)
+            .map((p, i) => ({
+              id: c.id + '_photo_' + i,
+              cycle_id: c.id,
+              photo_data: p,
+              photo_date: todayStr(),
+            }));
+          if (photoRows.length > 0) {
+            await _supabase.from('cycle_photos').upsert(photoRows);
+          }
+        }
+      }
+    }
+
+    // 4. upsert POs
+    if (style.pos && style.pos.length > 0) {
+      const poRows = style.pos.map(p => localPOToDB(p, style.id));
+      await _smartUpsert('pos', poRows);
+    }
+  },
+
+  // ─── 3. 单独更新一个 cycle（不动 style 主表）───
+  async upsertCycle(cycle, styleId) {
+    await _smartUpsert('cycles', localCycleToDB(cycle, styleId));
+  },
+
+  // ─── 4. 永久删除一个 style 及其所有关联数据 ───
+  async deleteStyle(styleId) {
+    // 顺序：photos → cycles → pos → style（被外键引用的先删）
+    const { data: cycleIds } = await _supabase
+      .from('cycles').select('id').eq('style_id', styleId);
+    if (cycleIds && cycleIds.length > 0) {
+      await _supabase.from('cycle_photos').delete()
+        .in('cycle_id', cycleIds.map(c => c.id));
+    }
+    await _supabase.from('cycles').delete().eq('style_id', styleId);
+    await _supabase.from('pos').delete().eq('style_id', styleId);
+    await _supabase.from('styles').delete().eq('id', styleId);
+  },
+
+  // ─── 5. 标记今日已处理 ───
+  async markHandled(styleId) {
+    const today = todayStr();
+    await _supabase.from('handled_log').upsert({
+      id: (today + '_' + styleId).replace(/[^a-zA-Z0-9_-]/g, '_'),
+      date: today,
+      style_id: styleId,
+    });
+  },
+
+  // ─── 6. 取消标记今日已处理 ───
+  async unmarkHandled(styleId) {
+    const today = todayStr();
+    await _supabase.from('handled_log').delete()
+      .eq('date', today).eq('style_id', styleId);
+  },
+
+  // ─── 7. 订阅实时数据变化 ───
+  // callback 在数据变化时调用（不带参数）
+  // 返回一个 unsubscribe 函数（虽然现在没用到，但接口预留好）
+  subscribeChanges(callback) {
+    const channel = _supabase.channel('styles-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'styles' }, callback)
+      .subscribe();
+    return () => _supabase.removeChannel(channel);
+  },
+};
+
+// ============================================================
 // Supabase 数据读写层
 // ============================================================
 
@@ -10119,43 +10244,32 @@ function loadFromLocalCache() {
   } catch(e) { console.warn('缓存读取失败', e); return null; }
 }
 
-// 从 Supabase 读取所有 styles（含 cycles 和 pos）
+// 从云端读取所有 styles（含 cycles 和 pos）
+// 注：函数名保留 loadFromSupabase 避免大面积改名，但内部已通过 db 抽象层调用
 async function loadFromSupabase(fromCache = false) {
   try {
-    const { data: styles, error } = await _supabase
-      .from('styles')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-
-    const { data: cycles } = await _supabase.from('cycles').select('*');
-    const { data: pos } = await _supabase.from('pos').select('*');
-    const { data: photos } = await _supabase.from('cycle_photos').select('*');
+    const result = await db.loadAll();
+    const { styles, cycles, pos, photos, handledTodayIds, today } = result;
 
     // 组装成原来的数据结构
-    state.styles = (styles || []).map(s => {
-      const styleCycles = (cycles || [])
+    state.styles = styles.map(s => {
+      const styleCycles = cycles
         .filter(c => c.style_id === s.id)
         .map(c => {
-          const cyclePhotos = (photos || [])
+          const cyclePhotos = photos
             .filter(p => p.cycle_id === c.id)
             .map(p => p.photo_data);
           return dbCycleToLocal(c, cyclePhotos);
         });
-      const stylePOs = (pos || [])
+      const stylePOs = pos
         .filter(p => p.style_id === s.id)
         .map(dbPOToLocal);
       return dbStyleToLocal(s, styleCycles, stylePOs);
     });
 
     // 加载今日已处理
-    const today = todayStr();
-    const { data: handled } = await _supabase
-      .from('handled_log')
-      .select('style_id')
-      .eq('date', today);
     state.handledToday = {};
-    state.handledToday[today] = (handled || []).map(h => h.style_id);
+    state.handledToday[today] = handledTodayIds;
 
     // 保存到本地缓存
     saveToLocalCache(state.styles);
@@ -10163,7 +10277,7 @@ async function loadFromSupabase(fromCache = false) {
     document.getElementById('storageNotice').innerHTML = '数据存储：<b style="color:var(--ok)">☁️ Supabase 云端</b> · 实时同步';
     return true;
   } catch(e) {
-    console.error('Supabase 加载失败', e);
+    console.error('云端加载失败', e);
     // 如果云端加载失败，尝试从缓存读取
     const cached = loadFromLocalCache();
     if (cached && !fromCache) {
@@ -10360,82 +10474,36 @@ async function saveStyleToSupabase(style) {
     if (_idx >= 0) state.styles[_idx] = style;
     saveToLocalCache(state.styles);
 
-    // 1. upsert style（自动容错缺失的列）
-    await _smartUpsert('styles', localStyleToDB(style));
-
-    // 2. upsert cycles（自动容错缺失的列，例如 revisions）
-    if (style.cycles && style.cycles.length > 0) {
-      const cycleRows = style.cycles.map(c => localCycleToDB(c, style.id));
-      await _smartUpsert('cycles', cycleRows);
-
-      // 3. 先删除所有 cycle 的旧照片，再重新插入当前的照片
-      // （这样可以确保删除操作生效）
-      const cycleIds = style.cycles.map(c => c.id);
-      if (cycleIds.length > 0) {
-        await _supabase.from('cycle_photos').delete().in('cycle_id', cycleIds);
-      }
-      
-      // 重新插入当前的照片
-      for (const c of style.cycles) {
-        if (c.receivedPhotos && c.receivedPhotos.length > 0) {
-          const photoRows = c.receivedPhotos
-            .filter(p => p && p.length > 0)
-            .map((p, i) => ({
-              id: c.id + '_photo_' + i,
-              cycle_id: c.id,
-              photo_data: p,
-              photo_date: todayStr(),
-            }));
-          if (photoRows.length > 0) {
-            await _supabase.from('cycle_photos').upsert(photoRows);
-          }
-        }
-      }
-    }
-
-    // 4. upsert POs（自动容错缺失的列）
-    if (style.pos && style.pos.length > 0) {
-      const poRows = style.pos.map(p => localPOToDB(p, style.id));
-      await _smartUpsert('pos', poRows);
-    }
+    // 走抽象层 db.upsertStyle，以后换后端只需改 db 的实现
+    await db.upsertStyle(style);
 
   } catch(e) {
-    console.error('Supabase 保存失败', e);
-    // 错误消息加上具体原因，方便排查
+    console.error('云端保存失败', e);
     const detail = e?.message || e?.code || e?.details || '未知错误';
     showToast('云端保存失败：' + detail, 'error');
   }
 }
 
-// 删除 style
+// 删除 style（走抽象层）
 async function deleteStyleFromSupabase(styleId) {
-  await _supabase.from('styles').delete().eq('id', styleId);
+  await db.deleteStyle(styleId);
 }
 
-// 保存今日已处理
+// 保存今日已处理（走抽象层）
 async function saveHandledToSupabase(styleId) {
-  const today = todayStr();
-  await _supabase.from('handled_log').upsert({
-    id: (today + '_' + styleId).replace(/[^a-zA-Z0-9_-]/g, '_'),
-    date: today,
-    style_id: styleId,
-  });
+  await db.markHandled(styleId);
 }
 async function removeHandledFromSupabase(styleId) {
-  const today = todayStr();
-  await _supabase.from('handled_log').delete()
-    .eq('date', today).eq('style_id', styleId);
+  await db.unmarkHandled(styleId);
 }
 
 // 实时订阅：其他人修改数据时自动刷新
 function subscribeRealtime() {
-  _supabase.channel('styles-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'styles' }, async () => {
-      await loadFromSupabase();
-      render();
-      showToast('数据已同步更新', 'ok');
-    })
-    .subscribe();
+  db.subscribeChanges(async () => {
+    await loadFromSupabase();
+    render();
+    showToast('数据已同步更新', 'ok');
+  });
 }
 
 
@@ -13245,12 +13313,8 @@ async function permanentlyDeleteStyle(styleId) {
   })) return;
 
   try {
-    // 从 Supabase 先删关联数据
-    await _supabase.from("cycle_photos").delete().in("cycle_id",
-      (await _supabase.from("cycles").select("id").eq("style_id", styleId)).data?.map(c => c.id) || []);
-    await _supabase.from("cycles").delete().eq("style_id", styleId);
-    await _supabase.from("pos").delete().eq("style_id", styleId);
-    await _supabase.from("styles").delete().eq("id", styleId);
+    // 走抽象层删除（含所有关联数据）
+    await db.deleteStyle(styleId);
 
     // 从本地删除
     state.styles = state.styles.filter(x => x.id !== styleId);
@@ -13282,9 +13346,9 @@ async function batchPermanentDelete() {
   state.styles = state.styles.filter(s => !ids.includes(s.id));
   saveToLocalCache(state.styles);
 
-  // 从 Supabase 删除
+  // 从云端删除（走抽象层，含所有关联数据）
   for (const id of ids) {
-    await _supabase.from('styles').delete().eq('id', id);
+    await db.deleteStyle(id);
   }
 
   clearBatchSelection();
@@ -15231,14 +15295,23 @@ function openDrawer(id) {
 
   // 主操作按钮
   let actions = '';
+  // 是否给 admin 多显示一个"📦 已收到样品"快捷跳跃按钮
+  // production 角色按正常流程走（打版完成 → 面料到 → 收样），不显示跳跃按钮
+  const showJumpReceive = (typeof window.getCurrentRole === 'function' && window.getCurrentRole() === 'admin');
   if (s.archived) {
     actions = `<button onclick="undoArchive('${s.id}')">取消归档</button>`;
   } else if (status.currentNode === 'PATTERN_MAKING') {
-    // 版师打版中（只能"打完"进入下一步，不允许直接跳到收样）
+    // 版师打版中
     actions = `<button class="primary" onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')">✂️ 标记版师已打完</button>`;
+    if (showJumpReceive) {
+      actions += ` <button class="btn-receive-jump" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')" title="跟单专用：跳过中间步骤直接登记收到样品">📦 已收到样品</button>`;
+    }
   } else if (status.currentNode === 'AWAIT_FABRIC') {
-    // 等面料备齐（只能登记面料到，不允许直接跳到收样）
+    // 等面料备齐
     actions = `<button class="primary" onclick="markFabricSourced('${s.id}', '${lastCycle.id}')">🧵 登记面料已备齐</button>`;
+    if (showJumpReceive) {
+      actions += ` <button class="btn-receive-jump" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')" title="跟单专用：跳过中间步骤直接登记收到样品">📦 已收到样品</button>`;
+    }
     actions += ` <button class="btn-revert-step" onclick="revertOneStep('${s.id}', '${lastCycle.id}')" title="退回到版师阶段">↶ 退回上一步</button>`;
   } else if (status.currentNode === 'AWAIT_DELIVERY') {
     // 等版房送样
@@ -17735,7 +17808,7 @@ async function deleteLogEntry() {
     if (cycle) {
       delete cycle[field];
       if (field === "feedbackDate") { delete cycle.feedbackOutcome; delete cycle.feedbackNote; }
-      await _supabase.from("cycles").upsert(localCycleToDB(cycle, styleId));
+      await db.upsertCycle(cycle, styleId);
     }
   }
   await saveStyleToSupabase(s);
@@ -17753,7 +17826,7 @@ async function quickDeleteLog(styleId, cycleId, field) {
     if (!cycle) return;
     delete cycle[field];
     if (field === "feedbackDate") { delete cycle.feedbackOutcome; delete cycle.feedbackNote; }
-    await _supabase.from("cycles").upsert(localCycleToDB(cycle, styleId));
+    await db.upsertCycle(cycle, styleId);
   }
   await saveStyleToSupabase(s);
   render(); openDrawer(styleId);
