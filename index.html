@@ -902,6 +902,59 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
   letter-spacing: 0.06em; color: var(--ink-mute);
   margin-bottom: 14px;
 }
+/* 子分组分隔线（已下PO / 开发中）*/
+.subgroup-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 10px 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+}
+.subgroup-divider:first-child { margin-top: 0; }
+.subgroup-divider .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  white-space: nowrap;
+}
+.subgroup-divider .label.po-active {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.subgroup-divider .label.dev-only {
+  background: var(--bg-sunken);
+  color: var(--ink-soft);
+}
+.subgroup-divider .label .count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+.subgroup-divider .hint {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+}
+.subgroup-divider .line {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.subgroup-empty {
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  background: var(--bg-sunken);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
 .today-cards {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 12px;
@@ -9901,16 +9954,7 @@ main { animation: fadeInUp 0.25s ease-out; }
         <input type="text" id="f-name" placeholder="如 Satin Slip Midi Dress（选填）">
       </div>
       <div class="form-row">
-        <div class="form-field">
-          <label>版型类型 <span class="optional-tag">选填·列表快速识别</span></label>
-          <select id="f-sample-type">
-            <option value="">— 不标注 —</option>
-            <option value="new">新版</option>
-            <option value="remake">重做板</option>
-            <option value="photo">拍照板</option>
-          </select>
-        </div>
-        <div class="form-field">
+        <div class="form-field" style="flex:1;">
           <label>描述 <span class="optional-tag">选填</span></label>
           <input type="text" id="f-desc" placeholder="面料、工艺、特殊要求">
         </div>
@@ -9938,6 +9982,11 @@ main { animation: fadeInUp 0.25s ease-out; }
           <option value="PROD_SHIPPING">大货（已批船版，等大货到仓）</option>
         </select>
         <p id="startStageHint" style="font-size:11px;color:var(--ink-soft);margin-top:6px;">默认从开发版开始，开版后等收到样板。</p>
+      </div>
+      <div class="form-field" id="priorReviseField" style="display:none;">
+        <label>之前已打过几次重做板？ <span class="optional-tag">数据迁移用</span></label>
+        <input type="number" id="f-prior-revise-count" min="0" max="20" value="0" style="width: 100px;" oninput="onPriorReviseChange()">
+        <p id="priorReviseHint" style="font-size:11px;color:var(--ink-soft);margin-top:6px;">填 0 = 第一次打重做板（第 2 版）；填 1 = 之前打过 1 次（这次是第 3 版），以此类推。</p>
       </div>
       <p style="font-size:12px;color:var(--ink-soft);">非默认起始阶段适用于历史款迁移。完整流程图和日志会自动跟随。</p>
       <div class="form-field">
@@ -10515,6 +10564,29 @@ function renderSpecialNoteTag(s) {
 }
 
 function renderSampleTypeBadge(s) {
+  // 1) 优先用自动版本：根据 cycles 计算这是第几次开版
+  //    cycles[0] 一般是 DEV → 显示"新版"
+  //    cycles[N] (N>=1) 一般是 REVISE → 显示"重做板·第N+1版"
+  //    cycles 中如果有 PHOTO → 显示"拍照板"
+  //    优先级：拍照板 > 自动算的重做板 > 用户手动选的 sampleType
+  if (s.cycles && s.cycles.length > 0) {
+    const lastCycle = s.cycles[s.cycles.length - 1];
+    if (lastCycle.type === 'PHOTO') {
+      return `<span class="sample-type-badge sample-type-photo">拍照板</span>`;
+    }
+    // 计算"打过几次重做板"= 所有 REVISE 类型的 cycle 数
+    const reviseCount = s.cycles.filter(c => c.type === 'REVISE').length;
+    if (reviseCount > 0) {
+      // 第几版 = 1（开发版）+ 重做板次数。例如 1 次重做 = 第 2 版
+      const versionNum = reviseCount + 1;
+      return `<span class="sample-type-badge sample-type-remake">重做板·第${versionNum}版</span>`;
+    }
+    // 只有 DEV cycle → 新版
+    if (lastCycle.type === 'DEV' || s.cycles.every(c => c.type === 'DEV')) {
+      return `<span class="sample-type-badge sample-type-new">新版</span>`;
+    }
+  }
+  // 2) 退路：仍然支持老的手动 sampleType 字段（兼容历史数据）
   const map = { new: ['新版', 'new'], remake: ['重做板', 'remake'], photo: ['拍照板', 'photo'] };
   const t = map[s.sampleType];
   if (!t) return '';
@@ -12728,19 +12800,70 @@ function renderTodayTab() {
     `;
   };
 
+  // 同上，但内部根据"是否已下PO"分为两个子组渲染
+  // 只有版师/面料/版房三组用得上（生产前阶段，区分优先级）
+  const todaySectionWithPoSplit = (key, badgeCls, title, sub, items, renderFn) => {
+    if (items.length === 0) return '';
+    const collapsed = state.collapsedSections[key];
+
+    // 已下PO 的款（紧急，客户在等）
+    const poItems = items.filter(it => it.hasPoOrder);
+    // 未下PO 的款（新开发样，优先级低）
+    const devItems = items.filter(it => !it.hasPoOrder);
+
+    // 子分组渲染
+    let body = '';
+    if (poItems.length > 0) {
+      body += `
+        <div class="subgroup-divider">
+          <span class="label po-active">🔴 已下 PO <span class="count">${poItems.length}</span></span>
+          <span class="hint">优先处理 · 客户在等</span>
+          <span class="line"></span>
+        </div>
+        <div class="today-cards">${poItems.map(renderFn).join('')}</div>
+      `;
+    }
+    if (devItems.length > 0) {
+      body += `
+        <div class="subgroup-divider">
+          <span class="label dev-only">🟢 开发中 <span class="count">${devItems.length}</span></span>
+          <span class="hint">未下 PO · 常规优先级</span>
+          <span class="line"></span>
+        </div>
+        <div class="today-cards">${devItems.map(renderFn).join('')}</div>
+      `;
+    }
+    // 兜底（虽然不该走到，但稳）
+    if (!body) {
+      body = `<div class="today-cards">${items.map(renderFn).join('')}</div>`;
+    }
+
+    return `
+      <div class="today-section ${collapsed ? 'collapsed' : ''}" data-section-key="${key}">
+        <h2 class="collapsible-header" onclick="toggleSection('${key}')">
+          <span class="section-chevron">▼</span>
+          <span>${title}</span>
+          <span class="count-badge ${badgeCls}">${items.length} 项</span>
+        </h2>
+        <div class="section-sub">${escapeHtml(sub)}</div>
+        <div class="section-content">${body}</div>
+      </div>
+    `;
+  };
+
   const sub = state.todaySub || 'pattern';
   if (sub === 'pattern') {
-    html += todayCollapsibleSection('today_pattern', 'danger', '✂️ 版师', '版师打版中 — 等版师出样板', patternItems, renderCard);
+    html += todaySectionWithPoSplit('today_pattern', 'danger', '✂️ 版师', '版师打版中 — 等版师出样板', patternItems, renderCard);
   }
   if (sub === 'fabric') {
-    html += todayCollapsibleSection('today_fabric', 'warn', '🧵 面料', '等待面料备齐 — 催采购发料往版房', fabricItems, renderCard);
+    html += todaySectionWithPoSplit('today_fabric', 'warn', '🧵 面料', '等待面料备齐 — 催采购发料往版房', fabricItems, renderCard);
   }
   if (sub === 'workshop') {
     const reworkCount = workshopItems.filter(it => it.isInRework).length;
     const subText = reworkCount > 0
       ? `等版房送样 + ${reworkCount} 个返修中 — 面料已到，催版房制作并寄回`
       : '等版房送样 — 面料已到，催版房制作并寄回';
-    html += todayCollapsibleSection('today_workshop', 'warn', '📦 版房', subText, workshopItems, renderCard);
+    html += todaySectionWithPoSplit('today_workshop', 'warn', '📦 版房', subText, workshopItems, renderCard);
   }
   if (sub === 'shipping') {
     html += todayCollapsibleSection('today_shipping', 'warn', '✉️ 寄样', '待寄给客户 — 跟单负责寄出', shippingItems, renderCard);
@@ -17845,6 +17968,9 @@ function openNewStyleModal() {
     startStage.value = 'DEV';
     onStartStageChange();
   }
+  // 重置"之前打过几次重做板"
+  const priorInput = document.getElementById('f-prior-revise-count');
+  if (priorInput) priorInput.value = '0';
   state.pendingImageData = null;
   clearNewImage();
   // 重置 PO 折叠区
@@ -17856,6 +17982,11 @@ function openNewStyleModal() {
 function onStartStageChange() {
   const v = document.getElementById('f-start-stage').value;
   const hint = document.getElementById('startStageHint');
+  const priorField = document.getElementById('priorReviseField');
+  if (priorField) {
+    // 只在选「修改循环」时显示"之前打过几次"输入框
+    priorField.style.display = (v === 'REVISE') ? '' : 'none';
+  }
   if (!hint) return;
   const hints = {
     'DEV': '默认从开发版开始，开版后等收到样板。',
@@ -17866,9 +17997,21 @@ function onStartStageChange() {
   hint.textContent = hints[v] || hints['DEV'];
 }
 
+// 实时更新"第 X 版"提示
+function onPriorReviseChange() {
+  const n = parseInt(document.getElementById('f-prior-revise-count')?.value || '0', 10) || 0;
+  const hint = document.getElementById('priorReviseHint');
+  if (!hint) return;
+  // 总版数 = 1 个开发版 + n 个之前的重做板 + 1 个本次重做板
+  const versionNum = n + 2;
+  const priorTxt = n === 0 ? '没有之前的重做板' : `之前 ${n} 次重做板`;
+  hint.textContent = `这款将记录为：第 ${versionNum} 版（1 次开发版 + ${priorTxt} + 这次新打的重做板）`;
+}
+
 // 根据起始阶段构造 cycles 数组（用于历史款迁移）
 // 前置 cycles 全部标记为已完成，使用合理的占位日期，让流程图和日志看起来连贯
-function buildCyclesForStartStage(startStage, openDate) {
+// priorReviseCount: REVISE 阶段额外参数，表示"之前已经打过多少次重做板"（迁移历史用）
+function buildCyclesForStartStage(startStage, openDate, priorReviseCount) {
   const od = openDate || todayStr();
 
   if (startStage === 'DEV') {
@@ -17876,8 +18019,17 @@ function buildCyclesForStartStage(startStage, openDate) {
   }
 
   if (startStage === 'REVISE') {
-    // 只创建修改版 cycle，不再自动加虚拟的开发版历史
-    return [{ id: uid('c'), type: 'REVISE', openDate: od }];
+    const cycles = [];
+    // 1 个虚拟开发版（在系统之前已完成）
+    cycles.push({ id: uid('c'), type: 'DEV', openDate: od, isVirtual: true });
+    // 之前已打过的 N 次重做板（也是虚拟的迁移记录）
+    const n = Math.max(0, parseInt(priorReviseCount, 10) || 0);
+    for (let i = 0; i < n; i++) {
+      cycles.push({ id: uid('c'), type: 'REVISE', openDate: od, isVirtual: true });
+    }
+    // 当前要打的这次重做板（真实记录）
+    cycles.push({ id: uid('c'), type: 'REVISE', openDate: od });
+    return cycles;
   }
 
   if (startStage === 'PROD') {
@@ -17940,7 +18092,8 @@ function saveNewStyle() {
     // PLT 或其他反单：需要船版流程
     cycles = [{ id: uid('c'), type: 'PROD', openDate }];
   } else {
-    cycles = buildCyclesForStartStage(startStage, openDate);
+    const priorReviseCount = parseInt(document.getElementById('f-prior-revise-count')?.value || '0', 10) || 0;
+    cycles = buildCyclesForStartStage(startStage, openDate, priorReviseCount);
   }
 
   const newId = uid('st');
