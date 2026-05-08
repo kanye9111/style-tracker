@@ -978,6 +978,62 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
   color: var(--ink-mute); letter-spacing: 0.02em;
 }
 
+/* 已催标签 + 已催过的卡片视觉处理 */
+.today-card-chased-tag {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: rgba(120, 120, 128, 0.10);
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  margin-left: auto;
+}
+.today-card.chased-today {
+  /* 今天已催过的卡片：左边色条变中性灰，整张轻微降亮，但天数仍正常显示 */
+  border-left-color: rgba(120, 120, 128, 0.5) !important;
+  background: rgba(120, 120, 128, 0.025);
+}
+.today-card.chased-today .today-card-action-main {
+  /* 已催过的款，主信息颜色稍微暗一点 */
+  opacity: 0.78;
+}
+
+/* 单卡快捷动作按钮：iOS 风蓝色 pill */
+.today-card-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+.today-quick-btn {
+  background: var(--apple-blue);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 5px rgba(0, 122, 255, 0.18);
+  letter-spacing: 0.01em;
+}
+.today-quick-btn:hover {
+  background: var(--apple-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 122, 255, 0.25);
+}
+.today-quick-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 122, 255, 0.15);
+}
+
 .today-empty {
   padding: 80px 20px; text-align: center;
   background: var(--bg-elevated);
@@ -2228,6 +2284,147 @@ button.confirm:hover {
   background: var(--apple-blue-hover);
   box-shadow: 0 4px 10px rgba(0, 122, 255, 0.25);
   transform: translateY(-1px);
+}
+
+/* iOS 风 cancel：与 confirm 视觉同级，柔和灰底 */
+.modal-footer button.cancel,
+button.cancel {
+  background: rgba(120, 120, 128, 0.08);
+  border: none !important;
+  border-radius: 8px;
+  color: var(--ink);
+  font-weight: 600;
+  padding: 9px 18px;
+  transition: background 0.18s, transform 0.18s;
+}
+.modal-footer button.cancel:hover,
+button.cancel:hover {
+  background: rgba(120, 120, 128, 0.16);
+  transform: translateY(-1px);
+}
+.modal-footer button.cancel:active,
+button.cancel:active {
+  transform: translateY(0);
+  background: rgba(120, 120, 128, 0.22);
+}
+
+/* ============================================================
+   批量完成模态框 — iOS 风内容样式
+   ============================================================ */
+.batch-modal {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.batch-modal-summary {
+  background: rgba(120, 120, 128, 0.06);
+  padding: 14px 16px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.batch-modal-summary-title {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  letter-spacing: 0.01em;
+}
+.batch-modal-summary-title strong {
+  color: var(--apple-blue);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 2px;
+}
+.batch-modal-skus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.batch-modal-sku-chip {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.batch-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.batch-modal-field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.batch-modal-field-label .optional {
+  color: var(--ink-mute);
+  font-weight: 400;
+  font-size: 12px;
+  margin-left: 4px;
+}
+.batch-modal-field input[type="date"],
+.batch-modal-field input[type="text"],
+.batch-modal-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  background: var(--bg-elevated);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.batch-modal-field input[type="date"] {
+  font-family: var(--font-mono);
+}
+.batch-modal-field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.batch-modal-field input:focus,
+.batch-modal-field textarea:focus {
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+  outline: none;
+}
+.batch-modal-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.batch-modal-radio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s;
+  font-size: 13px;
+}
+.batch-modal-radio:hover {
+  background: rgba(0, 122, 255, 0.04);
+  border-color: var(--apple-blue);
+}
+.batch-modal-radio input[type="radio"] {
+  margin: 0;
+  accent-color: var(--apple-blue);
+}
+.batch-modal-radio:has(input:checked) {
+  background: rgba(0, 122, 255, 0.08);
+  border-color: var(--apple-blue);
 }
 
 /* === 卡片悬浮提升 === */
@@ -5401,8 +5598,9 @@ main#main {
   position: relative;
   width: 110px !important;
   flex-shrink: 0;
-  aspect-ratio: auto !important;
+  aspect-ratio: 3 / 4 !important;   /* 固定比例，所有图统一裁切到同样高度 */
   height: auto !important;
+  align-self: stretch;               /* 没图也撑满卡片左侧 */
   overflow: hidden;
   background: var(--bg-sunken);
   border-right: 1px solid var(--line);
@@ -5412,6 +5610,7 @@ main#main {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover;
+  display: block;
 }
 .grid-card-img-placeholder {
   display: flex;
@@ -5868,6 +6067,55 @@ main#main {
   display: none;
 }
 
+/* ============================================================
+   平铺卡片：高度对齐 & 款号长度自适应（修复 bug）
+   ============================================================ */
+
+/* 卡片基础最小高度，保证每张卡片至少一致 */
+.grid-card {
+  min-height: 150px !important;
+  align-items: stretch;
+}
+
+/* row1 允许换行（长款号 + 多个标签时换行而不是溢出） */
+.grid-card-row1 {
+  flex-wrap: wrap !important;
+  align-items: center;
+  row-gap: 4px;
+}
+
+/* 款号：长款号允许换行而不是被截断 */
+.grid-card-sku {
+  white-space: normal !important;
+  word-break: break-all !important;
+  line-height: 1.25 !important;
+  flex: 0 1 auto !important;
+  min-width: 0;
+}
+
+/* 款名：始终渲染占位（即使无款名也保留高度，让所有卡片底部对齐） */
+.grid-card-name {
+  min-height: 1.3em !important;
+  -webkit-line-clamp: 1 !important;
+  font-size: 13px !important;
+  flex-shrink: 0;
+}
+.grid-card-name-empty {
+  color: var(--line-strong);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* 状态行：固定推到底部，所有卡片对齐 */
+.grid-card-body {
+  justify-content: flex-start !important;
+  gap: 6px;
+}
+.grid-card-status-row {
+  margin-top: auto !important;
+}
+
 /* 列头排序：更明显的视觉反馈 */
 .list-header.simplified > div.sortable {
   transition: all 0.12s;
@@ -5974,6 +6222,374 @@ textarea:focus-visible {
 .toast.toast-warn  .toast-icon { background: #FF9500; color: white; }
 .toast.toast-error .toast-icon { background: #FF3B30; color: white; }
 .toast.toast-ok    .toast-icon { background: #34C759; color: white; }
+
+/* === 撤销 toast 的撤销按钮 === */
+.toast-undo-btn {
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: white;
+  padding: 5px 13px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: background 0.15s ease;
+}
+.toast-undo-btn:hover {
+  background: rgba(255,255,255,0.26);
+}
+.toast-undo-btn:active {
+  background: rgba(255,255,255,0.34);
+}
+
+/* === 抽屉里"退回上一步"次级按钮 === */
+.btn-revert-step {
+  background: var(--bg-sunken) !important;
+  color: var(--ink-mute) !important;
+  border: 1px solid var(--line) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  padding: 7px 12px !important;
+}
+.btn-revert-step:hover {
+  background: var(--bg-elevated) !important;
+  color: var(--ink-soft) !important;
+  border-color: var(--line-strong) !important;
+}
+
+/* === 已弃用：我手上有样按钮的样式（不再使用，保留兼容） === */
+.have-sample-bar { display: none; }
+.btn-have-sample { display: none; }
+
+/* === 抽屉里跟单专用「已收到样品」跳跃按钮 === */
+.btn-receive-jump {
+  background: rgba(0, 122, 255, 0.08) !important;
+  color: var(--apple-blue, #007AFF) !important;
+  border: 1px solid rgba(0, 122, 255, 0.18) !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  padding: 7px 13px !important;
+}
+.btn-receive-jump:hover {
+  background: rgba(0, 122, 255, 0.14) !important;
+  border-color: rgba(0, 122, 255, 0.32) !important;
+}
+
+/* === 今日跟进顶部搜索栏 === */
+.today-search-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  /* 右侧给浮动工具区（铃铛 + 批量按钮）让出空间，避免重叠
+     floating-tools 在 right:24px，宽度约 36*2 + gap 8 = 80px，加上余量 */
+  margin-right: 96px;
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+@media (max-width: 600px) {
+  .today-search-bar {
+    /* 移动端浮动按钮更靠右且更小，留余量即可 */
+    margin-right: 84px;
+  }
+}
+.today-search-bar svg {
+  flex-shrink: 0; color: var(--ink-mute);
+}
+.today-search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+}
+.today-search-bar input::placeholder {
+  color: var(--ink-mute);
+}
+/* focus 状态：和"搜款号"那里的搜索框统一 — 苹果蓝细边 + 柔和光晕，
+   光晕加在外层容器上（input 本身没边框，外层椭圆才是视觉上的边框）*/
+.today-search-bar:focus-within {
+  border-color: var(--apple-blue) !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15) !important;
+}
+.today-search-bar input:focus,
+.today-search-bar input:focus-visible {
+  /* 关掉全局的 focus-ring，避免双重蓝光 */
+  box-shadow: none !important;
+  outline: none !important;
+}
+.today-search-clear {
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.today-search-clear:hover {
+  background: var(--line-strong);
+  color: var(--ink);
+}
+.today-search-result-info {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  flex-shrink: 0;
+}
+.today-search-empty {
+  padding: 50px 20px;
+  text-align: center;
+  color: var(--ink-mute);
+  font-size: 14px;
+}
+
+/* 今日跟进 tab 主区减少顶部留白 */
+body.today-tab-active main#main {
+  padding-top: 14px !important;
+}
+
+/* ============================================================
+   样板返修 (rework / revision) — 跟单收样后发现做坏，退回版房返修
+   配色沿用 --stage-revise（橙色），与"重做板"标签视觉一致
+   ============================================================ */
+/* 返修中卡片：左色条用 revise 橙 */
+.today-card.is-rework {
+  border-left-color: var(--stage-revise) !important;
+}
+.today-card.is-rework .today-card-action-main {
+  color: var(--stage-revise) !important;
+}
+/* 返修徽章 — 用在卡片状态行、流程图收样节点旁等位置 */
+.rework-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--stage-revise-bg);
+  color: var(--stage-revise);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.rework-badge.large {
+  font-size: 11px;
+  padding: 2px 8px;
+}
+/* 流程图节点旁的返修小徽章 */
+.big-flow-rework {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--stage-revise-bg);
+  color: var(--stage-revise);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: help;
+  border: 1px solid var(--stage-revise);
+}
+/* 返修按钮 — 在 drawer 的操作区，作为次要动作 */
+.btn-rework {
+  background: var(--stage-revise-bg) !important;
+  color: var(--stage-revise) !important;
+  border: 1px solid var(--stage-revise) !important;
+}
+.btn-rework:hover {
+  background: var(--stage-revise) !important;
+  color: white !important;
+}
+/* 返修中状态下的"已收回"按钮（主操作）*/
+.btn-rework-receive {
+  background: var(--stage-revise) !important;
+  color: white !important;
+  border: 1px solid var(--stage-revise) !important;
+}
+.btn-rework-receive:hover {
+  filter: brightness(1.08);
+}
+/* 返修登记 modal 内部样式 */
+.rework-modal-section {
+  margin-bottom: 14px;
+}
+.rework-modal-section > label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.rework-radio-group,
+.rework-check-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rework-radio-group label,
+.rework-check-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--ink);
+  transition: border-color 0.12s, background 0.12s;
+}
+.rework-radio-group label:hover,
+.rework-check-group label:hover {
+  border-color: var(--stage-revise);
+  background: var(--stage-revise-bg);
+}
+.rework-radio-group input[type="radio"]:checked + span,
+.rework-check-group input[type="checkbox"]:checked + span {
+  color: var(--stage-revise);
+  font-weight: 600;
+}
+.rework-radio-group label:has(input:checked),
+.rework-check-group label:has(input:checked) {
+  border-color: var(--stage-revise);
+  background: var(--stage-revise-bg);
+}
+.rework-modal-section textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink);
+  resize: vertical;
+  outline: none;
+}
+.rework-modal-section textarea:focus {
+  border-color: var(--stage-revise);
+}
+/* 返修历史时间线（drawer 内展示）*/
+.rework-history {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--stage-revise-bg);
+  border: 1px solid var(--stage-revise);
+  border-radius: 8px;
+}
+.rework-history-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--stage-revise);
+  margin-bottom: 6px;
+}
+.rework-history-item {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  line-height: 1.6;
+  padding: 3px 0;
+  border-top: 1px dashed rgba(178, 84, 0, 0.2);
+}
+.rework-history-item:first-of-type { border-top: none; }
+.rework-history-item .reason {
+  color: var(--stage-revise);
+  font-weight: 600;
+}
+
+/* === "我手上有样"搜索弹窗 === */
+.have-sample-modal-search {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line-strong);
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  border-radius: 8px;
+  outline: none;
+  margin-bottom: 12px;
+}
+.have-sample-modal-search:focus {
+  border-color: var(--ink);
+}
+.have-sample-results {
+  max-height: 380px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.have-sample-result-item {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.have-sample-result-item:hover {
+  border-color: var(--ink);
+  background: var(--bg-hover);
+}
+.have-sample-result-item .thumb,
+.have-sample-result-item .thumb-placeholder {
+  width: 36px; height: 46px; flex-shrink: 0; border-radius: 5px;
+}
+.have-sample-result-item .info { flex: 1; min-width: 0; }
+.have-sample-result-item .info .sku {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  word-break: break-all;
+}
+.have-sample-result-item .info .meta {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+.have-sample-result-item .stage-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  flex-shrink: 0;
+}
+.have-sample-empty {
+  text-align: center;
+  color: var(--ink-mute);
+  padding: 30px 12px;
+  font-size: 13px;
+}
 
 @keyframes toast-slide-in {
   from { opacity: 0; transform: translateY(-30px) scale(0.96); }
@@ -9042,13 +9658,13 @@ main { animation: fadeInUp 0.25s ease-out; }
         <span class="nav-count today-count" id="tab-count-today">0</span>
       </button>
       <div class="today-sub-nav" id="todaySubNav">
-        <button class="today-sub-item active" data-today-sub="all" onclick="switchTodaySub('all')">
-          <span>📋 全部</span>
-          <span class="today-sub-count" id="sub-count-all">0</span>
-        </button>
-        <button class="today-sub-item" data-today-sub="pattern" onclick="switchTodaySub('pattern')">
+        <button class="today-sub-item active" data-today-sub="pattern" onclick="switchTodaySub('pattern')">
           <span>✂️ 版师</span>
           <span class="today-sub-count" id="sub-count-pattern">0</span>
+        </button>
+        <button class="today-sub-item" data-today-sub="fabric" onclick="switchTodaySub('fabric')">
+          <span>🧵 面料</span>
+          <span class="today-sub-count" id="sub-count-fabric">0</span>
         </button>
         <button class="today-sub-item" data-today-sub="workshop" onclick="switchTodaySub('workshop')">
           <span>📦 版房</span>
@@ -9230,12 +9846,6 @@ main { animation: fadeInUp 0.25s ease-out; }
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
       导出 Excel
-    </button>
-    <button class="batch-btn" id="batchFollowBtn" onclick="batchMarkFollowed()" style="display:none;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>
-      </svg>
-      批量已催
     </button>
     <button class="batch-btn batch-btn-primary" id="batchTodayCompleteBtn" onclick="handleBatchTodayComplete()" style="display:none;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -9531,6 +10141,7 @@ function dbStyleToLocal(s, cycles, pos) {
     archived: s.archived || false,
     archivedDate: s.archived_date || null,
     snoozedUntil: s.snoozed_until || null,
+    lastChasedDate: s.last_chased_date || null,
     awaitingFit: s.awaiting_fit ? JSON.parse(s.awaiting_fit) : null,
     orderType: s.order_type || null,
     prodReceived: s.prod_received ? JSON.parse(s.prod_received) : null,
@@ -9557,6 +10168,9 @@ function dbCycleToLocal(c, photos) {
     isVirtual: !!c.is_virtual,
     patternMakerDone: !!c.pattern_maker_done,
     patternMakerDoneDate: c.pattern_maker_done_date || null,
+    fabricSourcedDate: c.fabric_sourced_date || null,
+    // 返修历史：云端列 revisions（JSONB）→ 本地数组；没列就是 undefined → []
+    revisions: Array.isArray(c.revisions) ? c.revisions : [],
   };
 }
 function dbPOToLocal(p) {
@@ -9590,6 +10204,7 @@ function localStyleToDB(s) {
     archive_reason: s.archiveReason || null,
     archive_note: s.archiveNote || null,
     snoozed_until: s.snoozedUntil || null,
+    last_chased_date: s.lastChasedDate || null,
     awaiting_fit: s.awaitingFit ? JSON.stringify(s.awaitingFit) : null,
     order_type: s.orderType || null,
     prod_received: s.prodReceived ? JSON.stringify(s.prodReceived) : null,
@@ -9598,7 +10213,7 @@ function localStyleToDB(s) {
   };
 }
 function localCycleToDB(c, styleId) {
-  return {
+  const row = {
     id: c.id,
     style_id: styleId,
     type: c.type,
@@ -9614,7 +10229,15 @@ function localCycleToDB(c, styleId) {
     is_virtual: !!c.isVirtual,
     pattern_maker_done: !!c.patternMakerDone,
     pattern_maker_done_date: c.patternMakerDoneDate || null,
+    fabric_sourced_date: c.fabricSourcedDate || null,
   };
+  // 返修历史：如果云端 cycles 表加了 revisions JSONB 列就会存上；
+  // 没加的话 Supabase 会忽略未知字段（PostgREST 默认不严格），不会报错。
+  // 用户可在 Supabase 里执行：ALTER TABLE cycles ADD COLUMN revisions JSONB;
+  if (c.revisions && c.revisions.length > 0) {
+    row.revisions = c.revisions;
+  }
+  return row;
 }
 function localPOToDB(p, styleId) {
   return {
@@ -9633,6 +10256,54 @@ function localPOToDB(p, styleId) {
 }
 
 // 保存单个 style 到 Supabase（upsert = 新增或更新）
+//
+// 智能容错：当云端表 schema 比代码字段少时（例如还没执行 ALTER TABLE），
+// PostgREST 会报 PGRST204 "Could not find the 'xxx' column"。
+// _smartUpsert 会自动从错误消息里解析出列名，剔除该字段重试，
+// 一直尝试到成功或超过最大重试次数。这样新加字段不必和云端 schema 严格同步。
+async function _smartUpsert(table, rows, opts = {}) {
+  const maxRetries = 5;
+  // 已知缺失的列：rows 里都剔除（避免每次都试错）
+  const droppedCols = new Set(opts.droppedCols || []);
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    let payload = Array.isArray(rows) ? rows : [rows];
+    if (droppedCols.size > 0) {
+      payload = payload.map(r => {
+        const out = { ...r };
+        droppedCols.forEach(c => delete out[c]);
+        return out;
+      });
+    }
+    const { error } = await _supabase.from(table).upsert(Array.isArray(rows) ? payload : payload[0]);
+    if (!error) {
+      if (droppedCols.size > 0) {
+        console.warn(`[${table}] 已自动跳过云端缺失的列: ${[...droppedCols].join(', ')} · 建议执行 ALTER TABLE 补全`);
+      }
+      return { droppedCols: [...droppedCols] };
+    }
+    // 解析"列不存在"错误，剔除该列重试
+    const msg = ((error.message || '') + ' ' + (error.details || '') + ' ' + (error.hint || '')).toLowerCase();
+    const isMissingCol = error.code === 'PGRST204'
+      || msg.includes("could not find the")
+      || msg.includes("column") && msg.includes("does not exist")
+      || msg.includes("schema cache");
+    if (!isMissingCol) throw error;
+
+    // 从错误消息里抓出列名：'xxx' 单引号括起来的就是列名
+    const colMatch = (error.message || '').match(/'([^']+)'/);
+    if (!colMatch) throw error;
+    const col = colMatch[1];
+    if (droppedCols.has(col)) {
+      // 已经剔过这一列还是失败 → 真的有别的问题
+      throw error;
+    }
+    droppedCols.add(col);
+    // 继续下一轮重试
+  }
+  throw new Error(`upsert ${table} 重试 ${maxRetries} 次仍失败`);
+}
+
 async function saveStyleToSupabase(style) {
   try {
     // 立刻更新本地缓存（保证 UI 实时响应）
@@ -9640,17 +10311,13 @@ async function saveStyleToSupabase(style) {
     if (_idx >= 0) state.styles[_idx] = style;
     saveToLocalCache(state.styles);
 
-    // 1. upsert style
-    const { error: se } = await _supabase
-      .from('styles')
-      .upsert(localStyleToDB(style));
-    if (se) throw se;
+    // 1. upsert style（自动容错缺失的列）
+    await _smartUpsert('styles', localStyleToDB(style));
 
-    // 2. upsert cycles
+    // 2. upsert cycles（自动容错缺失的列，例如 revisions）
     if (style.cycles && style.cycles.length > 0) {
       const cycleRows = style.cycles.map(c => localCycleToDB(c, style.id));
-      const { error: ce } = await _supabase.from('cycles').upsert(cycleRows);
-      if (ce) throw ce;
+      await _smartUpsert('cycles', cycleRows);
 
       // 3. 先删除所有 cycle 的旧照片，再重新插入当前的照片
       // （这样可以确保删除操作生效）
@@ -9677,16 +10344,17 @@ async function saveStyleToSupabase(style) {
       }
     }
 
-    // 4. upsert POs
+    // 4. upsert POs（自动容错缺失的列）
     if (style.pos && style.pos.length > 0) {
       const poRows = style.pos.map(p => localPOToDB(p, style.id));
-      const { error: pe } = await _supabase.from('pos').upsert(poRows);
-      if (pe) throw pe;
+      await _smartUpsert('pos', poRows);
     }
 
   } catch(e) {
     console.error('Supabase 保存失败', e);
-    showToast('云端保存失败，请检查网络', 'error');
+    // 错误消息加上具体原因，方便排查
+    const detail = e?.message || e?.code || e?.details || '未知错误';
+    showToast('云端保存失败：' + detail, 'error');
   }
 }
 
@@ -9936,28 +10604,30 @@ function collectVisibleStyleIds() {
   return Array.from(ids);
 }
 
-// 根据当前 tab 显示/隐藏批量栏的"批量已催"按钮
+// 根据当前 tab 显示/隐藏批量栏的按钮
 function syncBatchBarButtons() {
-  const followBtn = document.getElementById('batchFollowBtn');
+  const followBtn = document.getElementById('batchFollowBtn');  // 已不存在·留兼容
   const archiveBtn = document.getElementById('batchArchiveBtn');
   const restoreBtn = document.getElementById('batchRestoreBtn');
   const deleteBtn = document.getElementById('batchDeleteBtn');
+  const exportBtn = document.getElementById('batchExportBtn');
   const todayCompleteBtn = document.getElementById('batchTodayCompleteBtn');
   const todayCompleteLabel = document.getElementById('batchTodayCompleteLabel');
-  if (!followBtn) return;
 
   const isArchive = (state.topTab === 'archive');
   const isToday = (state.topTab === 'today');
   const todaySub = state.todaySub || 'all';
 
-  // 已催只在今日
-  followBtn.style.display = isToday ? 'inline-flex' : 'none';
+  // 「批量已催」按钮已删·此处保留容错
+  if (followBtn) followBtn.style.display = 'none';
   // 归档不在历史 tab（已经归档了再"归档"没意义）
   if (archiveBtn) archiveBtn.style.display = isArchive ? 'none' : 'inline-flex';
   // 恢复只在历史 tab
   if (restoreBtn) restoreBtn.style.display = isArchive ? 'inline-flex' : 'none';
   // 批量删除只在历史 tab
   if (deleteBtn) deleteBtn.style.display = isArchive ? 'inline-flex' : 'none';
+  // 导出 Excel：今日跟进 tab 不显示（跟单的"今日待办"是工作清单，不是数据导出场景）
+  if (exportBtn) exportBtn.style.display = isToday ? 'none' : 'inline-flex';
   
   // 批量完成按钮：只在今日跟进的特定子菜单显示
   if (todayCompleteBtn && todayCompleteLabel) {
@@ -9966,6 +10636,7 @@ function syncBatchBarButtons() {
       // 根据子菜单设置按钮文案
       const labels = {
         'pattern': '批量打版完成',
+        'fabric': '批量面料备齐',
         'workshop': '批量收到样板',
         'shipping': '批量已寄出',
         'feedback': '批量收到反馈',
@@ -10057,7 +10728,9 @@ async function batchMarkFollowed() {
   ids.forEach(id => {
     const s = state.styles.find(x => x.id === id);
     if (s) {
-      s.snoozedUntil = todayPlus(2);  // 跟单逻辑：催了之后 2 天内不再提醒
+      // 记录最后一次催进度的日期（仅做标记用，不再隐藏款式）
+      s.lastChasedDate = today;
+      if (s.snoozedUntil) delete s.snoozedUntil;
       const note = `[${today}] 已催进度`;
       s.notes = s.notes ? s.notes + '\n' + note : note;
       count++;
@@ -11071,7 +11744,7 @@ const STORAGE_KEY = 'style-tracker-v7';
 let state = {
   styles: [],
   topTab: 'today',
-  todaySub: 'all',
+  todaySub: 'pattern',
   todaySubOpen: true,
   filterPO: 'all',
   filterUrgency: 'all',
@@ -11247,18 +11920,49 @@ function getStyleStatus(style) {
 
   if (!lastCycle.receivedDate) {
     const days = daysSince(lastCycle.openDate);
-    // 区分：版师还在做 vs 版师打完了等版房送
     const pmDone = !!lastCycle.patternMakerDone;
+    const fabricDone = !!lastCycle.fabricSourcedDate;
+    
+    if (!pmDone) {
+      // 版师打版中
+      return {
+        stage: lastCycle.type, stageLabel,
+        currentNode: 'PATTERN_MAKING',
+        currentNodeLabel: '版师打版中',
+        startDate: lastCycle.openDate,
+        days, level: urgencyByDays(days, 3, 5),
+        awaitingClient: false, isActive: true, isArchived: false,
+        cycleType: lastCycle.type, cycleId: lastCycle.id,
+        patternMakerDone: false
+      };
+    }
+    
+    if (!fabricDone) {
+      // 版师已打完，等面料备齐
+      const fabDays = daysSince(lastCycle.patternMakerDoneDate || lastCycle.openDate);
+      return {
+        stage: lastCycle.type, stageLabel,
+        currentNode: 'AWAIT_FABRIC',
+        currentNodeLabel: '等待面料备齐',
+        startDate: lastCycle.patternMakerDoneDate || lastCycle.openDate,
+        days: fabDays, level: urgencyByDays(fabDays, 3, 6),
+        awaitingClient: false, isActive: true, isArchived: false,
+        cycleType: lastCycle.type, cycleId: lastCycle.id,
+        patternMakerDone: true
+      };
+    }
+    
+    // 面料已到，等版房送样
+    const delDays = daysSince(lastCycle.fabricSourcedDate);
     return {
       stage: lastCycle.type, stageLabel,
-      currentNode: pmDone ? 'AWAIT_DELIVERY' : 'PATTERN_MAKING',
-      currentNodeLabel: pmDone ? '等版房送样' : '等收到样板',
-      startDate: pmDone && lastCycle.patternMakerDoneDate ? lastCycle.patternMakerDoneDate : lastCycle.openDate,
-      days: pmDone && lastCycle.patternMakerDoneDate ? daysSince(lastCycle.patternMakerDoneDate) : days,
-      level: urgencyByDays(pmDone && lastCycle.patternMakerDoneDate ? daysSince(lastCycle.patternMakerDoneDate) : days, 3, 5),
+      currentNode: 'AWAIT_DELIVERY',
+      currentNodeLabel: '等版房送样',
+      startDate: lastCycle.fabricSourcedDate,
+      days: delDays, level: urgencyByDays(delDays, 3, 5),
       awaitingClient: false, isActive: true, isArchived: false,
       cycleType: lastCycle.type, cycleId: lastCycle.id,
-      patternMakerDone: pmDone
+      patternMakerDone: true
     };
   }
   if (!lastCycle.sentDate) {
@@ -11303,6 +12007,41 @@ function getStyleStatus(style) {
 }
 
 function hasPO(style) { return style.pos && style.pos.length > 0; }
+
+/* ============================================================
+   样板返修 (rework) 工具函数
+   返修是 cycle.revisions[] 上的子记录：
+   { id, reason, returnTo: 'workshop'|'pattern', sentBackAt, receivedAgainAt, note }
+   - sentBackAt 有、receivedAgainAt 为 null → 当前正在返修
+   - 两者都有 → 历史记录
+   ============================================================ */
+function getActiveRevision(cycle) {
+  if (!cycle || !cycle.revisions || !cycle.revisions.length) return null;
+  // 取最新一条且未收回的
+  for (let i = cycle.revisions.length - 1; i >= 0; i--) {
+    const r = cycle.revisions[i];
+    if (r.sentBackAt && !r.receivedAgainAt) return r;
+  }
+  return null;
+}
+function isCycleInRework(cycle) {
+  return getActiveRevision(cycle) !== null;
+}
+function getReworkCount(cycle) {
+  if (!cycle || !cycle.revisions) return 0;
+  return cycle.revisions.length;
+}
+// 计算返修已天数（基于 sentBackAt）
+function getReworkDays(rev) {
+  if (!rev || !rev.sentBackAt) return 0;
+  const dStr = (typeof rev.sentBackAt === 'string') ? rev.sentBackAt : new Date(rev.sentBackAt).toISOString().slice(0,10);
+  return daysSince(dStr) || 0;
+}
+// "退给谁"的中文标签
+function getReworkReturnLabel(returnTo) {
+  if (returnTo === 'pattern') return '版师';
+  return '版房';  // default workshop
+}
 
 // 取代表性 PO 信息（多 PO 时取最早 ex-factory 那个）
 function getPOInfo(style) {
@@ -11420,7 +12159,9 @@ function buildFullFlow(style) {
       nodes.push({
         label: cycle.type === 'PHOTO' ? '收到拍照版' : '收到样板',
         date: cycle.receivedDate, status: cycle.isVirtual ? 'virtual' : 'done', cycleType: cycle.type,
-        photos: cycle.receivedPhotos || [], isVirtual: !!cycle.isVirtual
+        photos: cycle.receivedPhotos || [], isVirtual: !!cycle.isVirtual,
+        // 把返修历史挂在收样节点上，用于在 renderBigFlow 里画徽章 + hover 提示
+        revisions: cycle.revisions || []
       });
     } else if (isLastCycle && !style.archived) {
       const pmDone = !!cycle.patternMakerDone;
@@ -11552,8 +12293,6 @@ function getTodayList(activeStyles) {
   activeStyles.forEach(s => {
     const status = getStyleStatus(s);
     if (status.isArchived || status.stage === 'DONE') return;
-    // 跳过被 snooze 的款（snoozedUntil > today 表示还在 snooze 期内）
-    if (s.snoozedUntil && s.snoozedUntil >= today) return;
 
     const efAlert = getExFactoryAlert(s, status);
     const isUrgent = status.level === 'danger' || status.level === 'warn';
@@ -11561,14 +12300,16 @@ function getTodayList(activeStyles) {
     const hasPoOrder = hasPO(s);
     const isAwaitFit = status.currentNode === 'AWAIT_FIT';
     const isProdShipping = status.stage === 'PROD_SHIPPING';
-    const isPatternMaking = status.currentNode === 'PATTERN_MAKING';  // 版师打版中
-    const isAwaitDelivery = status.currentNode === 'AWAIT_DELIVERY';  // 等版房送样
+    const isPatternMaking = status.currentNode === 'PATTERN_MAKING';
+    const isAwaitDelivery = status.currentNode === 'AWAIT_DELIVERY';
+    const isAwaitFabric = status.currentNode === 'AWAIT_FABRIC';  // 等待面料备齐
+    const isAwaitSend = status.currentNode === 'AWAIT_SEND' || status.currentNode === 'AWAIT_RECEIVE';
     // 有PO的款（REVISE/PHOTO/PROD）强制进入今日跟进
     const isPoActive = hasPoOrder && status.isActive && (
       status.cycleType === 'REVISE' || status.cycleType === 'PHOTO' || status.cycleType === 'PROD'
     );
-    // 版师打版中、等版房送样、等fit、等大货都强制进入（不管天数）
-    if (!isUrgent && !isExUrgent && !isPoActive && !isAwaitFit && !isProdShipping && !isPatternMaking && !isAwaitDelivery) return;
+    // 各阶段节点不论天数都强制进入今日跟进
+    if (!isUrgent && !isExUrgent && !isPoActive && !isAwaitFit && !isProdShipping && !isPatternMaking && !isAwaitDelivery && !isAwaitFabric && !isAwaitSend) return;
 
     const who = whoToFollowUp(status.currentNode, status.cycleType);
     let actionHint = '';
@@ -11589,6 +12330,11 @@ function getTodayList(activeStyles) {
     else if (status.currentNode === 'PATTERN_MAKING') {
       if (isPoActive) actionHint = '⚡ 催版师打版（已下PO）';
       else actionHint = '催版师出样板';
+    }
+    // 等面料备齐
+    else if (status.currentNode === 'AWAIT_FABRIC') {
+      if (isPoActive) actionHint = '⚡ 催采购备面料（已下PO）';
+      else actionHint = '催采购备面料';
     }
     // 版已打好，等版房送样
     else if (status.currentNode === 'AWAIT_DELIVERY') {
@@ -11630,9 +12376,16 @@ function getTodayList(activeStyles) {
     else if (status.level === 'warn') priority = 5;
     else if (isAwaitFit) priority = 6;
 
+    // 检测是否处于"已收样后返修中"的临时状态
+    // （只对最后一个 cycle 起作用，且只在 AWAIT_SEND 节点之后才支持返修）
+    const lastCycle = s.cycles && s.cycles[s.cycles.length - 1];
+    const activeRevision = lastCycle ? getActiveRevision(lastCycle) : null;
+    const isInRework = !!activeRevision && isAwaitSend;
+
     items.push({
       style: s, status, efAlert, who, actionHint, priority,
-      isAwaitFit, hasPoOrder: isPoActive, isProdShipping
+      isAwaitFit, hasPoOrder: isPoActive, isProdShipping,
+      isInRework, activeRevision
     });
   });
   items.sort((a, b) => {
@@ -11666,21 +12419,24 @@ function renderTodayTab() {
   }
 
   // 按职责分组（4个独立组）
-  // 1. 版师待办：版师打版中（所有款，不管天数）
-  const patternItems = items.filter(it => {
-    const node = it.status.currentNode;
-    return node === 'PATTERN_MAKING' && !it.isAwaitFit;
-  });
+  // 1. 版师待办
+  const patternItems = items.filter(it => it.status.currentNode === 'PATTERN_MAKING' && !it.isAwaitFit);
 
-  // 2. 版房待办：等版房送样
+  // 2. 面料待办：等面料备齐
+  const fabricItems = items.filter(it => it.status.currentNode === 'AWAIT_FABRIC' && !it.isAwaitFit);
+
+  // 3. 版房待办：等版房送样 + 返修中（已收样但发现问题退回版房）
   const workshopItems = items.filter(it => {
-    const node = it.status.currentNode;
-    return node === 'AWAIT_DELIVERY' && !it.isAwaitFit;
+    if (it.isAwaitFit) return false;
+    if (it.status.currentNode === 'AWAIT_DELIVERY') return true;
+    if (it.isInRework) return true;  // 返修中也归到版房组
+    return false;
   });
 
-  // 3. 待寄出：待寄出客户
+  // 3. 待寄出：待寄出客户（排除返修中的款）
   const shippingItems = items.filter(it => {
     const node = it.status.currentNode;
+    if (it.isInRework) return false;  // 返修中虽然 node 仍是 AWAIT_SEND，但视觉上要从寄样组挪走
     return (node === 'AWAIT_SEND' || node === 'AWAIT_RECEIVE') && !it.isAwaitFit;
   });
 
@@ -11693,10 +12449,10 @@ function renderTodayTab() {
   // 等fit comment：单独一组
   const fitItems = items.filter(it => it.isAwaitFit);
 
-  // 大货跟进：船版相关 + PROD_SHIPPING + 货期紧急
+  // 大货跟进
   const prodItems = items.filter(it => {
-    if (it.isAwaitFit || patternItems.includes(it) || workshopItems.includes(it) || 
-        shippingItems.includes(it) || feedbackItems.includes(it)) return false;
+    if (it.isAwaitFit || patternItems.includes(it) || fabricItems.includes(it) ||
+        workshopItems.includes(it) || shippingItems.includes(it) || feedbackItems.includes(it)) return false;
     if (it.isProdShipping) return true;
     const ct = it.status.cycleType;
     return ct === 'PROD' || (it.efAlert && it.efAlert.level !== 'ok');
@@ -11704,7 +12460,7 @@ function renderTodayTab() {
 
   // 其他未分类
   const otherItems = items.filter(it =>
-    !patternItems.includes(it) && !workshopItems.includes(it) && 
+    !patternItems.includes(it) && !fabricItems.includes(it) && !workshopItems.includes(it) &&
     !shippingItems.includes(it) && !feedbackItems.includes(it) &&
     !fitItems.includes(it) && !prodItems.includes(it)
   );
@@ -11713,6 +12469,8 @@ function renderTodayTab() {
     const s = it.style;
     const isDanger = it.efAlert?.level === 'danger' || it.status.level === 'danger';
     const cls = isDanger ? 'danger' : 'warn';
+    // ⚡ 只在 danger 时显示，warn 不加，让符号真正传达"紧急"
+    const z = isDanger ? '⚡ ' : '';
     const thumb = s.imageUrl
       ? `<img class="thumb-mini thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-mini-placeholder&quot;>NO IMG</div>'">`
       : `<div class="thumb-mini-placeholder">NO IMG</div>`;
@@ -11722,8 +12480,14 @@ function renderTodayTab() {
     const days = it.status.days || 0;
     const daysText = days > 0 ? ` · 已 ${days} 天` : '';
     const node = it.status.currentNode;
-    
-    if (it.efAlert?.level === 'danger') {
+
+    // 返修中状态优先显示（覆盖其他文本）
+    if (it.isInRework) {
+      const reworkDays = getReworkDays(it.activeRevision);
+      const rwDaysText = reworkDays > 0 ? ` · 已 ${reworkDays} 天` : '';
+      const returnLbl = getReworkReturnLabel(it.activeRevision.returnTo);
+      mainText = `🔧 返修中（${returnLbl}）${rwDaysText}`;
+    } else if (it.efAlert?.level === 'danger') {
       // 货期紧急的情况
       mainText = it.efAlert.message;
     } else if (it.isProdShipping) {
@@ -11732,36 +12496,32 @@ function renderTodayTab() {
       if (efDays !== null && efDays <= 0) {
         mainText = `⚠️ 已逾期 ${-efDays} 天`;
       } else if (efDays !== null && efDays <= 7) {
-        mainText = `⚡ 距货期 ${efDays} 天`;
+        mainText = `${z}距货期 ${efDays} 天`;
       } else if (efDays !== null) {
         mainText = `距货期 ${efDays} 天`;
       } else {
         mainText = '等大货完成';
       }
     } else if (it.isAwaitFit) {
-      // 等 fit
-      mainText = `⚡ 等 fit${daysText}`;
+      mainText = `${z}等 fit${daysText}`;
     } else if (node === 'PATTERN_MAKING') {
-      // 版师打版
-      mainText = `⚡ 打版中${daysText}`;
+      mainText = `${z}打版中${daysText}`;
+    } else if (node === 'AWAIT_FABRIC') {
+      mainText = `${z}等面料${daysText}`;
     } else if (node === 'AWAIT_DELIVERY') {
-      // 版房送样
-      mainText = `⚡ 等送样${daysText}`;
+      mainText = `${z}等送样${daysText}`;
     } else if (node === 'AWAIT_SEND' || node === 'AWAIT_RECEIVE') {
-      // 待寄出
-      mainText = `⚡ 待寄出${daysText}`;
+      mainText = `${z}待寄出${daysText}`;
     } else if (node === 'AWAIT_FB') {
-      // 等反馈
       const cycleType = it.status.cycleType;
       if (cycleType === 'PHOTO') {
-        mainText = `⚡ 等图审${daysText}`;
+        mainText = `${z}等图审${daysText}`;
       } else if (cycleType === 'PROD') {
-        mainText = `⚡ 等船版批准${daysText}`;
+        mainText = `${z}等船版批准${daysText}`;
       } else {
-        mainText = `⚡ 等反馈${daysText}`;
+        mainText = `${z}等反馈${daysText}`;
       }
     } else {
-      // 其他状态，使用原有的 actionHint
       mainText = it.actionHint || '处理中';
     }
     
@@ -11770,8 +12530,32 @@ function renderTodayTab() {
     const _ob = getOrderTypeBadge(s);
     const _orderTypeHtml = _ob ? `<span class="order-type-pill ${_ob.cls}">${escapeHtml(_ob.label)}</span>` : '';
     const hasName = s.name && s.name !== '(无款名)';
+    
+    // 单卡快捷动作：根据当前节点给一个最常用的"下一步"按钮
+    let quickAction = '';
+    const lastCycle = (s.cycles || [])[s.cycles?.length - 1];
+    if (lastCycle && !s.archived) {
+      if (it.isInRework) {
+        // 返修中 → 一键登记返修已收回
+        quickAction = `<button class="today-quick-btn" onclick="event.stopPropagation(); markReworkReceived('${s.id}', '${lastCycle.id}', '${it.activeRevision.id}')" title="返修件已收回">✓ 收回</button>`;
+      } else if (node === 'PATTERN_MAKING') {
+        quickAction = `<button class="today-quick-btn" onclick="event.stopPropagation(); markPatternMakerDone('${s.id}', '${lastCycle.id}')" title="标记版师已打完">✓ 打完</button>`;
+      } else if (node === 'AWAIT_FABRIC') {
+        quickAction = `<button class="today-quick-btn" onclick="event.stopPropagation(); markFabricSourced('${s.id}', '${lastCycle.id}')" title="登记面料已备齐">✓ 面料到</button>`;
+      } else if (node === 'AWAIT_DELIVERY') {
+        // 等版房送样 → 一键登记收到样板
+        quickAction = `<button class="today-quick-btn" onclick="event.stopPropagation(); openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')" title="登记收到样板">✓ 收到</button>`;
+      } else if (node === 'AWAIT_SEND' || node === 'AWAIT_RECEIVE') {
+        // 待寄出 → 一键登记已寄
+        quickAction = `<button class="today-quick-btn" onclick="event.stopPropagation(); openCycleStepModal('${s.id}', '${lastCycle.id}', 'sent')" title="登记已寄出">✓ 已寄</button>`;
+      } else if (node === 'AWAIT_FB') {
+        // 等反馈 → 打开反馈窗
+        quickAction = `<button class="today-quick-btn" onclick="event.stopPropagation(); openFeedbackModal('${s.id}', '${lastCycle.id}')" title="登记反馈">✓ 反馈</button>`;
+      }
+    }
+    
     return `
-      <div class="today-card ${cls} ${batchCls}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
+      <div class="today-card ${cls} ${batchCls}${it.isInRework ? ' is-rework' : ''}" data-style-id="${s.id}" data-search-text="${escapeHtml((s.sku + ' ' + (s.name || '') + ' ' + (s.pos || []).map(p => p.poNumber || '').join(' ')).toLowerCase())}" onclick="handleRowClick(event, '${s.id}')">
         <input type="checkbox" class="batch-checkbox today-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">
         ${thumb}
         <div class="today-card-body">
@@ -11786,6 +12570,7 @@ function renderTodayTab() {
             <span class="today-card-action-main ${cls}">${escapeHtml(mainText)}</span>
           </div>
         </div>
+        ${quickAction ? `<div class="today-card-quick-actions">${quickAction}</div>` : ''}
       </div>
     `;
   };
@@ -11794,6 +12579,7 @@ function renderTodayTab() {
   const _sc = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
   _sc('sub-count-all', items.length);
   _sc('sub-count-pattern', patternItems.length);
+  _sc('sub-count-fabric', fabricItems.length);
   _sc('sub-count-workshop', workshopItems.length);
   _sc('sub-count-shipping', shippingItems.length);
   _sc('sub-count-feedback', feedbackItems.length);
@@ -11803,7 +12589,23 @@ function renderTodayTab() {
   // 确保子菜单显示
   updateTodaySubNav();
 
+  // 减少今日 tab 的顶部留白（给 body 加标记，CSS 里有适配）
+  document.body.classList.add('today-tab-active');
+
+  // 顶部搜索栏（始终显示，方便跟单在大量款式中筛选）
+  const searchQ = state.todaySearchQuery || '';
   let html = '<div class="today-page">';
+  html += `
+    <div class="today-search-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" id="todaySearchInput" placeholder="搜款号 / 款名 / PO 号…" value="${escapeHtml(searchQ)}" autocomplete="off">
+      <span class="today-search-result-info" id="todaySearchInfo"></span>
+      <button class="today-search-clear" id="todaySearchClear" onclick="clearTodaySearch()" title="清除搜索" style="${searchQ ? '' : 'display:none;'}">×</button>
+    </div>
+  `;
+
   const todayCollapsibleSection = (key, badgeCls, title, sub, items, renderFn) => {
     if (items.length === 0) return '';
     const collapsed = state.collapsedSections[key];
@@ -11823,46 +12625,119 @@ function renderTodayTab() {
     `;
   };
 
-  const sub = state.todaySub || 'all';
-  if (sub === 'all' || sub === 'pattern') {
-    html += todayCollapsibleSection('today_pattern', 'danger', '✂️ 版师待办', '版师打版中 — 待打版样板池（2位版师自选）', patternItems, renderCard);
+  const sub = state.todaySub || 'pattern';
+  if (sub === 'pattern') {
+    html += todayCollapsibleSection('today_pattern', 'danger', '✂️ 版师', '版师打版中 — 等版师出样板', patternItems, renderCard);
   }
-  if (sub === 'all' || sub === 'workshop') {
-    html += todayCollapsibleSection('today_workshop', 'warn', '📦 版房待办', '等版房送样 — 版已打好，催版房送回', workshopItems, renderCard);
+  if (sub === 'fabric') {
+    html += todayCollapsibleSection('today_fabric', 'warn', '🧵 面料', '等待面料备齐 — 催采购发料往版房', fabricItems, renderCard);
   }
-  if (sub === 'all' || sub === 'shipping') {
-    html += todayCollapsibleSection('today_shipping', 'warn', '✉️ 待寄出', '待寄出客户 — 跟单负责寄样', shippingItems, renderCard);
+  if (sub === 'workshop') {
+    const reworkCount = workshopItems.filter(it => it.isInRework).length;
+    const subText = reworkCount > 0
+      ? `等版房送样 + ${reworkCount} 个返修中 — 面料已到，催版房制作并寄回`
+      : '等版房送样 — 面料已到，催版房制作并寄回';
+    html += todayCollapsibleSection('today_workshop', 'warn', '📦 版房', subText, workshopItems, renderCard);
   }
-  if (sub === 'all' || sub === 'feedback') {
-    html += todayCollapsibleSection('today_feedback', 'warn', '⏳ 等客户反馈', '等客户反馈 — 跟单负责催买手', feedbackItems, renderCard);
+  if (sub === 'shipping') {
+    html += todayCollapsibleSection('today_shipping', 'warn', '✉️ 寄样', '待寄给客户 — 跟单负责寄出', shippingItems, renderCard);
   }
-  if (sub === 'all' || sub === 'fit') {
-    html += todayCollapsibleSection('today_fit', 'fit', '💬 等 fit comment', '客户已下 PO 但还没给评语 — 给 buyer 发邮件确认', fitItems, renderCard);
+  if (sub === 'feedback') {
+    html += todayCollapsibleSection('today_feedback', 'warn', '⏳ 等反馈', '等客户给评语 — 跟单负责催买手', feedbackItems, renderCard);
   }
-  if (sub === 'all' || sub === 'prod') {
-    html += todayCollapsibleSection('today_prod', 'danger', '🏭 大货跟进', '船版已批 / 货期紧急 — 后端同事跟进出货', prodItems, renderCard);
+  if (sub === 'fit') {
+    html += todayCollapsibleSection('today_fit', 'fit', '💬 等 fit comment', '已下 PO，等买手给 fit comment', fitItems, renderCard);
+  }
+  if (sub === 'prod') {
+    html += todayCollapsibleSection('today_prod', 'danger', '🏭 大货跟进', '船版已批 / 货期临近 — 跟进出货', prodItems, renderCard);
     if (otherItems.length > 0) {
-      html += todayCollapsibleSection('today_other', 'warn', '📌 其他待办', '其他需要关注的事项', otherItems, renderCard);
+      html += todayCollapsibleSection('today_other', 'warn', '📌 其他', '其他需要关注的事项', otherItems, renderCard);
     }
   }
 
-  // 如果筛选后没有内容
-  if (sub !== 'all') {
-    let subItems = [];
-    if (sub === 'pattern') subItems = patternItems;
-    else if (sub === 'workshop') subItems = workshopItems;
-    else if (sub === 'shipping') subItems = shippingItems;
-    else if (sub === 'feedback') subItems = feedbackItems;
-    else if (sub === 'fit') subItems = fitItems;
-    else if (sub === 'prod') subItems = [...prodItems, ...otherItems];
-    
-    if (subItems.length === 0) {
-      html += `<div class="today-empty"><span class="icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></span><h3>这个分组没有待办</h3><p>当前没有需要处理的事项。</p></div>`;
-    }
+  // 当前分组无内容时显示空状态
+  let subItems = [];
+  if (sub === 'pattern') subItems = patternItems;
+  else if (sub === 'fabric') subItems = fabricItems;
+  else if (sub === 'workshop') subItems = workshopItems;
+  else if (sub === 'shipping') subItems = shippingItems;
+  else if (sub === 'feedback') subItems = feedbackItems;
+  else if (sub === 'fit') subItems = fitItems;
+  else if (sub === 'prod') subItems = [...prodItems, ...otherItems];
+  
+  if (subItems.length === 0) {
+    html += `<div class="today-empty"><span class="icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></span><h3>这个分组没有待办</h3><p>当前没有需要处理的事项。</p></div>`;
   }
 
   html += '</div>';
   main.innerHTML = html;
+
+  // 绑定搜索框事件 + 应用初始搜索
+  setTimeout(() => {
+    const inp = document.getElementById('todaySearchInput');
+    if (inp) {
+      inp.addEventListener('input', (e) => {
+        applyTodaySearch(e.target.value);
+      });
+      // 应用之前保存的搜索
+      if (searchQ) applyTodaySearch(searchQ);
+    }
+  }, 0);
+}
+
+// 应用搜索过滤·DOM 级别（不重渲染，保持输入框焦点）
+function applyTodaySearch(query) {
+  const q = (query || '').trim().toLowerCase();
+  state.todaySearchQuery = q;
+
+  const cards = document.querySelectorAll('.today-page .today-card');
+  let visible = 0, total = cards.length;
+  cards.forEach(card => {
+    const text = card.dataset.searchText || '';
+    const match = !q || text.includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+
+  // 更新搜索栏状态
+  const info = document.getElementById('todaySearchInfo');
+  const clearBtn = document.getElementById('todaySearchClear');
+  if (info) info.textContent = q ? `${visible} / ${total}` : '';
+  if (clearBtn) clearBtn.style.display = q ? '' : 'none';
+
+  // 更新各 section 的项数
+  document.querySelectorAll('.today-section').forEach(sec => {
+    const countBadge = sec.querySelector('.count-badge');
+    if (!countBadge) return;
+    const cardsInSec = sec.querySelectorAll('.today-card');
+    const totalInSec = cardsInSec.length;
+    const visibleInSec = Array.from(cardsInSec).filter(c => c.style.display !== 'none').length;
+    if (q) {
+      countBadge.textContent = `${visibleInSec} / ${totalInSec} 项`;
+    } else {
+      countBadge.textContent = `${totalInSec} 项`;
+    }
+  });
+
+  // 当前 sub-tab 全部不匹配时，显示提示
+  const oldEmpty = document.getElementById('todaySearchEmpty');
+  if (oldEmpty) oldEmpty.remove();
+  if (q && visible === 0 && total > 0) {
+    const div = document.createElement('div');
+    div.id = 'todaySearchEmpty';
+    div.className = 'today-search-empty';
+    div.textContent = `🔍 没找到包含「${q}」的款式`;
+    const page = document.querySelector('.today-page');
+    if (page) page.appendChild(div);
+  }
+}
+
+// 清除搜索
+function clearTodaySearch() {
+  state.todaySearchQuery = '';
+  const inp = document.getElementById('todaySearchInput');
+  if (inp) { inp.value = ''; inp.focus(); }
+  applyTodaySearch('');
 }
 
 /*
@@ -12297,6 +13172,10 @@ async function batchExportExcel() {
 function render() {
   const sy = window.scrollY;
   updateTabCounts();
+
+  // 维护 body 上的 today-tab-active 标记（用于 CSS 调整顶部留白）
+  document.body.classList.toggle('today-tab-active', state.topTab === 'today');
+
   if (state.topTab === 'today') {
     renderTodayTab();
     if (sy > 0) setTimeout(() => window.scrollTo(0, Math.min(sy, document.body.scrollHeight)), 10);
@@ -12456,6 +13335,15 @@ function sortStyles(a, b) {
     if (rank[sa.level] !== rank[sb.level]) return rank[sa.level] - rank[sb.level];
     return (sb.days || 0) - (sa.days || 0);
   }
+  // 按当前节点等候天数排（这才是"当前进度"的字面含义）
+  if (sortBy === 'days_desc') {
+    const sa = getStyleStatus(a), sb = getStyleStatus(b);
+    return (sb.days || 0) - (sa.days || 0);  // 等得最久的在最上
+  }
+  if (sortBy === 'days_asc') {
+    const sa = getStyleStatus(a), sb = getStyleStatus(b);
+    return (sa.days || 0) - (sb.days || 0);  // 最新（等得最少）的在最上
+  }
   return 0;
 }
 
@@ -12468,13 +13356,14 @@ function cycleSortBy(field) {
     if (cur === 'sku_asc') state.sortBy = 'sku_desc';
     else state.sortBy = 'sku_asc';
   } else if (field === 'time') {
-    // 循环：无排序 → 最早 → 最新 → 无排序
-    if (!cur || cur === 'urgency' || cur.startsWith('sku')) {
-      state.sortBy = 'createdAt_asc';  // 最早（从旧到新）
-    } else if (cur === 'createdAt_asc') {
-      state.sortBy = 'createdAt_desc';  // 最新（从新到旧）
+    // 循环：默认（紧急度） → 等最久 → 最新（等最少）→ 默认
+    // "当前进度" 字面含义 = 当前节点等候天数
+    if (cur === 'days_desc') {
+      state.sortBy = 'days_asc';   // 等最少（最新）在最上
+    } else if (cur === 'days_asc') {
+      state.sortBy = '';            // 回到默认（紧急度）
     } else {
-      state.sortBy = '';  // 无排序
+      state.sortBy = 'days_desc';  // 等最久在最上
     }
   }
   render();
@@ -12717,7 +13606,7 @@ function renderGridCard(s, idx) {
           ${renderSampleTypeBadge(s)}
           ${(() => { const ob = getOrderTypeBadge(s); return ob ? `<span class="order-type-pill ${ob.cls}">${escapeHtml(ob.label)}</span>` : ''; })()}
         </div>
-        ${s.name && s.name !== '(无款名)' ? `<div class="grid-card-name">${renderStyleNameText(s)}</div>` : ''}
+        <div class="grid-card-name">${s.name && s.name !== '(无款名)' ? renderStyleNameText(s) : '<span class="grid-card-name-empty">—</span>'}</div>
         <div class="grid-card-status-row">
           <span class="stage-tag ${stageTagCls}">${escapeHtml(status.stageLabel)}</span>
           <span class="grid-card-node ${nodeNameCls}">${escapeHtml(nodeText)}</span>
@@ -12753,14 +13642,19 @@ function renderListByStage(styles) {
     PROD: 'stage-bg-prod'
   };
 
-  // 对每组排序
+  // 对每组排序：如果用户设置了 state.sortBy 就按用户的来，否则用默认的紧急度排序
   Object.values(groups).forEach(g => {
-    g.items.sort((a, b) => {
-      const sa = getStyleStatus(a), sb = getStyleStatus(b);
-      const rank = { danger: 0, warn: 1, ok: 2, done: 3, archived: 4 };
-      if (rank[sa.level] !== rank[sb.level]) return rank[sa.level] - rank[sb.level];
-      return (sb.days || 0) - (sa.days || 0);
-    });
+    if (state.sortBy) {
+      g.items.sort(sortStyles);
+    } else {
+      // 默认：紧急度（danger > warn > ok > done > archived），同级按等候天数倒序
+      g.items.sort((a, b) => {
+        const sa = getStyleStatus(a), sb = getStyleStatus(b);
+        const rank = { danger: 0, warn: 1, ok: 2, done: 3, archived: 4 };
+        if (rank[sa.level] !== rank[sb.level]) return rank[sa.level] - rank[sb.level];
+        return (sb.days || 0) - (sa.days || 0);
+      });
+    }
   });
 
   let idx = 0;
@@ -12787,7 +13681,7 @@ function renderListByStage(styles) {
               <div class="sortable ${state.sortBy && state.sortBy.startsWith('sku') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('sku')">款号 <span class="sort-arrow">${state.sortBy === 'sku_asc' ? '↑' : state.sortBy === 'sku_desc' ? '↓' : '⇅'}</span></div>
               <div>客户</div>
               <div>款名</div>
-              <div class="sortable ${state.sortBy && state.sortBy.startsWith('createdAt') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('time')">当前进度 <span class="sort-arrow">${state.sortBy === 'createdAt_asc' ? '↑ 最早' : state.sortBy === 'createdAt_desc' ? '↓ 最新' : '⇅'}</span></div>
+              <div class="sortable ${state.sortBy && (state.sortBy === 'days_desc' || state.sortBy === 'days_asc') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('time')">当前进度 <span class="sort-arrow">${state.sortBy === 'days_desc' ? '↓ 久' : state.sortBy === 'days_asc' ? '↑ 新' : '⇅'}</span></div>
               <div></div>
             </div>
             ${g.items.map(s => {
@@ -14099,32 +14993,38 @@ function openDrawer(id) {
   if (s.archived) {
     actions = `<button onclick="undoArchive('${s.id}')">取消归档</button>`;
   } else if (status.currentNode === 'PATTERN_MAKING') {
-    // 版师打版中
-    const inTodayPattern = (state.topTab === 'today' && state.todaySub === 'pattern');
-    const inDevTracking = (state.topTab === 'dev');
-    
-    if (inTodayPattern) {
-      // 在"今日跟进→版师"里 - 只显示"版师已打完"
-      actions = `<button onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')" title="版师已打完版，等版房送过来">✂️ 版师已打完</button>`;
-    } else if (inDevTracking) {
-      // 在"开发追踪"里 - 只显示"登记·收到样板"
-      actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
-    } else {
-      // 在其他地方（今日跟进→全部、版房等）- 两个按钮都显示
-      actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
-      actions += ` <button onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')" title="版师已打完版，等版房送过来">✂️ 版师已打完</button>`;
-    }
+    // 版师打版中（只能"打完"进入下一步，不允许直接跳到收样）
+    actions = `<button class="primary" onclick="markPatternMakerDone('${s.id}', '${lastCycle.id}')">✂️ 标记版师已打完</button>`;
+  } else if (status.currentNode === 'AWAIT_FABRIC') {
+    // 等面料备齐（只能登记面料到，不允许直接跳到收样）
+    actions = `<button class="primary" onclick="markFabricSourced('${s.id}', '${lastCycle.id}')">🧵 登记面料已备齐</button>`;
+    actions += ` <button class="btn-revert-step" onclick="revertOneStep('${s.id}', '${lastCycle.id}')" title="退回到版师阶段">↶ 退回上一步</button>`;
   } else if (status.currentNode === 'AWAIT_DELIVERY') {
-    // 版房送样 - 跟单在这里登记收到样板
-    actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">登记 · 收到样板</button>`;
-    actions += ` <button onclick="undoPatternMakerDone('${s.id}', '${lastCycle.id}')" title="撤销·版师还在做">↶ 撤销「已打完」</button>`;
+    // 等版房送样
+    actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'received')">📦 登记收到样板</button>`;
+    actions += ` <button class="btn-revert-step" onclick="revertOneStep('${s.id}', '${lastCycle.id}')" title="退回到面料阶段">↶ 退回上一步</button>`;
   } else if (status.currentNode === 'AWAIT_SEND') {
-    const lbl = lastCycle.type === 'PHOTO' ? '拍照发图审' : '寄出客户';
-    actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'sent')">登记 · ${lbl}</button>`;
+    // 检查是否处于返修中
+    const activeRev = getActiveRevision(lastCycle);
+    if (activeRev) {
+      // 返修中：主操作变成"返修件已收回"
+      const returnLbl = getReworkReturnLabel(activeRev.returnTo);
+      const reworkDays = getReworkDays(activeRev);
+      actions = `<button class="primary btn-rework-receive" onclick="markReworkReceived('${s.id}', '${lastCycle.id}', '${activeRev.id}')" title="样板从${returnLbl}返修后再次到手">✓ 返修件已收回${reworkDays > 0 ? '（已退回 ' + reworkDays + ' 天）' : ''}</button>`;
+    } else {
+      const lbl = lastCycle.type === 'PHOTO' ? '拍照发图审' : '寄出客户';
+      actions = `<button class="primary" onclick="openCycleStepModal('${s.id}', '${lastCycle.id}', 'sent')">登记 · ${lbl}</button>`;
+      // 只有在 DEV/REVISE 类型 cycle 上才提供返修入口（PHOTO/PROD 一般不会让版房返修）
+      if (lastCycle.type === 'DEV' || lastCycle.type === 'REVISE') {
+        actions += ` <button class="btn-rework" onclick="openReworkModal('${s.id}', '${lastCycle.id}')" title="样板有问题，退回版房/版师返修">🔧 需要返修</button>`;
+      }
+      actions += ` <button class="btn-revert-step" onclick="revertOneStep('${s.id}', '${lastCycle.id}')" title="退回到等版房送样">↶ 退回上一步</button>`;
+    }
   } else if (status.currentNode === 'AWAIT_FB') {
     if (lastCycle.type === 'PHOTO') actions = `<button class="primary" onclick="openFeedbackModal('${s.id}', '${lastCycle.id}')">登记 · 图审结果</button>`;
     else if (lastCycle.type === 'PROD') actions = `<button class="primary" onclick="openFeedbackModal('${s.id}', '${lastCycle.id}')">登记 · 船版审批</button>`;
     else actions = `<button class="primary" onclick="openFeedbackModal('${s.id}', '${lastCycle.id}')">登记 · 客户评语</button>`;
+    actions += ` <button class="btn-revert-step" onclick="revertOneStep('${s.id}', '${lastCycle.id}')" title="退回到待寄出">↶ 退回上一步</button>`;
   } else if (status.currentNode === 'AWAIT_FIT') {
     actions = `<button class="primary" onclick="openFitReceivedModal('${s.id}')">登记 · 收到 fit comment</button>`;
   } else if (status.currentNode === 'PROD_SHIPPING') {
@@ -14133,10 +15033,7 @@ function openDrawer(id) {
     actions = `<span style="font-family:var(--font-mono);font-size:12px;color:var(--ok);padding:9px 14px;">✓ 大货已到仓 · 流程完结</span>`;
   }
 
-  // "我已催过"按钮（仅在等客户/等板房/等送样时显示）
-  if (status.awaitingClient || status.currentNode === 'PATTERN_MAKING' || status.currentNode === 'AWAIT_DELIVERY') {
-    actions += ` <button onclick="markFollowUp('${s.id}')">✎ 我已催过</button>`;
-  }
+  // 删除款式按钮（独立，永远在最右）
   actions += ` <button class="danger" onclick="deleteStyle('${s.id}')">删除款式</button>`;
 
   // 该催谁提示
@@ -14151,19 +15048,8 @@ function openDrawer(id) {
     `;
   }
 
-  // Snooze 提示
+  // 已催标记（不再隐藏款式，仅在抽屉/卡片上显示标签）
   let snoozeHint = '';
-  const today = todayStr();
-  if (s.snoozedUntil && s.snoozedUntil >= today) {
-    const daysLeft = daysBetween(today, s.snoozedUntil) + 1;
-    snoozeHint = `
-      <div class="snooze-hint">
-        <span class="snooze-icon">💤</span>
-        <span>已暂时从「今日跟进」隐藏，<b>${daysLeft} 天后</b>（${escapeHtml(s.snoozedUntil)}）自动重新出现</span>
-        <button onclick="unsnooze('${s.id}')">立即恢复</button>
-      </div>
-    `;
-  }
 
   // PO 列表卡片
   let poCard = '';
@@ -14324,6 +15210,7 @@ function openDrawer(id) {
         <div class="detail-collapse-content">
           <div class="section-title">完整流程</div>
           <div class="drawer-flow-section">${renderBigFlow(s)}</div>
+          ${renderReworkHistory(s)}
 
           <div class="meta-grid">
             <div class="meta-item">
@@ -14412,6 +15299,43 @@ function copyTrackingNo(num) {
 }
 
 
+/* 渲染当前 cycle 的返修历史时间线（drawer 内展示）*/
+function renderReworkHistory(style) {
+  if (!style.cycles || style.cycles.length === 0) return '';
+  // 收集所有有返修的 cycle（一般只看最后一个 cycle，但保险起见全列）
+  const allRevs = [];
+  style.cycles.forEach(cycle => {
+    if (cycle.revisions && cycle.revisions.length > 0) {
+      cycle.revisions.forEach(rev => {
+        allRevs.push({ cycle, rev });
+      });
+    }
+  });
+  if (allRevs.length === 0) return '';
+
+  const items = allRevs.map(({ cycle, rev }, idx) => {
+    const cycleLabel = CYCLE_TYPES[cycle.type]?.label || cycle.type;
+    const returnLbl = getReworkReturnLabel(rev.returnTo);
+    const sentBack = rev.sentBackAt || '?';
+    const recvAgain = rev.receivedAgainAt
+      ? `<span style="color:var(--ok);">→ ${rev.receivedAgainAt} 已收回</span>`
+      : `<span style="color:var(--stage-revise);">→ 进行中（已 ${getReworkDays(rev)} 天）</span>`;
+    const noteHtml = rev.note ? `<br>备注：${escapeHtml(rev.note)}` : '';
+    return `
+      <div class="rework-history-item">
+        <strong>第 ${idx + 1} 次</strong> · ${escapeHtml(cycleLabel)} · ${escapeHtml(sentBack)} 退回${escapeHtml(returnLbl)} · <span class="reason">${escapeHtml(rev.reason)}</span> ${recvAgain}${noteHtml}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="rework-history">
+      <div class="rework-history-title">🔧 返修历史（${allRevs.length} 次）</div>
+      ${items}
+    </div>
+  `;
+}
+
 function renderBigFlow(style) {
   const nodes = buildFullFlow(style);
   if (nodes.length === 0) return '<div style="padding:20px;color:var(--ink-mute);">暂无流程数据</div>';
@@ -14451,11 +15375,28 @@ function renderBigFlow(style) {
             : n.estArrival ? `<span class="big-flow-arrival" title="预计${formatDate(n.estArrival)}到达·点击修改" onclick="quickEditArrival('${n.cycleId}', event); event.stopPropagation();">📅 ${formatDate(n.estArrival)}</span><button class="big-flow-sign-btn" onclick="markPackageDelivered('${n.cycleId}'); event.stopPropagation();" title="标记已签收">✓ 签收</button>` : ''}
         </div>`
       : '';
+    // 返修徽章（只在"收到样板"类节点上 + 有返修记录时显示）
+    let reworkBadge = '';
+    if (n.revisions && n.revisions.length > 0) {
+      const total = n.revisions.length;
+      const active = n.revisions.find(r => r.sentBackAt && !r.receivedAgainAt);
+      // hover tooltip：列出每条返修历史
+      const tooltipLines = n.revisions.map((r, ri) => {
+        const dateBack = r.sentBackAt || '?';
+        const dateRecv = r.receivedAgainAt || '进行中';
+        const returnLbl = getReworkReturnLabel(r.returnTo);
+        return `第${ri + 1}次：${dateBack} 退回${returnLbl}（${r.reason}）→ ${dateRecv}`;
+      }).join('\n');
+      const labelText = active ? `🔧 返修中×${total}` : `🔧 ×${total}`;
+      reworkBadge = `<div class="big-flow-rework" title="${escapeHtml(tooltipLines)}">${escapeHtml(labelText)}</div>`;
+    }
+
     html += `
       <div class="big-flow-node">
         <div class="${labelCls}">${escapeHtml(n.label)}${n.isVirtual ? '<span style="display:block;font-size:8px;color:var(--ink-mute);font-style:normal;opacity:0.7;margin-top:1px;">迁移数据</span>' : ''}</div>
         <div class="${dotCls}"></div>
         ${dateStr ? `<div class="${dateCls}">${dateStr}</div>` : ''}
+        ${reworkBadge}
         ${photoBadge}
         ${trackBadge}
       </div>
@@ -14860,22 +15801,217 @@ function cancelEditNotes(id) {
   openDrawer(id);
 }
 
-// 我已催过：自动追加时间戳到备注 + 临时从今日跟进隐藏 2 天
+// 我已催过：在备注上追加时间戳，并记录最后催进度的日期（不再隐藏款式）
 function markFollowUp(id) {
   const s = state.styles.find(x => x.id === id);
   const status = getStyleStatus(s);
   const who = whoToFollowUp(status.currentNode, status.cycleType) || '';
-  const today = todayStr().slice(5).replace('-', '/');
-  const newLine = `[${today}] 已催 ${who}`;
+  const today = todayStr();
+  const todayShort = today.slice(5).replace('-', '/');
+  const newLine = `[${todayShort}] 已催 ${who}`;
   s.notes = s.notes ? (s.notes + '\n' + newLine) : newLine;
-  // 设置 snooze 到 2 天后（包含今天 + 后两天）
-  const snoozeDate = new Date();
-  snoozeDate.setDate(snoozeDate.getDate() + 2);
-  s.snoozedUntil = snoozeDate.toISOString().slice(0, 10);
+  // 记录最后一次催进度的日期，用于卡片上显示「已催·今天」之类的标记
+  s.lastChasedDate = today;
+  // 清除旧的 snooze 字段（兼容旧数据）
+  if (s.snoozedUntil) delete s.snoozedUntil;
   saveState(); render(); openDrawer(id);
 }
 
-// 版师勾选「已打完版」 - 不再提醒版师，进入"等版房送样"阶段
+// 登记面料已备齐
+function markFabricSourced(styleId, cycleId) {
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle) return;
+
+  state.modalContext = { type: 'fabricSourced', styleId, cycleId };
+  document.getElementById('updateTitle').textContent = '🧵 面料备齐';
+  document.getElementById('updateBody').innerHTML = `
+    <div class="batch-modal">
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">面料备齐日期</label>
+        <input type="date" id="fabric-sourced-date" value="${todayStr()}">
+      </div>
+      <div style="font-size:12px;color:var(--ink-mute);padding:0 2px;">
+        登记后状态进入「等版房送样」，面料将随样板一并发往版房。
+      </div>
+    </div>
+  `;
+  document.getElementById('updateFooter').innerHTML = `
+    <button class="cancel" onclick="closeUpdateModal()">取消</button>
+    <button class="confirm" onclick="saveFabricSourced()">确认备齐</button>
+  `;
+  document.getElementById('updateBackdrop').classList.add('open');
+}
+
+/* ============================================================
+   样板返修 — 发起 / 收回
+   ============================================================ */
+function openReworkModal(styleId, cycleId) {
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle) return;
+  // 必须已经收过样板（receivedDate 存在）才能发起返修
+  if (!cycle.receivedDate) {
+    showToast('还没收到样板，无法发起返修', 'warn');
+    return;
+  }
+  // 已经有未收回的返修则不能再发起
+  if (getActiveRevision(cycle)) {
+    showToast('已有进行中的返修', 'warn');
+    return;
+  }
+
+  state.modalContext = { type: 'rework', styleId, cycleId };
+  document.getElementById('updateTitle').textContent = '🔧 退回返修';
+  document.getElementById('updateBody').innerHTML = `
+    <div class="rework-modal-section">
+      <label>退给谁</label>
+      <div class="rework-radio-group">
+        <label>
+          <input type="radio" name="rework-return-to" value="workshop" checked>
+          <span>📦 版房返修（推荐 · 大多数返工归版房处理）</span>
+        </label>
+        <label>
+          <input type="radio" name="rework-return-to" value="pattern">
+          <span>✂️ 版师重新打版（版型本身有问题）</span>
+        </label>
+      </div>
+    </div>
+    <div class="rework-modal-section">
+      <label>返修原因（可多选）</label>
+      <div class="rework-check-group">
+        <label><input type="checkbox" name="rework-reason" value="尺寸不对"><span>尺寸不对</span></label>
+        <label><input type="checkbox" name="rework-reason" value="做工/工艺问题"><span>做工 / 工艺问题</span></label>
+        <label><input type="checkbox" name="rework-reason" value="版型问题"><span>版型问题</span></label>
+        <label><input type="checkbox" name="rework-reason" value="面料/辅料问题"><span>面料 / 辅料问题</span></label>
+        <label><input type="checkbox" name="rework-reason" value="其他"><span>其他（详见备注）</span></label>
+      </div>
+    </div>
+    <div class="rework-modal-section">
+      <label>备注（可选）</label>
+      <textarea id="rework-note" placeholder="例如：袖长短了 1cm，腰围放出 2cm，扣眼位置不对…"></textarea>
+    </div>
+  `;
+  document.getElementById('updateFooter').innerHTML = `
+    <button class="cancel" onclick="closeUpdateModal()">取消</button>
+    <button class="confirm btn-rework" onclick="saveRework()">确认返修</button>
+  `;
+  document.getElementById('updateBackdrop').classList.add('open');
+}
+
+function saveRework() {
+  const { styleId, cycleId } = state.modalContext;
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle) return;
+
+  const returnTo = document.querySelector('input[name="rework-return-to"]:checked')?.value || 'workshop';
+  const checked = Array.from(document.querySelectorAll('input[name="rework-reason"]:checked')).map(el => el.value);
+  const note = document.getElementById('rework-note')?.value.trim() || '';
+
+  if (checked.length === 0 && !note) {
+    showToast('请至少选一个返修原因，或填写备注说明', 'warn');
+    return;
+  }
+
+  if (!cycle.revisions) cycle.revisions = [];
+  const rev = {
+    id: uid('rev'),
+    reason: checked.join('、') || '其他',
+    returnTo,
+    sentBackAt: todayStr(),
+    receivedAgainAt: null,
+    note
+  };
+  cycle.revisions.push(rev);
+
+  closeUpdateModal();
+  saveOneStyle(s.id);
+  render();
+  openDrawer(styleId);
+
+  const returnLbl = getReworkReturnLabel(returnTo);
+  showUndoToast(`🔧 已退回${returnLbl}返修 · ${rev.reason}`, () => {
+    const s2 = state.styles.find(x => x.id === styleId);
+    const c2 = s2?.cycles?.find(c => c.id === cycleId);
+    if (c2 && c2.revisions) {
+      // 撤销：移除刚加的这条返修记录
+      c2.revisions = c2.revisions.filter(r => r.id !== rev.id);
+      if (c2.revisions.length === 0) delete c2.revisions;
+      saveOneStyle(styleId);
+      render();
+      openDrawer(styleId);
+      showToast('已撤销·返修标记已取消', 'ok');
+    }
+  });
+}
+
+function markReworkReceived(styleId, cycleId, revisionId) {
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle || !cycle.revisions) return;
+  const rev = cycle.revisions.find(r => r.id === revisionId);
+  if (!rev) {
+    showToast('找不到这条返修记录', 'warn');
+    return;
+  }
+  if (rev.receivedAgainAt) {
+    showToast('这条返修已经收回过了', 'info');
+    return;
+  }
+
+  const today = todayStr();
+  rev.receivedAgainAt = today;
+
+  saveOneStyle(s.id);
+  render();
+  openDrawer(styleId);
+
+  showUndoToast(`✓ 返修件 ${today} 已收回 · 回到待寄出`, () => {
+    const s2 = state.styles.find(x => x.id === styleId);
+    const c2 = s2?.cycles?.find(c => c.id === cycleId);
+    const r2 = c2?.revisions?.find(r => r.id === revisionId);
+    if (r2) {
+      r2.receivedAgainAt = null;
+      saveOneStyle(styleId);
+      render();
+      openDrawer(styleId);
+      showToast('已撤销·返修件回到返修中状态', 'ok');
+    }
+  });
+}
+
+function saveFabricSourced() {
+  const { styleId, cycleId } = state.modalContext;
+  const date = document.getElementById('fabric-sourced-date')?.value;
+  if (!date) { showToast('请选择日期', 'warn'); return; }
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle) return;
+  cycle.fabricSourcedDate = date;
+  closeUpdateModal();
+  saveOneStyle(s.id);
+  render();
+  openDrawer(styleId);
+  showUndoToast('✓ 面料已备齐 · 进入等版房送样', () => {
+    const s2 = state.styles.find(x => x.id === styleId);
+    const c2 = s2?.cycles?.find(c => c.id === cycleId);
+    if (c2) {
+      c2.fabricSourcedDate = null;
+      saveOneStyle(styleId);
+      render();
+      openDrawer(styleId);
+      showToast('已撤销·回到等面料阶段', 'ok');
+    }
+  });
+}
+
+
 function markPatternMakerDone(styleId, cycleId) {
   const s = state.styles.find(x => x.id === styleId);
   if (!s) return;
@@ -14926,13 +16062,26 @@ function saveUpdate() {
     const cycle = s.cycles?.find(c => c.id === state.modalContext.cycleId);
     if (!cycle) return;
     
+    const styleId = state.modalContext.styleId;
+    const cycleId = state.modalContext.cycleId;
     cycle.patternMakerDone = true;
     cycle.patternMakerDoneDate = doneDate;
     closeUpdateModal();
     saveOneStyle(s.id);
     render();
-    openDrawer(state.modalContext.styleId);
-    showToast(`✓ 已记录·版师 ${doneDate} 打完版，转为等版房送样`, 'ok');
+    openDrawer(styleId);
+    showUndoToast(`✓ 版师 ${doneDate} 打完 · 进入等面料`, () => {
+      const s2 = state.styles.find(x => x.id === styleId);
+      const c2 = s2?.cycles?.find(c => c.id === cycleId);
+      if (c2) {
+        c2.patternMakerDone = false;
+        c2.patternMakerDoneDate = null;
+        saveOneStyle(styleId);
+        render();
+        openDrawer(styleId);
+        showToast('已撤销·回到版师阶段', 'ok');
+      }
+    });
   }
 }
 
@@ -14952,7 +16101,16 @@ function confirmPatternMakerDone(styleId, cycleId) {
   cycle.patternMakerDoneDate = doneDate;
   closeUpdateModal();
   saveState(); render(); openDrawer(styleId);
-  showToast(`✓ 已记录·版师 ${doneDate} 打完版，转为等版房送样`, 'ok');
+  showUndoToast(`✓ 版师 ${doneDate} 打完 · 进入等面料`, () => {
+    const s2 = state.styles.find(x => x.id === styleId);
+    const c2 = s2?.cycles?.find(c => c.id === cycleId);
+    if (c2) {
+      c2.patternMakerDone = false;
+      c2.patternMakerDoneDate = null;
+      saveState(); render(); openDrawer(styleId);
+      showToast('已撤销·回到版师阶段', 'ok');
+    }
+  });
 }
 
 // 撤销「已打完版」
@@ -14972,6 +16130,180 @@ function unsnooze(id) {
   const s = state.styles.find(x => x.id === id);
   delete s.snoozedUntil;
   saveState(); render(); openDrawer(id);
+}
+
+// =============================================================
+// 撤销系统：即时撤销 toast + 退回上一步按钮
+// =============================================================
+
+// 带撤销按钮的 toast（8秒内可撤销）
+function showUndoToast(message, undoFn, durationMs) {
+  durationMs = durationMs || 8000;
+  // 找到 toast 栈
+  let stack = document.querySelector('.toast-stack');
+  if (!stack) {
+    stack = document.createElement('div');
+    stack.className = 'toast-stack';
+    document.body.appendChild(stack);
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-ok';
+  toast.innerHTML = `
+    <span class="toast-icon">✓</span>
+    <span class="toast-msg"></span>
+    <button class="toast-undo-btn">↶ 撤销</button>
+  `;
+  toast.querySelector('.toast-msg').textContent = message;
+  stack.appendChild(toast);
+
+  let dismissed = false;
+  const dismiss = () => {
+    if (dismissed) return;
+    dismissed = true;
+    toast.classList.add('toast-out');
+    setTimeout(() => toast.remove(), 300);
+  };
+
+  toast.querySelector('.toast-undo-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (dismissed) return;
+    dismissed = true;
+    toast.remove();
+    try { undoFn(); } catch (err) { console.error('撤销失败', err); showToast('撤销失败', 'error'); }
+  });
+
+  setTimeout(dismiss, durationMs);
+}
+
+// 退回上一步：根据当前 cycle 的填充状态自动判断
+async function revertOneStep(styleId, cycleId) {
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const cycle = s.cycles?.find(c => c.id === cycleId);
+  if (!cycle) return;
+
+  // 反馈节点不通过这个机制退（数据复杂）
+  if (cycle.feedbackOutcome || cycle.feedbackDate) {
+    showToast('反馈节点不能直接退回·请到时间线删除', 'warn');
+    return;
+  }
+
+  let revertedLabel = '';
+  if (cycle.sentDate) {
+    cycle.sentDate = null;
+    if (cycle.shipTrackingNo) delete cycle.shipTrackingNo;
+    if (cycle.shipEstimatedArrival) delete cycle.shipEstimatedArrival;
+    revertedLabel = '已退回到「待寄出」';
+  } else if (cycle.receivedDate) {
+    cycle.receivedDate = null;
+    revertedLabel = '已退回到「等版房送样」';
+  } else if (cycle.fabricSourcedDate) {
+    cycle.fabricSourcedDate = null;
+    revertedLabel = '已退回到「等面料备齐」';
+  } else if (cycle.patternMakerDone) {
+    cycle.patternMakerDone = false;
+    cycle.patternMakerDoneDate = null;
+    revertedLabel = '已退回到「版师在做」';
+  } else {
+    showToast('已是最初阶段·没有可退回的步骤', 'warn');
+    return;
+  }
+
+  await saveOneStyle(styleId);
+  render();
+  openDrawer(styleId);
+  showToast('✓ ' + revertedLabel, 'ok');
+}
+
+// =============================================================
+// 跟单专用：「📦 我手上有样」全局快速登记
+// =============================================================
+function openHaveSampleQuickModal() {
+  // 列出所有还没收样、未归档的款式
+  const candidates = state.styles.filter(s => {
+    if (s.archived) return false;
+    const status = getStyleStatus(s);
+    // 还在收样前的节点
+    return ['PATTERN_MAKING', 'AWAIT_FABRIC', 'AWAIT_DELIVERY'].includes(status.currentNode);
+  });
+
+  state.modalContext = { type: 'haveSampleQuick' };
+
+  document.getElementById('updateTitle').textContent = '📦 我手上有样了 · 跟单专用';
+  document.getElementById('updateBody').innerHTML = `
+    <div style="padding: 4px 0;">
+      <input type="text" class="have-sample-modal-search" id="haveSampleSearch"
+             placeholder="搜款号 / 款名 / PO 号…" autocomplete="off">
+      <div style="font-size:11px;color:var(--ink-mute);margin-bottom:8px;line-height:1.5;">
+        点选款式后，会跳转到正常的「登记收到样板」窗口，<br>
+        这一步会跳过版师/面料/版房节点，直接进入待寄出。
+      </div>
+      <div class="have-sample-results" id="haveSampleResults"></div>
+    </div>
+  `;
+  document.getElementById('updateFooter').innerHTML = `
+    <button class="cancel" onclick="closeUpdateModal()">关闭</button>
+  `;
+  document.getElementById('updateBackdrop').classList.add('open');
+
+  // 渲染列表
+  const renderList = (keyword) => {
+    const k = (keyword || '').trim().toLowerCase();
+    let list = candidates;
+    if (k) {
+      list = candidates.filter(s => {
+        const sku = (s.sku || '').toLowerCase();
+        const name = (s.name || '').toLowerCase();
+        const poStr = (s.pos || []).map(p => (p.poNumber || '')).join(' ').toLowerCase();
+        return sku.includes(k) || name.includes(k) || poStr.includes(k);
+      });
+    }
+    const box = document.getElementById('haveSampleResults');
+    if (!box) return;
+    if (list.length === 0) {
+      box.innerHTML = `<div class="have-sample-empty">${k ? '没找到匹配的款' : '当前没有等待收样的款'}</div>`;
+      return;
+    }
+    box.innerHTML = list.slice(0, 50).map(s => {
+      const status = getStyleStatus(s);
+      const lastCycle = s.cycles?.[s.cycles.length - 1];
+      const thumb = s.imageUrl
+        ? `<img class="thumb" src="${escapeHtml(s.imageUrl)}" alt="" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;></div>'">`
+        : `<div class="thumb-placeholder"></div>`;
+      return `
+        <div class="have-sample-result-item" onclick="haveSamplePickStyle('${s.id}', '${lastCycle ? lastCycle.id : ''}')">
+          ${thumb}
+          <div class="info">
+            <div class="sku">${escapeHtml(s.sku)}</div>
+            <div class="meta">${escapeHtml(s.client)} · ${escapeHtml(s.name || '(无款名)')}</div>
+          </div>
+          <span class="stage-tag">${escapeHtml(status.currentNodeLabel || status.stageLabel || '')}</span>
+        </div>
+      `;
+    }).join('');
+  };
+
+  renderList('');
+  // 绑定搜索
+  setTimeout(() => {
+    const inp = document.getElementById('haveSampleSearch');
+    if (inp) {
+      inp.addEventListener('input', () => renderList(inp.value));
+      inp.focus();
+    }
+  }, 50);
+}
+
+// 选中某个款 → 关掉本弹窗，打开正常的"登记收到样板"
+function haveSamplePickStyle(styleId, cycleId) {
+  if (!cycleId) {
+    showToast('该款还没建周期·请先在抽屉里手动登记', 'warn');
+    return;
+  }
+  closeUpdateModal();
+  setTimeout(() => {
+    openCycleStepModal(styleId, cycleId, 'received');
+  }, 220);
 }
 
 
@@ -15581,6 +16913,20 @@ function saveCycleStep() {
   const cycle = s.cycles.find(c => c.id === cycleId);
   const date = document.getElementById('u-date').value;
   if (!date) { showToast('请选择日期', 'warn'); return; }
+
+  // 记录撤销所需的"快照"——只快照即将被本次动作改写/写入的字段
+  const undoSnapshot = {};
+  if (field === 'received') {
+    undoSnapshot.receivedDate = cycle.receivedDate || null;
+    undoSnapshot.patternMakerDone = !!cycle.patternMakerDone;
+    undoSnapshot.patternMakerDoneDate = cycle.patternMakerDoneDate || null;
+    undoSnapshot.receivedPhotos = cycle.receivedPhotos ? [...cycle.receivedPhotos] : null;
+  } else if (field === 'sent') {
+    undoSnapshot.sentDate = cycle.sentDate || null;
+    undoSnapshot.shipTrackingNo = cycle.shipTrackingNo || null;
+    undoSnapshot.shipEstimatedArrival = cycle.shipEstimatedArrival || null;
+  }
+
   if (field === 'received') {
     cycle.receivedDate = date;
     // 收到样板就清除"版师已打完"标记，进入下一阶段
@@ -15613,17 +16959,53 @@ function saveCycleStep() {
   saveStyleToSupabase(s);
   closeUpdateModal();
   
-  // 如果在今日跟进视图，且登记的是收样，自动切换到"寄样"tab
-  if (field === 'received' && state.topTab === 'today') {
-    state.todaySub = 'shipping';
-  }
-  
-  render();
-  
-  // 如果切换了 tab，不要重新打开抽屉
-  if (!(field === 'received' && state.topTab === 'today')) {
+  // 登记收样后，自动跳到「今日跟进 → 寄样」（方便迁移期/日常都直奔下一步）
+  const justReceived = (field === 'received');
+  if (justReceived) {
+    // 模拟点击 nav-item 触发完整 tab 切换（同步 active 高亮、控制栏显示等 DOM 状态）
+    if (state.topTab !== 'today') {
+      const todayNav = document.querySelector('.nav-item[data-toptab="today"]');
+      if (todayNav) todayNav.click();  // 内部已含 render
+    }
+    // 切到「寄样」子 tab（switchTodaySub 内部已含 render）
+    if (typeof switchTodaySub === 'function') {
+      switchTodaySub('shipping');
+    } else {
+      state.todaySub = 'shipping';
+      state.todaySubOpen = true;
+      render();
+    }
+  } else {
+    render();
     openDrawer(styleId);
   }
+
+  // 弹出可撤销 toast
+  const msg = field === 'received'
+    ? '✓ 已收到样板 · 进入待寄出'
+    : (cycle.type === 'PHOTO' ? '✓ 已发图审 · 等客户回评' : '✓ 已寄出 · 等客户反馈');
+  showUndoToast(msg, () => {
+    const s2 = state.styles.find(x => x.id === styleId);
+    const c2 = s2?.cycles?.find(c => c.id === cycleId);
+    if (!c2) return;
+    if (field === 'received') {
+      c2.receivedDate = undoSnapshot.receivedDate;
+      c2.patternMakerDone = undoSnapshot.patternMakerDone;
+      c2.patternMakerDoneDate = undoSnapshot.patternMakerDoneDate;
+      if (undoSnapshot.receivedPhotos) c2.receivedPhotos = undoSnapshot.receivedPhotos;
+      else delete c2.receivedPhotos;
+    } else if (field === 'sent') {
+      c2.sentDate = undoSnapshot.sentDate;
+      if (undoSnapshot.shipTrackingNo) c2.shipTrackingNo = undoSnapshot.shipTrackingNo;
+      else delete c2.shipTrackingNo;
+      if (undoSnapshot.shipEstimatedArrival) c2.shipEstimatedArrival = undoSnapshot.shipEstimatedArrival;
+      else delete c2.shipEstimatedArrival;
+    }
+    saveOneStyle(styleId);
+    render();
+    openDrawer(styleId);
+    showToast('已撤销·回到上一步', 'ok');
+  });
 }
 
 function openFeedbackModal(styleId, cycleId) {
@@ -17001,6 +18383,17 @@ document.querySelectorAll('.nav-item').forEach(b => {
       updateTodaySubNav();
       return;
     }
+    // 批量模式下禁止切 tab —— 不同 tab 的批量逻辑（已选项、可用动作）不互通，
+    // 切走会让用户对"已选了哪些款"产生混淆。提示用户先退出批量再切。
+    if (document.body.classList.contains('batch-mode-locked') && clickedTab !== state.topTab) {
+      const selectedCount = Object.keys(state.batchSelected || {}).length
+        + Object.keys(state.poBatchSelected || {}).length;
+      const msg = selectedCount > 0
+        ? `批量模式开启中 · 已选 ${selectedCount} 项 · 请先完成或退出批量再切换`
+        : '批量模式开启中 · 请先点右上角批量按钮退出';
+      showToast(msg, 'warn');
+      return;
+    }
     document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     state.topTab = clickedTab;
@@ -17049,6 +18442,16 @@ document.querySelectorAll('.nav-item').forEach(b => {
 });
 
 function switchTodaySub(sub) {
+  // 批量模式下禁止切子菜单（不同组的批量动作不同：批量打版完成 vs 批量已寄出 vs ...，
+  // 切走会让"已选项"和"批量按钮文案"对不上）
+  if (document.body.classList.contains('batch-mode-locked') && sub !== state.todaySub) {
+    const selectedCount = Object.keys(state.batchSelected || {}).length;
+    const msg = selectedCount > 0
+      ? `批量模式开启中 · 已选 ${selectedCount} 项 · 请先完成或退出批量再切换`
+      : '批量模式开启中 · 请先点右上角批量按钮退出';
+    showToast(msg, 'warn');
+    return;
+  }
   state.todaySub = sub;
   document.querySelectorAll(".today-sub-item").forEach(el => {
     el.classList.toggle("active", el.dataset.todaySub === sub);
@@ -17283,11 +18686,7 @@ setupCustomDatePickers();
 
 // 底部 bar 的批量完成按钮处理
 function handleBatchTodayComplete() {
-  const todaySub = state.todaySub || 'all';
-  if (todaySub === 'all') {
-    showToast('请先选择具体的分组（版师/版房/寄样等）', 'warn');
-    return;
-  }
+  const todaySub = state.todaySub || 'pattern';
   openBatchCompleteModal(todaySub);
 }
 
@@ -17307,6 +18706,10 @@ function openBatchCompleteModal(actionType) {
     case 'pattern':
       title = '批量标记打版完成';
       content = renderPatternCompleteModal(selectedStyles);
+      break;
+    case 'fabric':
+      title = '批量标记面料备齐';
+      content = renderFabricCompleteModal(selectedStyles);
       break;
     case 'workshop':
       title = '批量标记收到样板';
@@ -17336,24 +18739,43 @@ function openBatchCompleteModal(actionType) {
   document.getElementById('updateBody').innerHTML = content;
   document.getElementById('updateFooter').innerHTML = `
     <button class="cancel" onclick="closeUpdateModal()">取消</button>
-    <button class="primary" onclick="confirmBatchComplete('${actionType}')">确认完成</button>
+    <button class="confirm" onclick="confirmBatchComplete('${actionType}')">确认完成</button>
   `;
   document.getElementById('updateBackdrop').classList.add('open');
 }
 
+// 批量完成模态框 — 共享的"已选择"头部
+function batchModalSummary(styles) {
+  return `
+    <div class="batch-modal-summary">
+      <div class="batch-modal-summary-title">已选择 <strong>${styles.length}</strong> 个款</div>
+      <div class="batch-modal-skus">
+        ${styles.map(s => `<span class="batch-modal-sku-chip">${escapeHtml(s.sku)}</span>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
 // 渲染各个板块的批量完成模态框内容
+function renderFabricCompleteModal(styles) {
+  return `
+    <div class="batch-modal">
+      ${batchModalSummary(styles)}
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">面料备齐日期</label>
+        <input type="date" id="batchFabricDate" value="${todayStr()}">
+      </div>
+    </div>
+  `;
+}
+
 function renderPatternCompleteModal(styles) {
   return `
-    <div style="padding: 24px;">
-      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
-          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
-        </div>
-      </div>
-      <div>
-        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">打版完成日期</label>
-        <input type="date" id="batchPatternDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
+    <div class="batch-modal">
+      ${batchModalSummary(styles)}
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">打版完成日期</label>
+        <input type="date" id="batchPatternDate" value="${todayStr()}">
       </div>
     </div>
   `;
@@ -17361,16 +18783,11 @@ function renderPatternCompleteModal(styles) {
 
 function renderWorkshopCompleteModal(styles) {
   return `
-    <div style="padding: 24px;">
-      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
-          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
-        </div>
-      </div>
-      <div>
-        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">收样日期</label>
-        <input type="date" id="batchReceiveDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
+    <div class="batch-modal">
+      ${batchModalSummary(styles)}
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">收样日期</label>
+        <input type="date" id="batchReceiveDate" value="${todayStr()}">
       </div>
     </div>
   `;
@@ -17378,20 +18795,15 @@ function renderWorkshopCompleteModal(styles) {
 
 function renderShippingCompleteModal(styles) {
   return `
-    <div style="padding: 24px;">
-      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
-          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
-        </div>
+    <div class="batch-modal">
+      ${batchModalSummary(styles)}
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">寄出日期</label>
+        <input type="date" id="batchSentDate" value="${todayStr()}">
       </div>
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">寄出日期</label>
-        <input type="date" id="batchSentDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
-      </div>
-      <div>
-        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">快递单号 <span style="color: var(--ink-mute); font-weight: 400;">(可选)</span></label>
-        <input type="text" id="batchTrackingNumber" placeholder="多个款可留空" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px;">
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">快递单号 <span class="optional">(可选)</span></label>
+        <input type="text" id="batchTrackingNumber" placeholder="多个款可留空">
       </div>
     </div>
   `;
@@ -17399,27 +18811,22 @@ function renderShippingCompleteModal(styles) {
 
 function renderFeedbackCompleteModal(styles) {
   return `
-    <div style="padding: 24px;">
-      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
-          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
-        </div>
+    <div class="batch-modal">
+      ${batchModalSummary(styles)}
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">反馈日期</label>
+        <input type="date" id="batchFeedbackDate" value="${todayStr()}">
       </div>
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">反馈日期</label>
-        <input type="date" id="batchFeedbackDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
-      </div>
-      <div>
-        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">批量反馈结果</label>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; transition: background 0.2s;">
-            <input type="radio" name="batchFeedbackType" value="approve" checked style="margin: 0;">
-            <span style="font-size: 13px;">✓ 全部通过 - 准备下单</span>
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">批量反馈结果</label>
+        <div class="batch-modal-radio-group">
+          <label class="batch-modal-radio">
+            <input type="radio" name="batchFeedbackType" value="approve" checked>
+            <span>✓ 全部通过 — 准备下单</span>
           </label>
-          <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; transition: background 0.2s;">
-            <input type="radio" name="batchFeedbackType" value="revise" style="margin: 0;">
-            <span style="font-size: 13px;">↻ 全部需修改 - 开新改版</span>
+          <label class="batch-modal-radio">
+            <input type="radio" name="batchFeedbackType" value="revise">
+            <span>↻ 全部需修改 — 开新改版</span>
           </label>
         </div>
       </div>
@@ -17429,20 +18836,15 @@ function renderFeedbackCompleteModal(styles) {
 
 function renderFitCompleteModal(styles) {
   return `
-    <div style="padding: 24px;">
-      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
-          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
-        </div>
+    <div class="batch-modal">
+      ${batchModalSummary(styles)}
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">fit 日期</label>
+        <input type="date" id="batchFitDate" value="${todayStr()}">
       </div>
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">fit 日期</label>
-        <input type="date" id="batchFitDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
-      </div>
-      <div>
-        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">fit 结果 <span style="color: var(--ink-mute); font-weight: 400;">(可选)</span></label>
-        <textarea id="batchFitComment" placeholder="fit comment..." style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; min-height: 80px; resize: vertical; font-family: inherit;"></textarea>
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">fit 结果 <span class="optional">(可选)</span></label>
+        <textarea id="batchFitComment" placeholder="fit comment..."></textarea>
       </div>
     </div>
   `;
@@ -17450,16 +18852,11 @@ function renderFitCompleteModal(styles) {
 
 function renderProdCompleteModal(styles) {
   return `
-    <div style="padding: 24px;">
-      <div style="background: var(--bg-sunken); padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="font-size: 12px; color: var(--ink-soft); margin-bottom: 8px;">已选择 <strong style="color: var(--ink); font-size: 16px;">${styles.length}</strong> 个款</div>
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto;">
-          ${styles.map(s => `<span style="background: white; padding: 4px 10px; border-radius: 3px; font-size: 12px; color: var(--ink);">${escapeHtml(s.sku)}</span>`).join('')}
-        </div>
-      </div>
-      <div>
-        <label style="display: block; font-size: 13px; margin-bottom: 8px; font-weight: 600; color: var(--ink);">到仓日期</label>
-        <input type="date" id="batchArriveDate" value="${todayStr()}" style="width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: var(--font-mono);">
+    <div class="batch-modal">
+      ${batchModalSummary(styles)}
+      <div class="batch-modal-field">
+        <label class="batch-modal-field-label">到仓日期</label>
+        <input type="date" id="batchArriveDate" value="${todayStr()}">
       </div>
     </div>
   `;
@@ -17476,18 +18873,29 @@ async function confirmBatchComplete(actionType) {
     switch (actionType) {
       case 'pattern':
         const patternDate = document.getElementById('batchPatternDate').value;
-        if (!patternDate) {
-          showToast('请选择打版完成日期', 'warn');
-          return;
-        }
+        if (!patternDate) { showToast('请选择打版完成日期', 'warn'); return; }
         for (const id of selectedIds) {
           const s = state.styles.find(x => x.id === id);
           if (!s) continue;
-          // 找到最后一个 cycle，且没有 receivedDate（还在打版）
           const cycle = s.cycles?.[s.cycles.length - 1];
           if (cycle && !cycle.receivedDate) {
             cycle.patternMakerDone = true;
             cycle.patternMakerDoneDate = patternDate;
+            await saveOneStyle(s.id);
+            processedCount++;
+          }
+        }
+        break;
+        
+      case 'fabric':
+        const fabricDate = document.getElementById('batchFabricDate').value;
+        if (!fabricDate) { showToast('请选择面料备齐日期', 'warn'); return; }
+        for (const id of selectedIds) {
+          const s = state.styles.find(x => x.id === id);
+          if (!s) continue;
+          const cycle = s.cycles?.[s.cycles.length - 1];
+          if (cycle && !cycle.receivedDate && cycle.patternMakerDone) {
+            cycle.fabricSourcedDate = fabricDate;
             await saveOneStyle(s.id);
             processedCount++;
           }
