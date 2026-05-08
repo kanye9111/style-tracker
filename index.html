@@ -9630,7 +9630,7 @@ main { animation: fadeInUp 0.25s ease-out; }
       </div>
       <button type="submit" class="login-submit-btn">登 录</button>
       <div class="login-hint">
-        <span>Demo 账号：admin / 123456</span>
+        <span>请联系管理员获取账号</span>
       </div>
     </form>
   </div>
@@ -11495,8 +11495,100 @@ function todayPlus(days) {
 // ============================================================
 (function() {
   const LOGIN_KEY = 'gc-style-tracker-loggedin';
-  const VALID_USER = 'admin';
-  const VALID_PW = '123456';
+  const LOGIN_USER_KEY = 'gc-style-tracker-user';
+  const LOGIN_ROLE_KEY = 'gc-style-tracker-role';
+
+  // === 账号配置（要加人/改密码就改这里）===
+  const USERS = [
+    // 老板/跟单：看全部，admin 权限
+    { user: 'admin',      pw: '123456', role: 'admin',     name: '管理员' },
+    // 采购 + 版师共用：只看 今日跟进 → 版师/面料/版房
+    { user: 'production', pw: 'abc123', role: 'production', name: '采购/版师' },
+  ];
+
+  // === 角色权限配置（要调整谁能看什么就改这里）===
+  // tabs: 允许进入的主导航 tab；'all' = 全部
+  // todaySubs: 允许看的今日跟进子菜单；'all' = 全部
+  // canDo: 允许的操作动作
+  const ROLE_PERMS = {
+    admin: {
+      tabs: 'all',
+      todaySubs: 'all',
+      canDo: 'all',
+    },
+    production: {
+      tabs: ['today'],                              // 只能进"今日跟进"
+      todaySubs: ['pattern', 'fabric', 'workshop'], // 只看 版师/面料/版房
+      canDo: ['markPatternDone', 'markFabricSourced', 'markReceived', 'markRework'],
+    },
+  };
+
+  // === 当前用户工具函数（暴露到全局，方便其他代码使用）===
+  window.getCurrentUser = function() {
+    const u = sessionStorage.getItem(LOGIN_USER_KEY);
+    return USERS.find(x => x.user === u) || null;
+  };
+  window.getCurrentRole = function() {
+    return sessionStorage.getItem(LOGIN_ROLE_KEY) || null;
+  };
+  window.canSeeTab = function(tabKey) {
+    const role = window.getCurrentRole();
+    if (!role) return false;
+    const perms = ROLE_PERMS[role];
+    if (!perms) return false;
+    return perms.tabs === 'all' || (Array.isArray(perms.tabs) && perms.tabs.includes(tabKey));
+  };
+  window.canSeeTodaySub = function(subKey) {
+    const role = window.getCurrentRole();
+    if (!role) return false;
+    const perms = ROLE_PERMS[role];
+    if (!perms) return false;
+    return perms.todaySubs === 'all' || (Array.isArray(perms.todaySubs) && perms.todaySubs.includes(subKey));
+  };
+  window.canDo = function(action) {
+    const role = window.getCurrentRole();
+    if (!role) return false;
+    const perms = ROLE_PERMS[role];
+    if (!perms) return false;
+    return perms.canDo === 'all' || (Array.isArray(perms.canDo) && perms.canDo.includes(action));
+  };
+  // 应用权限到 DOM（隐藏不该看的 tab 和子菜单）
+  window.applyRolePermissions = function() {
+    const role = window.getCurrentRole();
+    if (!role) return;
+    // 给 body 加 role-* class，CSS 可以基于此做样式微调
+    document.body.classList.remove('role-admin', 'role-production');
+    document.body.classList.add('role-' + role);
+    // 隐藏不允许的主 tab
+    document.querySelectorAll('.nav-item[data-toptab]').forEach(el => {
+      const tabKey = el.dataset.toptab;
+      el.style.display = window.canSeeTab(tabKey) ? '' : 'none';
+    });
+    // 隐藏不允许的今日子菜单
+    document.querySelectorAll('.today-sub-item[data-today-sub]').forEach(el => {
+      const subKey = el.dataset.todaySub;
+      el.style.display = window.canSeeTodaySub(subKey) ? '' : 'none';
+    });
+    // 如果当前 state.todaySub 不在允许列表，自动切到第一个允许的
+    if (typeof state !== 'undefined' && state.todaySub && !window.canSeeTodaySub(state.todaySub)) {
+      const perms = ROLE_PERMS[role];
+      const firstAllowed = (Array.isArray(perms.todaySubs) && perms.todaySubs[0]) || 'pattern';
+      state.todaySub = firstAllowed;
+    }
+    // 如果当前 state.topTab 不在允许列表，自动切到第一个允许的
+    if (typeof state !== 'undefined' && state.topTab && !window.canSeeTab(state.topTab)) {
+      const perms = ROLE_PERMS[role];
+      const firstAllowed = (Array.isArray(perms.tabs) && perms.tabs[0]) || 'today';
+      state.topTab = firstAllowed;
+      // 同步 nav-item 高亮
+      document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+      const activeEl = document.querySelector(`.nav-item[data-toptab="${firstAllowed}"]`);
+      if (activeEl) activeEl.classList.add('active');
+    }
+    // 隐藏新增款式按钮（非 admin 不允许新增）
+    const newBtn = document.getElementById('newStyleBtn');
+    if (newBtn) newBtn.style.display = (role === 'admin') ? '' : 'none';
+  };
 
   function isLoggedIn() {
     return sessionStorage.getItem(LOGIN_KEY) === '1';
@@ -11521,6 +11613,10 @@ function todayPlus(days) {
       appShell.classList.remove('hidden');
       appShell.classList.add('fading-in');
       setTimeout(() => appShell.classList.remove('fading-in'), 800);
+    }
+    // 登录成功后立即应用权限
+    if (typeof window.applyRolePermissions === 'function') {
+      window.applyRolePermissions();
     }
   }
 
@@ -11568,17 +11664,22 @@ function todayPlus(days) {
       const pw = document.getElementById('loginPw').value;
       const pwField = document.getElementById('loginPwField');
 
-      if (user === VALID_USER && pw === VALID_PW) {
+      // 在 USERS 表中查找匹配的账号
+      const matched = USERS.find(u => u.user === user && u.pw === pw);
+
+      if (matched) {
         // 成功 → 卡片缩小淡出
         const card = document.getElementById('loginCard');
         const page = document.getElementById('loginPage');
         if (card) card.classList.add('success');
         sessionStorage.setItem(LOGIN_KEY, '1');
+        sessionStorage.setItem(LOGIN_USER_KEY, matched.user);
+        sessionStorage.setItem(LOGIN_ROLE_KEY, matched.role);
         setTimeout(() => {
           if (page) page.classList.add('fading-out');
           setTimeout(() => {
             hideLoginPage();
-            showToast('欢迎回来', 'ok');
+            showToast(`欢迎回来 · ${matched.name}`, 'ok');
           }, 500);
         }, 360);
       } else {
@@ -11606,6 +11707,8 @@ function todayPlus(days) {
     });
     if (!ok) return;
     sessionStorage.removeItem(LOGIN_KEY);
+    sessionStorage.removeItem(LOGIN_USER_KEY);
+    sessionStorage.removeItem(LOGIN_ROLE_KEY);
     showLoginPage();
     // 清空表单
     setTimeout(() => {
@@ -13171,6 +13274,21 @@ async function batchExportExcel() {
 
 function render() {
   const sy = window.scrollY;
+  // 权限兜底：每次 render 前确保 state.topTab 和 state.todaySub 都在当前角色的允许范围内
+  // （防止用户通过控制台或其他方式跳到不允许的视图）
+  if (typeof window.canSeeTab === 'function' && window.getCurrentRole) {
+    if (window.getCurrentRole() && !window.canSeeTab(state.topTab)) {
+      // 切到第一个允许的 tab
+      const tryTabs = ['today', 'dev', 'production', 'archive'];
+      const firstAllowed = tryTabs.find(t => window.canSeeTab(t));
+      if (firstAllowed) state.topTab = firstAllowed;
+    }
+    if (state.topTab === 'today' && !window.canSeeTodaySub(state.todaySub)) {
+      const trySubs = ['pattern', 'fabric', 'workshop', 'shipping', 'feedback', 'fit', 'prod'];
+      const firstAllowed = trySubs.find(s => window.canSeeTodaySub(s));
+      if (firstAllowed) state.todaySub = firstAllowed;
+    }
+  }
   updateTabCounts();
 
   // 维护 body 上的 today-tab-active 标记（用于 CSS 调整顶部留白）
@@ -18377,6 +18495,11 @@ document.querySelectorAll('.view-toggle button').forEach(b => {
 document.querySelectorAll('.nav-item').forEach(b => {
   b.addEventListener('click', () => {
     const clickedTab = b.dataset.toptab;
+    // 权限拦截：当前角色不允许进的 tab
+    if (typeof window.canSeeTab === 'function' && !window.canSeeTab(clickedTab)) {
+      showToast('当前账号无权限查看此页', 'warn');
+      return;
+    }
     // 如果已经在今日跟进tab，再点就折叠/展开子菜单
     if (clickedTab === 'today' && state.topTab === 'today') {
       state.todaySubOpen = !state.todaySubOpen;
@@ -18442,6 +18565,11 @@ document.querySelectorAll('.nav-item').forEach(b => {
 });
 
 function switchTodaySub(sub) {
+  // 权限拦截：当前角色不允许看的子菜单
+  if (typeof window.canSeeTodaySub === 'function' && !window.canSeeTodaySub(sub)) {
+    showToast('当前账号无权限查看此分组', 'warn');
+    return;
+  }
   // 批量模式下禁止切子菜单（不同组的批量动作不同：批量打版完成 vs 批量已寄出 vs ...，
   // 切走会让"已选项"和"批量按钮文案"对不上）
   if (document.body.classList.contains('batch-mode-locked') && sub !== state.todaySub) {
