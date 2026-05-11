@@ -9,33 +9,53 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #FAFAF7;
-  --bg-elevated: #FFFFFF;
-  --bg-sunken: #F3F2EC;
-  --bg-hover: #FDFCF6;
-  --ink: #16160F;
-  --ink-soft: #56564A;
-  --ink-mute: #8B8B7A;
-  --line: #E4E3D8;
-  --line-strong: #CFCEBF;
-  --ok: #2B6A3F;
-  --ok-bg: #E3EFE5;
-  --warn: #A86D1D;
-  --warn-bg: #F5E9D1;
-  --danger: #A8321D;
-  --danger-bg: #F5DDD4;
-  --photo: #1D5AA8;
-  --photo-bg: #D8E4F4;
-  --stage-dev: #6B5BB5;
-  --stage-dev-bg: #EDEAF7;
-  --stage-revise: #B5701D;
-  --stage-revise-bg: #F7EDD9;
-  --stage-prod: #1D5AA8;
-  --stage-prod-bg: #D8E4F4;
-  --stage-done: #2B6A3F;
-  --stage-done-bg: #E3EFE5;
-  --stage-archived: #8B8B7A;
-  --stage-archived-bg: #F1EFE8;
+  /* === 中性色 (iOS / macOS Light) === */
+  --bg: #F5F5F7;                    /* 苹果官网经典背景灰 */
+  --bg-elevated: #FFFFFF;           /* 卡片纯白 */
+  --bg-sunken: #EBEBEF;             /* 略深的冷灰 */
+  --bg-hover: #F9F9FB;              /* 极淡 hover */
+  --ink: #1D1D1F;                   /* 苹果黑 */
+  --ink-soft: #424248;              /* 次要文字 */
+  --ink-mute: #6B6B6E;              /* 静音文字(从 #86868B 加深到过 WCAG AA 4.5:1) */
+  --line: #E5E5EA;                  /* 极淡分隔线 (iOS systemGray5) */
+  --line-strong: #D1D1D6;           /* 较深分隔线 (iOS systemGray4) */
+
+  /* === iOS 系统色 (System Colors) === */
+  --apple-blue: #007AFF;            /* iOS Blue */
+  --apple-blue-hover: #0051D5;
+  --apple-blue-bg: #E5F0FF;
+  --ok: #248A3D;                    /* iOS Green 加深(从 #34C759 提高对比度) */
+  --ok-bg: #E1F5E5;
+  --ok-soft: #34C759;               /* 浅版可用 */
+  --warn: #B25400;                  /* iOS Orange 略深 */
+  --warn-bg: #FFF1E0;
+  --danger: #D70015;                /* iOS Red 略深 */
+  --danger-bg: #FFE5E5;
+  --photo: #007AFF;                 /* 跟 iOS Blue 统一 */
+  --photo-bg: #E5F0FF;
+
+  /* === 阶段色 (iOS 系统色) === */
+  --stage-dev: #8E4EC6;             /* iOS Purple 略深 */
+  --stage-dev-bg: #F2EAFA;
+  --stage-revise: #B25400;          /* iOS Orange 略深 */
+  --stage-revise-bg: #FFF1E0;
+  --stage-prod: #007AFF;            /* iOS Blue */
+  --stage-prod-bg: #E5F0FF;
+  --stage-done: #248A3D;            /* iOS Green 略深 */
+  --stage-done-bg: #E1F5E5;
+  --stage-archived: #86868B;        /* iOS Gray */
+  --stage-archived-bg: #F2F2F7;
+
+  /* === 阴影 (冷调,带轻微蓝灰) === */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.14), 0 8px 16px rgba(0, 0, 0, 0.06);
+
+  /* === 背景渐变 === */
+  --bg-soft-gradient: linear-gradient(180deg, #F5F5F7 0%, #F2F2F4 100%);
+
   /* === Z-Index 层级管理 === */
   --z-base: 1;
   --z-sticky: 10;
@@ -45,10 +65,13 @@
   --z-modal: 210;
   --z-toast: 9000;
   --z-login: 9999;
-  /* === 苹果风焦点光晕 === */
-  --focus-ring: 0 0 0 3px rgba(0, 122, 255, 0.25);
-  --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* === 苹果风焦点光晕 (alpha 从 0.25 提到 0.4,Tab 时更可见) === */
+  --focus-ring: 0 0 0 3px rgba(0, 122, 255, 0.4);
+
+  /* === 字体 (苹果系统栈优先) === */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
   --font-serif: 'Instrument Serif', Georgia, serif;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -59,6 +82,36 @@ html {
   min-height: 100vh;
 }
 body { min-height: 100vh; }
+
+/* === 键盘焦点环 (苹果风) === */
+/* 鼠标点击不显示焦点环;Tab 键导航时才显示 */
+*:focus { outline: none; }
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible,
+[role="button"]:focus-visible,
+.nav-item:focus-visible,
+.filter-btn:focus-visible,
+.top-tab:focus-visible,
+.style-row:focus-visible,
+.btn-new:focus-visible,
+.po-add-btn:focus-visible,
+.sidebar-new-btn:focus-visible,
+.app-dialog-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 6px;
+}
+/* input/select/textarea 已有 border 时,焦点环不替换边框,只 outline */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--apple-blue);
+}
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; }
@@ -140,6 +193,43 @@ header {
 }
 .filter-btn:hover { color: var(--ink); }
 .filter-btn.active { background: var(--bg-elevated); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+
+/* 跟单 tab 顶部 clientGroup 筛选 chip 行 */
+.cg-chips-row {
+  margin: 4px 0 16px;
+  display: flex;
+}
+.cg-chips-row .filter-group {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.cg-chips-row .filter-btn {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cg-chip-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--line);
+  color: var(--ink-soft);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+}
+.cg-chips-row .filter-btn.active .cg-chip-count {
+  background: var(--apple-blue);
+  color: #fff;
+}
+
 .view-toggle {
   display: flex; margin-left: auto;
   border: 1px solid var(--line-strong); border-radius: 5px; overflow: hidden;
@@ -177,7 +267,7 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
 .style-row:last-child { border-bottom: none; }
 .style-row:hover { background: var(--bg-hover); }
 .style-row:hover .arrow { color: var(--ink); transform: translateX(2px); }
-.arrow { color: var(--ink-mute); text-align: right; transition: all 0.15s ease; }
+.arrow { color: var(--ink-mute); text-align: right; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease; }
 .style-row.urgent-danger { border-left: 3px solid var(--danger); padding-left: 17px; }
 .style-row.urgent-warn { border-left: 3px solid var(--warn); padding-left: 17px; }
 .thumb {
@@ -625,12 +715,12 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
 .po-color-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .po-color-card-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px; }
 .po-color-swatch { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--line-strong); flex-shrink: 0; }
-.po-color-card-remove { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: none; background: transparent; color: var(--ink-mute); border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.12s; }
+.po-color-card-remove { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: none; background: transparent; color: var(--ink-mute); border-radius: 6px; cursor: pointer; font-size: 14px; transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s; }
 .po-color-card-remove:hover { background: rgba(255,59,48,0.08); color: var(--danger); }
 .po-color-card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
 .po-color-card-fields .form-field { margin: 0; }
 .po-color-card-fields .form-field.full { grid-column: 1 / -1; }
-.po-add-color-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 12px; border: 1.5px dashed var(--line-strong); background: transparent; border-radius: 10px; color: var(--ink-mute); font-family: var(--font-sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.14s; }
+.po-add-color-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 12px; border: 1.5px dashed var(--line-strong); background: transparent; border-radius: 10px; color: var(--ink-mute); font-family: var(--font-sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: background-color 0.14s, border-color 0.14s, color 0.14s, transform 0.14s, opacity 0.14s, box-shadow 0.14s; }
 .po-add-color-btn:hover { border-color: var(--ink); color: var(--ink); background: var(--bg-elevated); }
 
 .fit-comment-section {
@@ -644,7 +734,7 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
   border: 2px dashed var(--line-strong);
   border-radius: 8px; padding: 24px;
   text-align: center; background: var(--bg);
-  cursor: pointer; transition: all 0.15s;
+  cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   position: relative;
 }
 .image-dropzone:hover { border-color: var(--ink); background: var(--bg-elevated); }
@@ -689,7 +779,7 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
   border: 1px solid var(--line-strong); border-radius: 5px;
   cursor: pointer;
   font-family: var(--font-sans); font-size: 13px;
-  color: var(--ink); transition: all 0.12s;
+  color: var(--ink); transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s;
   display: block; margin: 0;
 }
 .outcome-option:hover { border-color: var(--ink); background: var(--bg-sunken); }
@@ -2059,7 +2149,7 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
   background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
   border-radius: 50%; color: white; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .image-viewer-nav:hover { background: rgba(255,255,255,0.2); opacity: 1; }
 .image-viewer-prev { left: 20px; }
@@ -2138,7 +2228,7 @@ main { max-width: 1800px; margin: 0 auto; padding: 28px 32px 80px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
   z-index: 2;
   flex-shrink: 0;
 }
@@ -2279,7 +2369,7 @@ body { overflow: hidden; }  /* 整体不滚动，内容区独立滚动 */
   color: var(--ink-soft);
   text-align: left;
   width: 100%;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
 }
 
 .nav-item:hover {
@@ -2372,7 +2462,7 @@ body { overflow: hidden; }  /* 整体不滚动，内容区独立滚动 */
   color: var(--ink-mute);
   cursor: pointer;
   border-radius: 6px;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
   white-space: nowrap;
   letter-spacing: -0.01em;
   position: relative;
@@ -2694,27 +2784,7 @@ body.sidebar-collapsed .today-cards {
    苹果风改造 (Apple-style refinement)
    ============================================================ */
 
-/* === 字体 === */
-:root {
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', 'Instrument Sans', sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
-  /* serif 保留 Instrument Serif for 标题 */
-
-  /* 苹果系强调色 */
-  --apple-blue: #007AFF;
-  --apple-blue-hover: #0051D5;
-  --apple-blue-bg: #E5F0FF;
-
-  /* 更柔和的阴影 */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm: 0 2px 6px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 12px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
-  --shadow-xl: 0 20px 60px rgba(0,0,0,0.18), 0 8px 16px rgba(0,0,0,0.08);
-
-  /* 更柔和的背景 */
-  --bg-soft-gradient: linear-gradient(160deg, #FBFAF5 0%, #F7F5EC 100%);
-}
+/* === 字体相关 body 设置(token 已全部统一到顶部 :root) === */
 
 body {
   font-family: var(--font-sans);
@@ -2730,7 +2800,7 @@ button, .nav-item, .filter-btn, .top-tab, .style-row, .today-card,
 .detail-image-mini, .thumb-zoomable, .image-change-mini-btn,
 .more-filters-btn, .ef-date-filter, input, select, textarea,
 .production-row, .stage-tag, .client-badge, .show-po-toggle {
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* === 圆角全局放大 === */
@@ -3204,7 +3274,7 @@ button.cancel:active {
 }
 .stage-dot {
   border-radius: 50% !important;
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.2s, opacity 0.2s, box-shadow 0.2s;
 }
 .stage-dot.current {
   box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
@@ -3221,7 +3291,7 @@ button.cancel:active {
   border-radius: 8px;
   color: var(--ink-soft);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
   letter-spacing: 0.01em;
 }
 .jump-stage-btn:hover {
@@ -3403,56 +3473,8 @@ button.cancel:active {
 
 
 /* ============================================================
-   现代苹果色系 (Modern Apple Colors)
+   现代苹果色系 (token 已统一到顶部 :root,这里只保留派生规则)
    ============================================================ */
-
-:root {
-  /* === 中性色 (iOS / macOS Light) === */
-  --bg: #F5F5F7;                    /* 苹果官网经典背景灰 */
-  --bg-elevated: #FFFFFF;           /* 卡片纯白 */
-  --bg-sunken: #EBEBEF;             /* 略深的冷灰 */
-  --ink: #1D1D1F;                   /* 苹果黑 */
-  --ink-soft: #424248;              /* 次要文字 */
-  --ink-mute: #86868B;              /* 静音文字（iOS 标准） */
-  --line: #E5E5EA;                  /* 极淡分隔线 (iOS systemGray5) */
-  --line-strong: #D1D1D6;           /* 较深分隔线 (iOS systemGray4) */
-
-  /* === iOS 系统色 (System Colors) === */
-  --apple-blue: #007AFF;            /* iOS Blue */
-  --apple-blue-hover: #0051D5;
-  --apple-blue-bg: #E5F0FF;
-  --ok: #34C759;                    /* iOS Green */
-  --ok-bg: #E1F5E5;
-  --ok-soft: #248A3D;
-  --warn: #B25400;                  /* iOS Orange (深一点提高对比度) */
-  --warn-bg: #FFF1E0;
-  --danger: #D70015;                /* iOS Red (深一点提高对比度) */
-  --danger-bg: #FFE5E5;
-  --photo: #007AFF;
-  --photo-bg: #E5F0FF;
-
-  /* === 阶段色（iOS 系统色） === */
-  --stage-dev: #8E4EC6;             /* iOS Purple 略深 */
-  --stage-dev-bg: #F2EAFA;
-  --stage-revise: #B25400;          /* iOS Orange 略深 */
-  --stage-revise-bg: #FFF1E0;
-  --stage-prod: #007AFF;            /* iOS Blue */
-  --stage-prod-bg: #E5F0FF;
-  --stage-done: #248A3D;            /* iOS Green 略深 */
-  --stage-done-bg: #E1F5E5;
-  --stage-archived: #86868B;        /* iOS Gray */
-  --stage-archived-bg: #F2F2F7;
-
-  /* === 阴影改用冷调（带轻微蓝灰） === */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.14), 0 8px 16px rgba(0, 0, 0, 0.06);
-
-  /* === 背景渐变（极淡冷感） === */
-  --bg-soft-gradient: linear-gradient(180deg, #F5F5F7 0%, #F2F2F4 100%);
-}
 
 /* 重新应用 body 背景 */
 body {
@@ -3975,7 +3997,7 @@ input:focus, select:focus, textarea:focus {
   user-select: none;
   display: flex; flex-direction: column; gap: 4px;
   position: relative;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
 }
 .date-card:hover {
   background: var(--bg-elevated);
@@ -4195,7 +4217,7 @@ input:focus, select:focus, textarea:focus {
   padding: 8px 12px 8px 36px !important;
   font-size: 13px;
   color: var(--ink);
-  transition: all 0.18s ease;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
 }
 .search input:focus, #search:focus {
   border-color: var(--apple-blue) !important;
@@ -4436,7 +4458,7 @@ input:focus, select:focus, textarea:focus {
   font-size: 12px !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  transition: all 0.15s !important;
+  transition: background-color 0.15s !important, border-color 0.15s !important, color 0.15s !important, transform 0.15s !important, opacity 0.15s !important, box-shadow 0.15s !important;
   letter-spacing: -0.005em !important;
 }
 .po-add-btn:hover {
@@ -4484,7 +4506,7 @@ input:focus, select:focus, textarea:focus {
   padding: 10px 14px !important;
   margin-bottom: 6px !important;
   cursor: pointer;
-  transition: all 0.15s !important;
+  transition: background-color 0.15s !important, border-color 0.15s !important, color 0.15s !important, transform 0.15s !important, opacity 0.15s !important, box-shadow 0.15s !important;
 }
 .po-item:hover {
   background: var(--bg-elevated) !important;
@@ -4597,7 +4619,7 @@ input:focus, select:focus, textarea:focus {
   color: var(--ink);
   cursor: pointer;
   letter-spacing: -0.005em;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .drawer-actions button:hover {
   background: var(--bg-sunken);
@@ -4839,7 +4861,7 @@ label.outsourced-toggle:has(input:checked) {
   cursor: pointer !important;
   letter-spacing: -0.005em !important;
   box-shadow: 0 2px 6px rgba(0, 122, 255, 0.18);
-  transition: all 0.15s !important;
+  transition: background-color 0.15s !important, border-color 0.15s !important, color 0.15s !important, transform 0.15s !important, opacity 0.15s !important, box-shadow 0.15s !important;
   text-transform: none !important;
 }
 .add-po-cta button:hover {
@@ -4874,7 +4896,7 @@ label.outsourced-toggle:has(input:checked) {
   color: var(--ink-mute);
   cursor: pointer;
   vertical-align: middle;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .edit-info-btn:hover {
   background: var(--apple-blue-bg);
@@ -4918,7 +4940,7 @@ label.outsourced-toggle:has(input:checked) {
   align-items: center;
   justify-content: center;
   font-weight: 500;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .cal-nav-btn:hover {
   background: var(--bg-sunken);
@@ -4934,7 +4956,7 @@ label.outsourced-toggle:has(input:checked) {
   color: var(--ink);
   cursor: pointer;
   font-family: var(--font-sans);
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .cal-today-btn:hover {
   background: var(--apple-blue);
@@ -5001,7 +5023,7 @@ label.outsourced-toggle:has(input:checked) {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .cal-cell:hover {
   background: var(--bg-elevated);
@@ -5207,7 +5229,7 @@ label.outsourced-toggle:has(input:checked) {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .cal-detail-close:hover {
   background: rgba(120, 120, 128, 0.20);
@@ -5336,7 +5358,7 @@ label.outsourced-toggle:has(input:checked) {
   font-weight: 700;
 }
 
-.big-flow-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--bg-elevated); border: 2px solid var(--line-strong); position: relative; transition: all 0.2s; }
+.big-flow-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--bg-elevated); border: 2px solid var(--line-strong); position: relative; transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.2s, opacity 0.2s, box-shadow 0.2s; }
 .big-flow-dot.done { background: var(--ok); border-color: var(--ok); box-shadow: 0 0 0 3px var(--ok-bg); }
 .big-flow-dot.done::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: white; font-size: 9px; font-weight: 700; }
 .big-flow-dot.current { width: 24px; height: 24px; margin-top: -4px; margin-bottom: -4px; background: var(--apple-blue); border-color: var(--apple-blue); border-width: 3px; box-shadow: 0 0 0 6px rgba(0, 122, 255, 0.18); animation: pulse-current 2s ease-in-out infinite; }
@@ -5375,7 +5397,7 @@ label.outsourced-toggle:has(input:checked) {
   align-items: center; gap: 14px;
   padding: 14px 18px;
   background: var(--bg-sunken); border-radius: 10px;
-  cursor: pointer; transition: all 0.15s;
+  cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   border: 1px solid transparent;
 }
 .log-entry:hover {
@@ -5451,7 +5473,7 @@ label.outsourced-toggle:has(input:checked) {
 .log-entry:hover .log-edit-icon { opacity: 1; color: var(--apple-blue); }
 .log-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s; }
 .log-entry:hover .log-actions { opacity: 1; }
-.log-action-btn { width: 26px; height: 26px; border: none; background: transparent; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.12s; }
+.log-action-btn { width: 26px; height: 26px; border: none; background: transparent; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s; }
 .log-action-edit { color: var(--ink-mute); }
 .log-action-edit:hover { background: rgba(0,122,255,0.10); color: var(--apple-blue,#007AFF); }
 .log-action-del { color: var(--ink-mute); }
@@ -5596,7 +5618,7 @@ main#main {
   color: var(--ink);
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5644,7 +5666,7 @@ main#main {
   color: var(--ink);
   cursor: pointer;
   border-radius: 8px;
-  transition: all 0.12s;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s;
 }
 .dp-cell:hover {
   background: var(--bg-sunken);
@@ -5802,7 +5824,7 @@ input[type="date"]:hover {
   padding: 10px 10px;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   background: transparent;
   border: 1px solid transparent;
 }
@@ -5990,7 +6012,7 @@ input[type="date"]:hover {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-xs);
 }
 .grid-card:hover {
@@ -6168,7 +6190,7 @@ input[type="date"]:hover {
   cursor: pointer;
   letter-spacing: -0.005em;
   box-shadow: 0 2px 6px rgba(0, 122, 255, 0.18);
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   margin-left: 6px;
 }
 .add-po-btn-top:hover {
@@ -6204,7 +6226,7 @@ input[type="date"]:hover {
   border: 1px solid transparent;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .po-style-pick-item:hover {
   border-color: var(--apple-blue);
@@ -6306,7 +6328,7 @@ main#main {
   cursor: pointer;
   display: flex !important;
   flex-direction: row !important;  /* 横向 */
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-xs);
   min-height: 130px;
 }
@@ -6476,7 +6498,7 @@ main#main {
   border: 1.5px dashed var(--apple-blue);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   margin-bottom: 6px;
   color: var(--apple-blue);
   font-family: var(--font-sans);
@@ -6585,7 +6607,7 @@ main#main {
   border: 1px solid var(--line);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .cal-detail-item:hover {
   border-color: var(--apple-blue);
@@ -6840,7 +6862,7 @@ main#main {
 
 /* 列头排序：更明显的视觉反馈 */
 .list-header.simplified > div.sortable {
-  transition: all 0.12s;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s;
   border-radius: 4px;
   padding: 2px 6px;
   margin: -2px -6px;
@@ -7394,7 +7416,7 @@ body.today-tab-active main#main {
   border: none;
   cursor: pointer;
   letter-spacing: -0.005em;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .app-dialog-btn.btn-cancel {
   background: rgba(0, 0, 0, 0.06);
@@ -7541,7 +7563,7 @@ body.today-tab-active main#main {
   font-family: var(--font-sans);
   font-size: 14px;
   color: var(--ink);
-  transition: all 0.18s;
+  transition: background-color 0.18s, border-color 0.18s, color 0.18s, transform 0.18s, opacity 0.18s, box-shadow 0.18s;
   outline: none;
 }
 .login-field input::placeholder {
@@ -7579,7 +7601,7 @@ body.today-tab-active main#main {
   font-weight: 600;
   letter-spacing: 0.06em;
   cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 14px rgba(0, 122, 255, 0.28);
 }
 .login-submit-btn:hover {
@@ -7655,7 +7677,7 @@ body.today-tab-active main#main {
   font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   margin-top: 4px;
   letter-spacing: -0.005em;
 }
@@ -7694,7 +7716,7 @@ body.today-tab-active main#main {
   border-radius: 16px;
   padding: 14px;
   cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -7894,7 +7916,7 @@ body.today-tab-active main#main {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   flex-shrink: 0;
   line-height: 1;
 }
@@ -7980,7 +8002,7 @@ body.today-tab-active main#main {
   border: 1px solid var(--line);
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), color 0.16s cubic-bezier(0.4, 0, 0.2, 1), transform 0.16s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   align-items: center;
 }
 .prod-folder-row:hover {
@@ -8079,7 +8101,7 @@ body.today-tab-active main#main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), color 0.16s cubic-bezier(0.4, 0, 0.2, 1), transform 0.16s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
   margin-left: 4px;
 }
@@ -8228,7 +8250,7 @@ body.today-tab-active main#main {
   border: 1px solid transparent;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.14s;
+  transition: background-color 0.14s, border-color 0.14s, color 0.14s, transform 0.14s, opacity 0.14s, box-shadow 0.14s;
   align-items: center;
 }
 .alert-row:hover {
@@ -8315,7 +8337,7 @@ body.today-tab-active main#main {
   background: var(--bg-elevated);
   cursor: pointer;
   position: relative;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   flex-shrink: 0;
 }
 .batch-checkbox:hover {
@@ -8430,7 +8452,7 @@ body.today-tab-active main#main {
   font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   letter-spacing: -0.005em;
 }
 .batch-btn:hover {
@@ -8696,7 +8718,7 @@ body.batch-mode .today-card .thumb-mini-placeholder {
   gap: 4px;
   padding: 4px;
   border-radius: 8px;
-  transition: all 0.14s;
+  transition: background-color 0.14s, border-color 0.14s, color 0.14s, transform 0.14s, opacity 0.14s, box-shadow 0.14s;
 }
 .alert-row:hover {
   background: rgba(0, 122, 255, 0.04);
@@ -8722,7 +8744,7 @@ body.batch-mode .today-card .thumb-mini-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.14s;
+  transition: background-color 0.14s, border-color 0.14s, color 0.14s, transform 0.14s, opacity 0.14s, box-shadow 0.14s;
   flex-shrink: 0;
 }
 .alert-row-mute:hover {
@@ -8730,7 +8752,7 @@ body.batch-mode .today-card .thumb-mini-placeholder {
   color: var(--apple-blue);
 }
 .alert-row-mute:active { transform: scale(0.92); }
-.alert-row-done { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex-shrink: 0; border: none; background: transparent; color: var(--ink-mute); border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.12s; }
+.alert-row-done { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex-shrink: 0; border: none; background: transparent; color: var(--ink-mute); border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s; }
 .alert-row-done:hover { background: var(--ok-bg); color: var(--ok); }
 .alert-row-done:active { transform: scale(0.92); }
 
@@ -8760,7 +8782,7 @@ body.batch-mode .today-card .thumb-mini-placeholder {
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.14s;
+  transition: background-color 0.14s, border-color 0.14s, color 0.14s, transform 0.14s, opacity 0.14s, box-shadow 0.14s;
   letter-spacing: -0.005em;
   white-space: nowrap;
 }
@@ -8805,7 +8827,7 @@ body.batch-mode .today-card .thumb-mini-placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), color 0.16s cubic-bezier(0.4, 0, 0.2, 1), transform 0.16s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
@@ -8851,7 +8873,7 @@ body.batch-mode .today-card .thumb-mini-placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), color 0.16s cubic-bezier(0.4, 0, 0.2, 1), transform 0.16s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 .floating-btn:hover {
@@ -8902,7 +8924,7 @@ body.batch-mode .today-card .thumb-mini-placeholder {
   border: 1px solid var(--line);
   border-radius: 14px;
   cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.22s cubic-bezier(0.4, 0, 0.2, 1), color 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex !important;
   flex-direction: column !important;
   gap: 0 !important;
@@ -9088,7 +9110,7 @@ body.batch-mode .today-card .thumb-mini-placeholder {
   border-radius: 12px;
   padding: 10px;
   cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.18s cubic-bezier(0.4, 0, 0.2, 1), color 0.18s cubic-bezier(0.4, 0, 0.2, 1), transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -9234,7 +9256,7 @@ body.batch-mode-locked .folder-card-checkbox {
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   letter-spacing: -0.005em;
 }
 .group-batch-btn:hover {
@@ -9507,7 +9529,7 @@ main#main {
 /* 侧栏：tab 标签更舒服 */
 .nav-item {
   letter-spacing: -0.005em;
-  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), color 0.16s cubic-bezier(0.4, 0, 0.2, 1), transform 0.16s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.16s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .nav-item:hover:not(.active) {
   background: rgba(0, 0, 0, 0.025);
@@ -9642,7 +9664,7 @@ input::placeholder, textarea::placeholder {
   font-weight: 600;
   color: var(--apple-blue, #007AFF);
   cursor: pointer;
-  transition: all 0.16s;
+  transition: background-color 0.16s, border-color 0.16s, color 0.16s, transform 0.16s, opacity 0.16s, box-shadow 0.16s;
   letter-spacing: -0.005em;
 }
 .new-style-po-toggle:hover {
@@ -9705,7 +9727,7 @@ input::placeholder, textarea::placeholder {
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 11px;
-  transition: all 0.14s;
+  transition: background-color 0.14s, border-color 0.14s, color 0.14s, transform 0.14s, opacity 0.14s, box-shadow 0.14s;
 }
 .new-style-po-row .po-row-remove:hover {
   background: rgba(255, 59, 48, 0.10);
@@ -9738,7 +9760,7 @@ input::placeholder, textarea::placeholder {
   font-weight: 500;
   color: var(--ink-soft);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
 .new-style-po-addrow:hover {
   border-color: var(--apple-blue, #007AFF);
@@ -9782,7 +9804,7 @@ input::placeholder, textarea::placeholder {
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), color 0.16s cubic-bezier(0.4, 0, 0.2, 1), transform 0.16s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: -0.005em;
   white-space: nowrap;
 }
@@ -9834,7 +9856,7 @@ input::placeholder, textarea::placeholder {
   border: 1.5px solid var(--line);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.16s cubic-bezier(0.4, 0, 0.2, 1), color 0.16s cubic-bezier(0.4, 0, 0.2, 1), transform 0.16s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.16s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   font-family: var(--font-sans);
 }
@@ -10133,7 +10155,7 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.16s;
+  transition: background-color 0.16s, border-color 0.16s, color 0.16s, transform 0.16s, opacity 0.16s, box-shadow 0.16s;
   letter-spacing: -0.005em;
   flex-shrink: 0;
 }
@@ -10317,7 +10339,7 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
   border-radius: 10px;
   padding: 14px;
   cursor: pointer;
-  transition: all 0.16s;
+  transition: background-color 0.16s, border-color 0.16s, color 0.16s, transform 0.16s, opacity 0.16s, box-shadow 0.16s;
   background: var(--bg-sunken);
   position: relative;
   min-height: 120px;
@@ -10339,7 +10361,7 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
   align-items: center; justify-content: center;
   gap: 8px; color: var(--ink-soft);
 }
-.fedex-lookup-btn { padding: 9px 14px; background: #4B286D; color: #fff; border: none; border-radius: 6px; font-family: var(--font-sans); font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.12s; letter-spacing: 0.02em; }
+.fedex-lookup-btn { padding: 9px 14px; background: #4B286D; color: #fff; border: none; border-radius: 6px; font-family: var(--font-sans); font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s; letter-spacing: 0.02em; }
 .fedex-lookup-btn:hover { background: #361E51; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(75,40,109,0.3); }
 .pkg-arrived-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; background: #4B286D; color: #fff; border-radius: 8px; font-family: var(--font-sans); font-size: 10px; font-weight: 600; white-space: nowrap; }
 
@@ -10354,27 +10376,27 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
 .cycle-photo-thumb-wrap .cycle-photo-preview { max-width: 140px; max-height: 140px; border-radius: 6px; }
 .cycle-photo-thumb-wrap .cycle-photo-clear { position: absolute; top: -6px; right: -6px; margin-top: 0; width: 20px; height: 20px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; line-height: 1; background: rgba(255,59,48,0.85); color: #fff; border: none; }
 .cycle-photo-thumb-wrap .cycle-photo-clear:hover { background: #C73428; }
-.cycle-photo-clear { margin-top: 8px; padding: 4px 12px; background: rgba(255,59,48,0.10); border: 1px solid rgba(255,59,48,0.20); color: #C73428; border-radius: 6px; font-family: var(--font-sans); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.cycle-photo-clear { margin-top: 8px; padding: 4px 12px; background: rgba(255,59,48,0.10); border: 1px solid rgba(255,59,48,0.20); color: #C73428; border-radius: 6px; font-family: var(--font-sans); font-size: 11px; font-weight: 600; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s; }
 .cycle-photo-clear:hover { background: rgba(255,59,48,0.18); }
 
 /* big-flow 节点上的照片缩略图 — 支持多张横排 */
 .big-flow-photos-strip { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; margin-top: 8px; max-width: 130px; }
-.big-flow-photo { display: block; width: 36px; height: 48px; border-radius: 5px; border: 1.5px solid var(--line); padding: 0; background: var(--bg-elevated); cursor: pointer; overflow: hidden; transition: all 0.15s; flex-shrink: 0; }
+.big-flow-photo { display: block; width: 36px; height: 48px; border-radius: 5px; border: 1.5px solid var(--line); padding: 0; background: var(--bg-elevated); cursor: pointer; overflow: hidden; transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s; flex-shrink: 0; }
 .big-flow-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .big-flow-photo:hover { border-color: var(--apple-blue, #007AFF); transform: scale(1.12); box-shadow: 0 4px 14px rgba(0,122,255,0.28); z-index: 2; }
 .big-flow-photo-count { display: inline-block; font-family: var(--font-mono); font-size: 9px; color: var(--ink-mute); font-weight: 500; width: 100%; text-align: center; margin-top: 2px; }
 
 /* big-flow tracking */
 .big-flow-tracking-wrap { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 3px; margin-top: 6px; max-width: 130px; }
-.big-flow-tracking { display: inline-block; padding: 2px 8px; background: rgba(0,122,255,0.08); border: 1px solid rgba(0,122,255,0.20); color: var(--apple-blue,#007AFF); border-radius: 8px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+.big-flow-tracking { display: inline-block; padding: 2px 8px; background: rgba(0,122,255,0.08); border: 1px solid rgba(0,122,255,0.20); color: var(--apple-blue,#007AFF); border-radius: 8px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
 .big-flow-tracking:hover { background: var(--apple-blue,#007AFF); color: white; transform: translateY(-1px); }
-.big-flow-fedex-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0; background: #4B286D; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; transition: all 0.12s; flex-shrink: 0; }
+.big-flow-fedex-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0; background: #4B286D; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s; flex-shrink: 0; }
 .big-flow-fedex-btn:hover { transform: scale(1.12); box-shadow: 0 2px 6px rgba(75,40,109,0.35); }
 .big-flow-arrival { font-family: var(--font-mono); font-size: 9px; color: var(--warn); font-weight: 600; white-space: nowrap; cursor: pointer; padding: 1px 4px; border-radius: 4px; transition: background 0.12s; }
 .big-flow-arrival:hover { background: rgba(168,109,29,0.1); }
 .big-flow-arrival.delivered { color: var(--ok); cursor: default; }
 .big-flow-arrival.delivered:hover { background: transparent; }
-.big-flow-sign-btn { padding: 1px 7px; background: var(--ok-bg); color: var(--ok); border: 1px solid rgba(43,106,63,0.2); border-radius: 6px; font-family: var(--font-sans); font-size: 9px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
+.big-flow-sign-btn { padding: 1px 7px; background: var(--ok-bg); color: var(--ok); border: 1px solid rgba(43,106,63,0.2); border-radius: 6px; font-family: var(--font-sans); font-size: 9px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s; }
 .big-flow-sign-btn:hover { background: var(--ok); color: #fff; border-color: var(--ok); }
 /* === Style Gallery === */
 .style-gallery { background: var(--bg-sunken); border-radius: 12px; padding: 0; margin-bottom: 24px; overflow: hidden; border: 1px solid var(--line); }
@@ -10394,14 +10416,14 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
 .grp-chevron { font-size: 10px; color: var(--ink-mute); transition: transform 0.2s; flex-shrink: 0; }
 .style-gallery-group.open .grp-chevron { transform: rotate(90deg); }
 .grp-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
-.grp-act-btn { display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 4px 7px; border: none; background: transparent; color: var(--ink-mute); border-radius: 5px; cursor: pointer; transition: all 0.12s; font-family: var(--font-sans); font-weight: 500; }
+.grp-act-btn { display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 4px 7px; border: none; background: transparent; color: var(--ink-mute); border-radius: 5px; cursor: pointer; transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s; font-family: var(--font-sans); font-weight: 500; }
 .grp-act-btn:hover { background: var(--bg-elevated); color: var(--ink-soft); }
 .grp-act-btn.active { color: var(--ink); background: var(--bg-elevated); }
 .grp-act-primary { color: var(--ink-soft); }
 .grp-act-primary:hover { color: var(--ink); }
 .style-gallery-group-grid { display: none; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; padding: 0 14px 14px; }
 .style-gallery-group.open .style-gallery-group-grid { display: grid; }
-.gallery-card { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; cursor: pointer; transition: all 0.15s; position: relative; }
+.gallery-card { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s; position: relative; }
 .gallery-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.06); border-color: var(--line-strong); }
 .gallery-card-thumb { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; background: var(--bg-sunken); }
 .gallery-card-info { padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
@@ -10410,7 +10432,7 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
 .gallery-card-check { position: absolute; top: 5px; left: 5px; z-index: 2; opacity: 0; transition: opacity 0.12s; }
 .gallery-card:hover .gallery-card-check, .gallery-card-check:has(input:checked) { opacity: 1; }
 .gallery-card-check input { position: absolute; opacity: 0; width: 0; height: 0; }
-.check-mark { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; background: var(--bg-elevated); border: 1.5px solid var(--line-strong); cursor: pointer; transition: all 0.12s; }
+.check-mark { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; background: var(--bg-elevated); border: 1.5px solid var(--line-strong); cursor: pointer; transition: background-color 0.12s, border-color 0.12s, color 0.12s, transform 0.12s, opacity 0.12s, box-shadow 0.12s; }
 .check-mark::after { content: ''; display: none; width: 5px; height: 9px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); margin-top: -1px; }
 .gallery-card-check input:checked + .check-mark { background: var(--ink); border-color: var(--ink); }
 .gallery-card-check input:checked + .check-mark::after { display: block; }
@@ -10420,7 +10442,7 @@ body.batch-mode-locked .archive-row.archive-row-archived .thumb-placeholder {
 .gallery-delete-btn { width: 22px; height: 22px; border-radius: 50%; background: rgba(168,50,29,0.85); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1; transition: background 0.12s; }
 .gallery-delete-btn:hover { background: #C73428; }
 /* 图片上传区（Gallery组内底部） */
-.grp-upload-zone { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; border: 1.5px dashed var(--line-strong); border-radius: 8px; padding: 16px 12px; text-align: center; cursor: pointer; color: var(--ink-mute); font-family: var(--font-sans); font-size: 11px; transition: all 0.15s; background: var(--bg-sunken); margin: 8px 14px 14px; min-height: 50px; box-sizing: border-box; }
+.grp-upload-zone { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; border: 1.5px dashed var(--line-strong); border-radius: 8px; padding: 16px 12px; text-align: center; cursor: pointer; color: var(--ink-mute); font-family: var(--font-sans); font-size: 11px; transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s; background: var(--bg-sunken); margin: 8px 14px 14px; min-height: 50px; box-sizing: border-box; }
 .grp-upload-zone:hover, .grp-upload-zone.drag-over { border-color: #007AFF; background: rgba(0,122,255,0.04); color: var(--ink-soft); }
 .grp-upload-zone input { display: none; }
 .grp-upload-icon { font-size: 18px; line-height: 1; }
@@ -10449,7 +10471,7 @@ main { animation: fadeInUp 0.25s ease-out; }
   border: 1px solid var(--line-strong);
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.1s;
+  transition: background-color 0.1s, border-color 0.1s, color 0.1s, transform 0.1s, opacity 0.1s, box-shadow 0.1s;
 }
 .prod-po-option:hover {
   border-color: var(--accent);
@@ -10589,7 +10611,7 @@ main { animation: fadeInUp 0.25s ease-out; }
   font-size: 12px;
   color: var(--ink-soft);
   cursor: pointer;
-  transition: all 0.1s;
+  transition: background-color 0.1s, border-color 0.1s, color 0.1s, transform 0.1s, opacity 0.1s, box-shadow 0.1s;
 }
 .defect-photo-add-btn:hover {
   border-color: var(--accent);
@@ -10797,7 +10819,7 @@ main { animation: fadeInUp 0.25s ease-out; }
   border-radius: 8px;
   background: var(--bg-sunken);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s, box-shadow 0.15s;
   min-height: 120px;
   display: flex;
   align-items: center;
@@ -10936,31 +10958,19 @@ main { animation: fadeInUp 0.25s ease-out; }
           <span class="today-sub-count" id="sub-count-pattern">0</span>
         </button>
         <button class="today-sub-item" data-today-sub="fabric" onclick="switchTodaySub('fabric')">
-          <span>🧵 面料</span>
+          <span>🧵 采购</span>
           <span class="today-sub-count" id="sub-count-fabric">0</span>
         </button>
         <button class="today-sub-item" data-today-sub="workshop" onclick="switchTodaySub('workshop')">
           <span>📦 版房</span>
           <span class="today-sub-count" id="sub-count-workshop">0</span>
         </button>
-        <button class="today-sub-item" data-today-sub="shipping" onclick="switchTodaySub('shipping')">
-          <span>✉️ 寄样</span>
-          <span class="today-sub-count" id="sub-count-shipping">0</span>
-        </button>
-        <button class="today-sub-item" data-today-sub="photo" onclick="switchTodaySub('photo')">
-          <span>📸 图审</span>
-          <span class="today-sub-count" id="sub-count-photo">0</span>
-        </button>
-        <button class="today-sub-item" data-today-sub="feedback" onclick="switchTodaySub('feedback')">
-          <span>⏳ 反馈</span>
-          <span class="today-sub-count" id="sub-count-feedback">0</span>
-        </button>
-        <button class="today-sub-item" data-today-sub="fit" onclick="switchTodaySub('fit')">
-          <span>💬 fit</span>
-          <span class="today-sub-count" id="sub-count-fit">0</span>
+        <button class="today-sub-item" data-today-sub="followup" onclick="switchTodaySub('followup')">
+          <span>💬 跟单</span>
+          <span class="today-sub-count" id="sub-count-followup">0</span>
         </button>
         <button class="today-sub-item" data-today-sub="prod" onclick="switchTodaySub('prod')">
-          <span>📋 已下PO/大货</span>
+          <span>📋 生产/QC</span>
           <span class="today-sub-count" id="sub-count-prod">0</span>
         </button>
       </div>
@@ -11044,12 +11054,12 @@ main { animation: fadeInUp 0.25s ease-out; }
     <input type="text" id="search" placeholder="搜索款号、款名、PO 号…   ⌨ 按 / 聚焦">
   </div>
   <div class="ef-date-filter" id="efDateFilter" style="display:none;">
-    <label>EX 日期</label>
+    <label for="efDateInput">EX 日期</label>
     <input type="date" id="efDateInput">
     <button class="ef-clear-btn" onclick="clearEFDate()" title="清除">×</button>
   </div>
   <div class="ef-date-filter" id="devDateFilter" style="display:none;">
-    <label>开版日期</label>
+    <label for="devDateInput">开版日期</label>
     <input type="date" id="devDateInput">
     <button class="ef-clear-btn" onclick="clearDevDate()" title="清除">×</button>
   </div>
@@ -11164,7 +11174,7 @@ main { animation: fadeInUp 0.25s ease-out; }
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
 <aside class="drawer" id="drawer"></aside>
 
-<div class="modal-backdrop" id="newStyleBackdrop">
+<div class="modal-backdrop" id="newStyleBackdrop" role="dialog" aria-modal="true" aria-labelledby="newStyleTitle">
   <div class="modal">
     <div class="modal-header"><h3>新增款式</h3></div>
     <div class="modal-body">
@@ -11303,7 +11313,7 @@ main { animation: fadeInUp 0.25s ease-out; }
   </div>
 </div>
 
-<div class="modal-backdrop" id="updateBackdrop">
+<div class="modal-backdrop" id="updateBackdrop" role="dialog" aria-modal="true" aria-labelledby="updateTitle">
   <div class="modal">
     <div class="modal-header"><h3 id="updateTitle">更新进度</h3></div>
     <div class="modal-body" id="updateBody"></div>
@@ -11314,7 +11324,7 @@ main { animation: fadeInUp 0.25s ease-out; }
   </div>
 </div>
 
-<div class="modal-backdrop" id="imageBackdrop">
+<div class="modal-backdrop" id="imageBackdrop" role="dialog" aria-modal="true">
   <div class="modal">
     <div class="modal-header"><h3>更换款式照片</h3></div>
     <div class="modal-body">
@@ -11341,7 +11351,7 @@ main { animation: fadeInUp 0.25s ease-out; }
   </div>
 </div>
 
-<div class="image-viewer-backdrop" id="imageViewerBackdrop" onclick="closeImageViewer()">
+<div class="image-viewer-backdrop" id="imageViewerBackdrop" role="dialog" aria-modal="true" aria-label="图片预览" onclick="closeImageViewer()">
   <button class="image-viewer-close" onclick="closeImageViewer()" title="关闭 · ESC">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M18 6 6 18M6 6l12 12"/>
@@ -11451,16 +11461,14 @@ const db = {
 
   // ─── 4. 永久删除一个 style 及其所有关联数据 ───
   async deleteStyle(styleId) {
-    // 顺序：photos → cycles → pos → style（被外键引用的先删）
-    const { data: cycleIds } = await _supabase
-      .from('cycles').select('id').eq('style_id', styleId);
-    if (cycleIds && cycleIds.length > 0) {
-      await _supabase.from('cycle_photos').delete()
-        .in('cycle_id', cycleIds.map(c => c.id));
-    }
-    await _supabase.from('cycles').delete().eq('style_id', styleId);
-    await _supabase.from('pos').delete().eq('style_id', styleId);
-    await _supabase.from('styles').delete().eq('id', styleId);
+    // 需要数据库先加 ON DELETE CASCADE 外键(见 MIGRATIONS.md):
+    //   cycle_photos.cycle_id → cycles.id CASCADE
+    //   cycles.style_id → styles.id CASCADE
+    //   pos.style_id → styles.id CASCADE
+    // 之后只需删 styles 一条,数据库会级联删掉 cycles / pos / cycle_photos。
+    // 单条 DELETE 在 PostgreSQL 是原子的,不会留孤儿数据。
+    const { error } = await _supabase.from('styles').delete().eq('id', styleId);
+    if (error) throw error;
   },
 
   // ─── 5. 标记今日已处理 ───
@@ -11482,12 +11490,16 @@ const db = {
 
   // ─── 7. 订阅实时数据变化 ───
   // callback 在数据变化时调用（不带参数）
-  // 返回一个 unsubscribe 函数（虽然现在没用到，但接口预留好）
+  // 返回一个 unsubscribe 函数
+  // 订阅全部 5 张表 — 任一改动都触发刷新(callback 内部做防抖)
   subscribeChanges(callback) {
-    const channel = _supabase.channel('styles-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'styles' }, callback)
-      .subscribe();
-    return () => _supabase.removeChannel(channel);
+    const tables = ['styles', 'cycles', 'pos', 'cycle_photos', 'handled_log'];
+    const channels = tables.map(table =>
+      _supabase.channel(table + '-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table }, callback)
+        .subscribe()
+    );
+    return () => channels.forEach(ch => _supabase.removeChannel(ch));
   },
 };
 
@@ -11500,11 +11512,43 @@ const CACHE_KEY = 'style-tracker-cache-v1';
 const CACHE_TIMESTAMP_KEY = 'style-tracker-cache-time';
 
 // 保存数据到本地缓存
+// 剔掉 base64 大照片(receivedPhotos / batch.defectPhotos / imageUrl / po.image)再写,
+// 避免一两百个款就超 localStorage 5-10MB 配额导致离线模式失效。
+// 照片永远从云端读,缓存只是元数据离线快照。
 function saveToLocalCache(data) {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    const lite = data.map(s => ({
+      ...s,
+      imageUrl: '',  // 删除 base64 主图
+      cycles: (s.cycles || []).map(c => {
+        const cc = { ...c };
+        delete cc.receivedPhotos;
+        return cc;
+      }),
+      pos: (s.pos || []).map(p => {
+        const pp = { ...p };
+        delete pp.image;
+        return pp;
+      }),
+      prodReceived: s.prodReceived ? {
+        ...s.prodReceived,
+        batches: (s.prodReceived.batches || []).map(b => {
+          const bb = { ...b };
+          delete bb.defectPhotos;
+          return bb;
+        })
+      } : s.prodReceived,
+    }));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(lite));
     localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
-  } catch(e) { console.warn('缓存保存失败', e); }
+  } catch(e) {
+    if (e && e.name === 'QuotaExceededError') {
+      console.warn('缓存超限,清空旧缓存');
+      try { localStorage.removeItem(CACHE_KEY); } catch {}
+    } else {
+      console.warn('缓存保存失败', e);
+    }
+  }
 }
 
 // 从本地缓存读取
@@ -11571,15 +11615,16 @@ function dbStyleToLocal(s, cycles, pos) {
     owner: s.owner || '',
     imageUrl: s.image_url || '',
     createdAt: s.created_at ? s.created_at.slice(0,10) : todayStr(),
+    // 乐观锁版本号:云端读到什么时间戳就记着,upsert 时比对(数据库没加 updated_at 列时为 null,退化到无锁)
+    _dbUpdatedAt: s.updated_at || null,
     notes: s.notes || '',
     archived: s.archived || false,
     archivedDate: s.archived_date || null,
-    snoozedUntil: s.snoozed_until || null,
     lastChasedDate: s.last_chased_date || null,
-    awaitingFit: s.awaiting_fit ? JSON.parse(s.awaiting_fit) : null,
-    awaitingGrading: s.awaiting_grading ? JSON.parse(s.awaiting_grading) : null,
+    awaitingFit: parseMaybeJson(s.awaiting_fit),
+    awaitingGrading: parseMaybeJson(s.awaiting_grading),
     orderType: s.order_type || null,
-    prodReceived: s.prod_received ? JSON.parse(s.prod_received) : null,
+    prodReceived: parseMaybeJson(s.prod_received),
     specialNote: s.special_note || '',
     sampleType: s.sample_type || '',
     clientGroup: s.client_group || '',
@@ -11647,7 +11692,6 @@ function localStyleToDB(s) {
     archived_date: s.archivedDate || null,
     archive_reason: s.archiveReason || null,
     archive_note: s.archiveNote || null,
-    snoozed_until: s.snoozedUntil || null,
     last_chased_date: s.lastChasedDate || null,
     awaiting_fit: s.awaitingFit ? JSON.stringify(s.awaitingFit) : null,
     awaiting_grading: s.awaitingGrading ? JSON.stringify(s.awaitingGrading) : null,
@@ -11765,8 +11809,40 @@ async function saveStyleToSupabase(style) {
     if (_idx >= 0) state.styles[_idx] = style;
     saveToLocalCache(state.styles);
 
+    // 乐观锁:如果云端版本跟本地加载时不一样,说明被他人改过,提示用户刷新
+    // _dbUpdatedAt 只在数据库加了 updated_at 列时才非空(见 MIGRATIONS.md),
+    // 否则退化为无锁行为(跟之前一致)。
+    if (style._dbUpdatedAt) {
+      const { data: current, error: checkErr } = await _supabase
+        .from('styles')
+        .select('updated_at')
+        .eq('id', style.id)
+        .maybeSingle();
+      if (!checkErr && current && current.updated_at
+          && current.updated_at !== style._dbUpdatedAt) {
+        showToast('⚠️ 这个款已被他人修改 · 请刷新页面后再操作', 'warn');
+        // 自动重新拉一次数据(realtime 订阅也会触发,这里保险)
+        await loadFromSupabase();
+        render();
+        return;
+      }
+    }
+
     // 走抽象层 db.upsertStyle，以后换后端只需改 db 的实现
     await db.upsertStyle(style);
+
+    // 保存成功后,从云端读回最新 updated_at 更新本地版本号
+    // (避免下一次保存因为版本号过期被误判冲突)
+    if (style._dbUpdatedAt !== undefined) {
+      const { data: refreshed } = await _supabase
+        .from('styles')
+        .select('updated_at')
+        .eq('id', style.id)
+        .maybeSingle();
+      if (refreshed && refreshed.updated_at) {
+        style._dbUpdatedAt = refreshed.updated_at;
+      }
+    }
 
   } catch(e) {
     console.error('云端保存失败', e);
@@ -11789,11 +11865,18 @@ async function removeHandledFromSupabase(styleId) {
 }
 
 // 实时订阅：其他人修改数据时自动刷新
+// 防抖 300ms — 多张表同时改动时合并成一次 loadFromSupabase,
+// 避免 cycles+pos+photos 同步保存时刷新 N 次 / toast N 次
 function subscribeRealtime() {
-  db.subscribeChanges(async () => {
-    await loadFromSupabase();
-    render();
-    showToast('数据已同步更新', 'ok');
+  let timer = null;
+  db.subscribeChanges(() => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(async () => {
+      timer = null;
+      await loadFromSupabase();
+      render();
+      showToast('数据已同步更新', 'ok');
+    }, 300);
   });
 }
 
@@ -12136,9 +12219,9 @@ async function batchTransferOwner() {
     if (s) {
       s.owner = newOwner;
       count++;
+      saveOneStyle(id);
     }
   });
-  saveState();
   clearBatchSelection();
   render();
   showToast(`已将 ${count} 个款转给 ${newOwner || '不指定'}`, 'ok');
@@ -12200,9 +12283,9 @@ async function batchMarkFollowed() {
       const note = `[${today}] 已催进度`;
       s.notes = s.notes ? s.notes + '\n' + note : note;
       count++;
+      saveOneStyle(id);
     }
   });
-  saveState();
   clearBatchSelection();
   render();
   showToast(`已批量标记 ${count} 个款已催`, 'ok');
@@ -12244,7 +12327,7 @@ function pickArchiveReasonDialog(opts) {
           </button>
         </div>
         <div class="archive-reason-note" style="margin-top:14px;">
-          <label style="font-size:11px;color:var(--ink-soft);letter-spacing:0.04em;font-weight:600;text-transform:uppercase;">备注（选填）</label>
+          <label for="archiveReasonNote" style="font-size:11px;color:var(--ink-soft);letter-spacing:0.04em;font-weight:600;text-transform:uppercase;">备注（选填）</label>
           <textarea id="archiveReasonNote" rows="2" placeholder="可补充说明，如客户名、具体问题..." style="width:100%;margin-top:5px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:var(--font-sans);font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
         </div>
         <div class="app-dialog-actions" style="margin-top:14px;">
@@ -12339,7 +12422,7 @@ async function batchRestore() {
       delete s.archiveNote;
       if (s.cycles && s.cycles.length > 0) {
         const lastCycle = s.cycles[s.cycles.length - 1];
-        if (lastCycle.feedbackOutcome === 'ARCHIVED') {
+        if (lastCycle.feedbackOutcome === FEEDBACK_OUTCOMES.ARCHIVED) {
           delete lastCycle.feedbackDate;
           delete lastCycle.feedbackOutcome;
         }
@@ -12402,7 +12485,7 @@ async function openExtendDateDialog(styleId, poId) {
   // 静音报警 24 小时（避免登记了延期还在报）
   s.alertMutedUntil = Date.now() + 24 * 60 * 60 * 1000;
 
-  saveState();
+  saveOneStyle(s.id);
   render();
   openDrawer(styleId);
   showToast(`已登记延期 · 新货期 ${result.newDate}`, 'ok');
@@ -12444,12 +12527,12 @@ function pickExtendReasonDialog(opts) {
         </div>
 
         <div style="margin-top:12px;">
-          <label style="display:block;font-size:11px;color:var(--ink-soft);letter-spacing:0.04em;font-weight:600;text-transform:uppercase;margin-bottom:5px;">新货期</label>
+          <label for="extendNewDate" style="display:block;font-size:11px;color:var(--ink-soft);letter-spacing:0.04em;font-weight:600;text-transform:uppercase;margin-bottom:5px;">新货期</label>
           <input type="date" id="extendNewDate" min="${escapeHtml(opts.minDate)}" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:var(--font-mono, monospace);font-size:14px;box-sizing:border-box;">
         </div>
 
         <div style="margin-top:10px;">
-          <label style="display:block;font-size:11px;color:var(--ink-soft);letter-spacing:0.04em;font-weight:600;text-transform:uppercase;margin-bottom:5px;">备注（选填）</label>
+          <label for="extendNote" style="display:block;font-size:11px;color:var(--ink-soft);letter-spacing:0.04em;font-weight:600;text-transform:uppercase;margin-bottom:5px;">备注（选填）</label>
           <textarea id="extendNote" rows="2" placeholder="如：工厂确认延 5 天，跟客户已沟通..." style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:var(--font-sans);font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
         </div>
 
@@ -12802,10 +12885,12 @@ async function batchDeletePOs() {
     if (s && s.pos) {
       const before = s.pos.length;
       s.pos = s.pos.filter(p => p.id !== poId);
-      if (s.pos.length < before) count++;
+      if (s.pos.length < before) {
+        count++;
+        saveOneStyle(styleId);
+      }
     }
   });
-  saveState();
   state.poBatchSelected = {};
 
   // 关闭文件夹弹窗（不保留记忆，因为内容已变）
@@ -12960,7 +13045,7 @@ function renderAlertSection(level, title, list) {
     else if (level === 'warn') levelCls = 'warn';
     return `
       <div class="alert-row">
-        <div class="alert-row-clickable" onclick="closeAlertPanel(); openDrawer('${s.id}')">
+        <div role="button" tabindex="0" class="alert-row-clickable" onclick="closeAlertPanel(); openDrawer('${s.id}')">
           ${thumb}
           <div class="alert-row-info">
             <div class="alert-row-title">
@@ -13005,14 +13090,14 @@ function handleToday(styleId) {
     state.handledToday[today].push(styleId);
     showToast('已标记处理 · 今天不再提醒', 'ok');
   }
-  saveState();
+  saveOneStyle(styleId);
   renderAlertPanel();
 }
 function muteAlert(styleId) {
   const s = state.styles.find(x => x.id === styleId);
   if (!s) return;
   s.alertMutedUntil = Date.now() + 24 * 60 * 60 * 1000;
-  saveState();
+  saveOneStyle(styleId);
   showToast('已静音 24 小时', 'ok');
   // 刷新铃铛 + 面板
   renderAlertPanel();
@@ -13027,8 +13112,8 @@ function muteAllAlerts() {
   const muteUntil = Date.now() + 24 * 60 * 60 * 1000;
   all.forEach(item => {
     item.style.alertMutedUntil = muteUntil;
+    saveOneStyle(item.style.id);
   });
-  saveState();
   showToast(`已静音 ${all.length} 项异常 24 小时`, 'ok');
   renderAlertPanel();
   if (typeof updateAlertBell === 'function') updateAlertBell();
@@ -13082,12 +13167,23 @@ function todayPlus(days) {
   const REMEMBER_EXPIRES_KEY = 'gc-style-tracker-remember-expires';
   const REMEMBER_DAYS = 7;
 
-  // === 账号配置（要加人/改密码就改这里）===
+  // === 账号配置(要加人/改密码就改这里)===
+  // role 可选值见 ROLE_PERMS:admin / pattern / fabric / workshop / followup / prod / production(legacy)
   const USERS = [
-    // 老板/跟单：看全部，admin 权限
+    // 管理员(你 / 老板)— 看全部
     { user: 'admin',      pw: '123456', role: 'admin',     name: '管理员' },
-    // 采购 + 版师共用：只看 今日跟进 → 版师/面料/版房
-    { user: 'production', pw: 'abc123', role: 'production', name: '采购/版师' },
+    // 跟单(默认账号,加 PETER / LIZZY 时复制这行改 user/name)
+    { user: 'followup',   pw: 'follow123', role: 'followup', name: '跟单' },
+    // 版师 — 只看"版师" tab
+    { user: 'pattern',    pw: 'pat123',  role: 'pattern',   name: '版师' },
+    // 采购 — 只看"采购" tab
+    { user: 'fabric',     pw: 'fab123',  role: 'fabric',    name: '采购' },
+    // 版房 — 只看"版房" tab
+    { user: 'workshop',   pw: 'ws123',   role: 'workshop',  name: '版房' },
+    // 生产/QC — 只看"生产/QC" tab
+    { user: 'prod',       pw: 'prod123', role: 'prod',      name: '生产/QC' },
+    // legacy 老账号(采购+版师共用,看 3 个 sub)— 保留兼容,以后可删
+    { user: 'production', pw: 'abc123', role: 'production', name: '采购/版师(legacy)' },
   ];
 
   // === 角色权限配置（要调整谁能看什么就改这里）===
@@ -13100,9 +13196,36 @@ function todayPlus(days) {
       todaySubs: 'all',
       canDo: 'all',
     },
+    // 每个职位只看自己的今日跟进 sub。其他 tab 默认禁用 — 想看就改 tabs: 'all' 或具体列表。
+    pattern: {  // 版师
+      tabs: ['today'],
+      todaySubs: ['pattern'],
+      canDo: ['markPatternDone'],
+    },
+    fabric: {  // 采购
+      tabs: ['today'],
+      todaySubs: ['fabric'],
+      canDo: ['markFabricSourced'],
+    },
+    workshop: {  // 版房
+      tabs: ['today'],
+      todaySubs: ['workshop'],
+      canDo: ['markReceived', 'markRework'],
+    },
+    followup: {  // 跟单
+      tabs: ['today', 'dev', 'production', 'archive'],
+      todaySubs: ['followup'],
+      canDo: 'all',  // 跟单要做很多动作:寄出/收回反馈/标记 fit/开 PO 等
+    },
+    prod: {  // 生产/QC
+      tabs: ['today', 'production'],
+      todaySubs: ['prod'],
+      canDo: ['markProdReceived'],
+    },
+    // legacy:老的 "production" role 现在叫 workshop。这里保留兼容,以后可删
     production: {
-      tabs: ['today'],                              // 只能进"今日跟进"
-      todaySubs: ['pattern', 'fabric', 'workshop'], // 只看 版师/面料/版房
+      tabs: ['today'],
+      todaySubs: ['pattern', 'fabric', 'workshop'],
       canDo: ['markPatternDone', 'markFabricSourced', 'markReceived', 'markRework'],
     },
   };
@@ -13502,6 +13625,7 @@ let state = {
   pendingEditImage: null,
   showPoInDev: false,
   keyboardSelectedIdx: -1,
+  followupClientGroupFilter: 'all',  // 跟单 tab 的 clientGroup 筛选 chip:'all' / 'WOVEN SEPARATE' / 'PLUS' / 'DRESS' / 'PETITE/TALL' / '__OTHER__'
   filterEFDate: '',  // ex-factory 日期筛选
   filterDevDate: '',  // 开版日期筛选（开发追踪）
   expandedDates: {},   // 大货看板里展开的日期 { '2026-05-31': true }
@@ -13538,26 +13662,77 @@ async function loadState() {
   }
   if (state.styles.length === 0) seedData();
   subscribeRealtime();
+  installGlobalA11y();
 }
-function saveState() {
-  // saveState 现在是异步的，直接调用不等待（保持原有调用方式不变）
-  const changedStyles = state.styles;
-  changedStyles.forEach(s => {
-    saveStyleToSupabase(s);
+
+// === 全局 a11y 增强 ===
+// div[role="button"] 在 Enter/Space 上触发 click(键盘用户和屏幕阅读器需要)
+// Esc 全局关闭 modal(按最上层优先级关)
+function installGlobalA11y() {
+  if (window._a11yInstalled) return;
+  window._a11yInstalled = true;
+  document.addEventListener('keydown', (e) => {
+    const t = e.target;
+    // div[role="button"] 的键盘激活
+    if (t && t.getAttribute && t.getAttribute('role') === 'button'
+        && (e.key === 'Enter' || e.key === ' ')
+        && t.tagName !== 'BUTTON' && t.tagName !== 'A' && t.tagName !== 'INPUT'
+        && t.tagName !== 'TEXTAREA' && t.tagName !== 'SELECT') {
+      e.preventDefault();
+      t.click();
+      return;
+    }
+    // Esc 关 modal(最上层优先)
+    if (e.key === 'Escape') {
+      const isOpen = (id) => document.getElementById(id)?.classList.contains('open');
+      if (isOpen('imageViewerBackdrop')) { closeImageViewer(); return; }
+      if (isOpen('updateBackdrop')) { closeUpdateModal(); return; }
+      if (isOpen('newStyleBackdrop')) { closeNewStyleModal(); return; }
+      if (isOpen('imageBackdrop')) { typeof closeImageModal === 'function' && closeImageModal(); return; }
+      if (isOpen('drawerBackdrop')) { closeDrawer(); return; }
+    }
   });
+}
+// @deprecated 改用 saveOneStyle(styleId)
+// 这个函数会把整个 state.styles 全量 upsert,N 个款就发 N 次请求。
+// 修单个款用 saveOneStyle(id);批量操作请在循环里调 saveOneStyle(id)。
+// 保留旧行为作安全网 — 万一漏了一个调用点,数据不会丢。
+function saveState() {
+  console.warn('[saveState] 已废弃,请改用 saveOneStyle(styleId) — 调用栈:', new Error().stack);
+  state.styles.forEach(s => saveStyleToSupabase(s));
 }
 // 保存单个 style 的快捷方法（推荐在修改单个 style 后调用）
 function saveOneStyle(styleId) {
   const s = state.styles.find(x => x.id === styleId);
   if (s) saveStyleToSupabase(s);
 }
-function uid(prefix) { return (prefix || 'id') + '_' + Math.random().toString(36).slice(2, 10); }
+function uid(prefix) {
+  // 优先用 crypto.randomUUID(碰撞概率可忽略);旧浏览器回退 Math.random
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return (prefix || 'id') + '_' + crypto.randomUUID().split('-')[0];
+  }
+  return (prefix || 'id') + '_' + Math.random().toString(36).slice(2, 10);
+}
 function daysBetween(a, b) {
   if (!a || !b) return null;
-  const d1 = new Date(a), d2 = new Date(b);
-  return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
+  // YYYY-MM-DD 字符串用本地时区 0 点解析(new Date('YYYY-MM-DD') 默认按 UTC,会差时区);
+  // 其他格式(ISO 时间戳)交给 Date 构造器。
+  const parse = (x) => {
+    if (typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x)) {
+      const [y, m, d] = x.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+    return new Date(x);
+  };
+  return Math.floor((parse(b) - parse(a)) / (1000 * 60 * 60 * 24));
 }
-function todayStr() { return new Date().toISOString().slice(0, 10); }
+function todayStr() {
+  // 用本地时区,不是 UTC。中国用户在 UTC+8 早 8 点前用 toISOString() 会算成昨天。
+  const d = new Date();
+  return d.getFullYear() + '-' +
+         String(d.getMonth() + 1).padStart(2, '0') + '-' +
+         String(d.getDate()).padStart(2, '0');
+}
 function daysSince(d) { return d ? daysBetween(d, todayStr()) : null; }
 function daysUntil(d) { return d ? daysBetween(todayStr(), d) : null; }
 function urgencyByDays(days, ty, tr) {
@@ -13576,6 +13751,67 @@ const CYCLE_TYPES = {
   PHOTO:  { label: '拍照版', nodeLabels: ['开版', '收到拍照版', '拍照发图审', '图审反馈'], feedbackLabel: '图审反馈' },
   PROD:   { label: '船版',   nodeLabels: ['开版', '收到船版', '寄出客户', '船版批准'], feedbackLabel: '船版批准' }
 };
+
+// ─── FeedbackOutcome 枚举 ───
+// 集中常量,避免 typo 字符串散落各处。详见 CONTEXT.md FeedbackOutcome 章节。
+const FEEDBACK_OUTCOMES = {
+  ARCHIVED:      'ARCHIVED',      // 客户不要这款
+  PO_AWAIT_FIT:  'PO_AWAIT_FIT',  // 下了 PO,fit comment 还没给
+  PO_REVISE:     'PO_REVISE',     // 下 PO + 要重做板
+  PO_PHOTO:      'PO_PHOTO',      // 下 PO + 要拍照板
+  PO_PROD:       'PO_PROD',       // 下 PO + 直接安排大货
+  APPROVED:      'APPROVED',      // PHOTO 批准 / PROD 批准
+  REMAKE_PHOTO:  'REMAKE_PHOTO',  // 拍照版重做
+  REMAKE_SAMPLE: 'REMAKE_SAMPLE', // 样要重做
+  REMAKE:        'REMAKE',        // PROD 重做
+  REVISE:        'REVISE',        // 批量"需修改"
+};
+
+// ─── ClientGroup 分组配置(供今日跟进 / 开发追踪等共用)───
+// PETITE 和 TALL 单独值合并到 PETITE/TALL 一组(历史数据可能拆开存)
+// 没填 clientGroup 的款归入 '__OTHER__' / 未分组
+const CLIENT_GROUP_ORDER = [
+  { key: 'WOVEN SEPARATE', label: 'WOVEN SEPARATE', cls: 'group-woven',       shortLabel: 'WS' },
+  { key: 'PLUS',           label: 'PLUS',           cls: 'group-plus',        shortLabel: 'PLUS' },
+  { key: 'DRESS',          label: 'DRESS',          cls: 'group-dress',       shortLabel: 'DR' },
+  { key: 'PETITE/TALL',    label: 'PETITE/TALL',    cls: 'group-petite-tall', shortLabel: 'P/T' },
+  { key: '__OTHER__',      label: '未分组',         cls: '',                  shortLabel: '其他' },
+];
+function normalizeClientGroup(s) {
+  const v = (s.clientGroup || '').trim().toUpperCase();
+  if (v === 'WOVEN SEPARATE') return 'WOVEN SEPARATE';
+  if (v === 'PLUS') return 'PLUS';
+  if (v === 'DRESS') return 'DRESS';
+  if (v === 'PETITE/TALL' || v === 'PETITE' || v === 'TALL') return 'PETITE/TALL';
+  return '__OTHER__';
+}
+
+// ─── 反单规则配置 ───
+// skipShipSample = true: 不需要寄船版,自动构造已完成的 PROD cycle,直接进等大货
+// skipShipSample = false: 需要走船版流程(寄船版 → 客户 QC → 大货)
+// 新客户加入反单流程时在这里加一行即可,不用改业务代码
+const REPEAT_ORDER_RULES = {
+  BOOHOO: { skipShipSample: true,  name: 'Boohoo', stageHint: '直接进入等大货阶段' },
+  PLT:    { skipShipSample: false, name: 'PLT',    stageHint: '进入船版阶段' },
+};
+function getRepeatRule(client) {
+  return REPEAT_ORDER_RULES[client] || { skipShipSample: false, name: client || '', stageHint: '进入船版阶段' };
+}
+function buildRepeatCycle(client, openDate) {
+  // 反单 openDate 不能在未来,否则后续天数/紧迫度计算全错。
+  // 字典序比较 YYYY-MM-DD 字符串等同于日期比较。
+  const today = todayStr();
+  if (openDate && openDate > today) openDate = today;
+  const openIso = toIsoWithNowTime(openDate);
+  if (getRepeatRule(client).skipShipSample) {
+    return {
+      id: uid('c'), type: 'PROD', openDate: openIso,
+      receivedDate: openIso, sentDate: openIso,
+      feedbackDate: openIso, feedbackOutcome: FEEDBACK_OUTCOMES.APPROVED
+    };
+  }
+  return { id: uid('c'), type: 'PROD', openDate: openIso };
+}
 
 // 该催谁
 function whoToFollowUp(node, cycleType) {
@@ -13604,8 +13840,8 @@ function getStyleStatus(style) {
   if (style.awaitingFit) {
     const days = daysSince(style.awaitingFit.since);
     return {
-      stage: 'AWAIT_FIT', stageLabel: '等 fit comment',
-      currentNode: 'AWAIT_FIT', currentNodeLabel: '等 fit comment',
+      stage: 'AWAIT_FIT', stageLabel: '已下PO·等回复',
+      currentNode: 'AWAIT_FIT', currentNodeLabel: '已下PO·等回复',
       startDate: style.awaitingFit.since,
       days, level: urgencyByDays(days, 3, 5),
       awaitingClient: true, isActive: true, isArchived: false
@@ -13625,25 +13861,37 @@ function getStyleStatus(style) {
     };
   }
 
-  // 自动恢复：最后一个 cycle 给了 approve 反馈（PO_PROD / PHOTO APPROVED），
-  // 但还没有更新的 PROD cycle 接续 → 自动认为还在等放码
-  // （兼容数据丢了 awaitingGrading 字段的款）
+  // 自动恢复：从后往前找最近一个"有 outcome 的 cycle"作为决议点。
+  // 如果它是 approve-to-prod 触发(PO_PROD / PHOTO+APPROVED),且它之后没有 PROD cycle 接续,
+  // 就认为还在等放码 — 兼容数据丢了 awaitingGrading 字段、或末尾被误加空 cycle 的情况。
   if (style.cycles && style.cycles.length > 0 && !style.archived) {
-    const _last = style.cycles[style.cycles.length - 1];
-    const _isApproveTrigger = _last.feedbackOutcome === 'PO_PROD'
-      || (_last.feedbackOutcome === 'APPROVED' && _last.type === 'PHOTO');
-    const _hasNewerProd = _last.type === 'PROD' && !_last.feedbackOutcome;  // 已有进行中的 PROD cycle
-    if (_isApproveTrigger && !_hasNewerProd && _last.type !== 'PROD') {
-      const since = _last.feedbackDate;
-      const days = since ? daysSince(since) : 0;
-      return {
-        stage: 'GRADING', stageLabel: '等版师放码',
-        currentNode: 'GRADING', currentNodeLabel: '等版师放码',
-        startDate: since,
-        days, level: urgencyByDays(days, 2, 4),
-        awaitingClient: false, isActive: true, isArchived: false,
-        cycleType: 'GRADING'
-      };
+    let approveCycle = null;
+    let approveIdx = -1;
+    for (let i = style.cycles.length - 1; i >= 0; i--) {
+      if (style.cycles[i].feedbackOutcome) {
+        approveCycle = style.cycles[i];
+        approveIdx = i;
+        break;
+      }
+    }
+    if (approveCycle) {
+      const isApproveTrigger = approveCycle.feedbackOutcome === FEEDBACK_OUTCOMES.PO_PROD
+        || (approveCycle.feedbackOutcome === FEEDBACK_OUTCOMES.APPROVED && approveCycle.type === 'PHOTO');
+      // 决议点必须不是 PROD 自身(PROD APPROVED 走下面的大货流程)
+      // 决议点后面也不能有 PROD cycle(已开 PROD 就不该回 GRADING)
+      const hasProdAfter = style.cycles.slice(approveIdx + 1).some(c => c.type === 'PROD');
+      if (isApproveTrigger && approveCycle.type !== 'PROD' && !hasProdAfter) {
+        const since = approveCycle.feedbackDate;
+        const days = since ? daysSince(since) : 0;
+        return {
+          stage: 'GRADING', stageLabel: '等版师放码',
+          currentNode: 'GRADING', currentNodeLabel: '等版师放码',
+          startDate: since,
+          days, level: urgencyByDays(days, 2, 4),
+          awaitingClient: false, isActive: true, isArchived: false,
+          cycleType: 'GRADING'
+        };
+      }
     }
   }
 
@@ -13652,7 +13900,7 @@ function getStyleStatus(style) {
   }
   const lastCycle = style.cycles[style.cycles.length - 1];
 
-  if (lastCycle.type === 'PROD' && lastCycle.feedbackOutcome === 'APPROVED') {
+  if (lastCycle.type === 'PROD' && lastCycle.feedbackOutcome === FEEDBACK_OUTCOMES.APPROVED) {
     // 大货收到状态判断:
     // - 老数据(只有 date,没 batches):兼容,显示已到仓
     // - 新数据 fullyReceived = true:真正完结
@@ -13896,7 +14144,7 @@ function getExFactoryAlert(style, status) {
   }
   const prodCycle = style.cycles.find(c => c.type === 'PROD');
   const hasProdSent = prodCycle && prodCycle.sentDate;
-  const hasProdApproved = prodCycle && prodCycle.feedbackOutcome === 'APPROVED';
+  const hasProdApproved = prodCycle && prodCycle.feedbackOutcome === FEEDBACK_OUTCOMES.APPROVED;
 
   if (daysToEF < 0) return { level: 'danger', message: `已过货期 ${-daysToEF} 天` };
   if (!hasProdSent && daysToEF < 14) return { level: 'danger', message: `${daysToEF} 天到货期 · 船版还没寄` };
@@ -14051,7 +14299,7 @@ function buildFullFlow(style) {
 
   if (style.awaitingFit && !style.archived) {
     nodes.push({
-      label: '等 fit comment', date: null, status: 'current',
+      label: '已下PO·等回复', date: null, status: 'current',
       cycleType: 'AWAIT_FIT', level: status.level,
       daysText: formatDaysText(status.days),
       startDate: style.awaitingFit.since
@@ -14104,10 +14352,85 @@ function withDays(label, days) {
   const t = formatDaysText(days);
   return t ? `${label} · ${t}` : label;
 }
-function formatDate(d) { if (!d) return ''; return d.slice(5).replace('-', '.'); }
+function formatDate(d) {
+  // 兼容老数据(YYYY-MM-DD) 和新 ISO 时间戳(YYYY-MM-DDTHH:MM:SS+TZ)
+  // 列表 / 卡片用,只显示月.日
+  if (!d) return '';
+  return d.slice(5, 10).replace('-', '.');
+}
+// 完整日期显示(年.月.日),不带时分。给"最初开版" / "起始日期"这类整体日期信息用。
+// 兼容 ISO timestamp(取前 10 位)和老 YYYY-MM-DD 字符串。
+function formatDateOnlyHuman(d) {
+  if (!d) return '';
+  return d.slice(0, 10).replace(/-/g, '.');
+}
+function formatDateTime(d) {
+  // 抽屉日志 / 时间线节点用,显示 月-日 HH:MM(本地时区)
+  // 老数据(只有 YYYY-MM-DD)显示为 月-日(无时分)
+  if (!d) return '';
+  if (d.length <= 10) return d.slice(5).replace('-', '.');
+  // ISO 时间戳:取本地时区的月日时分
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return d.slice(5, 10).replace('-', '.');
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    const hh = String(dt.getHours()).padStart(2, '0');
+    const mm = String(dt.getMinutes()).padStart(2, '0');
+    return `${m}.${day} ${hh}:${mm}`;
+  } catch { return d.slice(5, 10).replace('-', '.'); }
+}
+// 用户填了日期 YYYY-MM-DD,系统补上当前 HH:MM:SS,返回本地时区 ISO timestamp
+function toIsoWithNowTime(dateStr) {
+  if (!dateStr) return null;
+  if (dateStr.length > 10) return dateStr;  // 已经是 ISO,不改
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  // 时区偏移(分钟)
+  const tzOffset = -now.getTimezoneOffset();
+  const tzSign = tzOffset >= 0 ? '+' : '-';
+  const tzHH = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(2, '0');
+  const tzMM = String(Math.abs(tzOffset) % 60).padStart(2, '0');
+  return `${dateStr}T${hh}:${mm}:${ss}${tzSign}${tzHH}:${tzMM}`;
+}
+// 用户改了日期,但要保留原 ISO 的时分(没有"重新发生"语义)
+function updateIsoDate(oldIso, newDateStr) {
+  if (!newDateStr) return null;
+  if (!oldIso || oldIso.length <= 10) {
+    // 老数据没时分,补当前时分
+    return toIsoWithNowTime(newDateStr);
+  }
+  // 替换日期部分,保留 T 之后的时分秒和时区
+  return newDateStr + oldIso.slice(10);
+}
 function escapeHtml(s) {
   if (s === null || s === undefined) return '';
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+// 兼容 TEXT 列(stringified JSON)和 JSONB 列(原生 object)两种情况
+// SQL Migration 4 把 awaiting_fit / awaiting_grading / prod_received 改 JSONB 后,
+// dbStyleToLocal 读到的就是 object 而非 string,此函数兼容两者
+function parseMaybeJson(v) {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v !== 'string') return v;  // 已经是 object(JSONB)
+  try { return JSON.parse(v); } catch { return null; }
+}
+// 用于把字符串安全嵌入到 inline onclick="fn('${...}')" 这种 HTML 属性中的 JS 字符串字面量。
+// 单纯 escapeHtml 不够 — HTML 属性解析器会先把 &#39; 解码回 ',从而打断 JS 字符串边界。
+// 顺序:先 JS 转义(\\ ' " 换行 等),再 HTML 转义。
+function escapeJsAttr(s) {
+  if (s === null || s === undefined) return '';
+  return escapeHtml(
+    String(s)
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/[\u2028\u2029]/g, c => '\\u' + c.charCodeAt(0).toString(16))
+  );
 }
 
 /*
@@ -14320,7 +14643,7 @@ function renderTodayTab() {
     // ⚡ 只在 danger 时显示，warn 不加，让符号真正传达"紧急"
     const z = isDanger ? '⚡ ' : '';
     const thumb = s.imageUrl
-      ? `<img class="thumb-mini thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-mini-placeholder&quot;>NO IMG</div>'">`
+      ? `<img class="thumb-mini thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(s.imageUrl)}')" onerror="this.outerHTML='<div class=&quot;thumb-mini-placeholder&quot;>NO IMG</div>'">`
       : `<div class="thumb-mini-placeholder">NO IMG</div>`;
     
     // 简化状态文字
@@ -14473,15 +14796,14 @@ function renderTodayTab() {
   };
 
   // 更新子菜单数量
+  // followup = 寄样 + 图审 + 反馈 + 等回复(原 fit) 合并(都是跟单要处理的事)
+  const followupCount = shippingItems.length + photoItems.length + feedbackItems.length + fitItems.length;
   const _sc = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
   _sc('sub-count-all', items.length);
   _sc('sub-count-pattern', patternItems.length);
   _sc('sub-count-fabric', fabricItems.length);
   _sc('sub-count-workshop', workshopItems.length);
-  _sc('sub-count-shipping', shippingItems.length);
-  _sc('sub-count-photo', photoItems.length);
-  _sc('sub-count-feedback', feedbackItems.length);
-  _sc('sub-count-fit', fitItems.length);
+  _sc('sub-count-followup', followupCount);
   _sc('sub-count-prod', prodItems.length);
 
   // 确保子菜单显示
@@ -14588,17 +14910,40 @@ function renderTodayTab() {
       : '等版房送样 — 面料已到，催版房制作并寄回';
     html += todaySectionWithPoSplit('today_workshop', 'warn', '📦 版房', subText, workshopItems, renderCard);
   }
-  if (sub === 'shipping') {
-    html += todayCollapsibleSection('today_shipping', 'warn', '✉️ 寄样', '待寄给客户 — 跟单负责寄出', shippingItems, renderCard);
-  }
-  if (sub === 'photo') {
-    html += todayCollapsibleSection('today_photo', 'warn', '📸 图审', '拍照版 — 跟单拍照发图给客户 / 等客户图审', photoItems, renderCard);
-  }
-  if (sub === 'feedback') {
-    html += todayCollapsibleSection('today_feedback', 'warn', '⏳ 等反馈', '等客户给评语 — 跟单负责催买手', feedbackItems, renderCard);
-  }
-  if (sub === 'fit') {
-    html += todayCollapsibleSection('today_fit', 'fit', '💬 等 fit comment', '已下 PO，等买手给 fit comment', fitItems, renderCard);
+  if (sub === 'followup') {
+    // 跟单大 tab:合并寄样 + 图审 + 反馈 + 已下PO·等回复(原 fit)4 个 section
+    // 顶部加 clientGroup 筛选 chips,点击后过滤这 4 个 items
+    const cgFilter = state.followupClientGroupFilter || 'all';
+    const matchCg = (it) => cgFilter === 'all' || normalizeClientGroup(it.style) === cgFilter;
+    const fShip = shippingItems.filter(matchCg);
+    const fPhoto = photoItems.filter(matchCg);
+    const fFeedback = feedbackItems.filter(matchCg);
+    const fFit = fitItems.filter(matchCg);
+
+    // 计数(用未过滤的原始数组,这样 chip 上显示的是"如果切到这个组有多少款")
+    const allFollowup = [...shippingItems, ...photoItems, ...feedbackItems, ...fitItems];
+    const cgCount = (key) => key === 'all'
+      ? allFollowup.length
+      : allFollowup.filter(it => normalizeClientGroup(it.style) === key).length;
+
+    // 渲染 chip 行(全部 + 5 个 group)
+    const chipBtn = (key, label) => {
+      const n = cgCount(key);
+      if (key !== 'all' && n === 0) return '';  // 空的 group 不显示 chip,减少视觉噪音
+      const active = cgFilter === key ? 'active' : '';
+      return `<button type="button" class="filter-btn ${active}" data-cg="${key}" onclick="switchFollowupClientGroupFilter('${key.replace(/'/g, "\\'")}')" aria-pressed="${cgFilter === key}">${escapeHtml(label)} <span class="cg-chip-count">${n}</span></button>`;
+    };
+    let chipsHtml = `<div class="cg-chips-row" role="group" aria-label="客户组筛选"><div class="filter-group">`;
+    chipsHtml += chipBtn('all', '全部');
+    CLIENT_GROUP_ORDER.forEach(g => { chipsHtml += chipBtn(g.key, g.shortLabel === '其他' ? '未分组' : g.label); });
+    chipsHtml += `</div></div>`;
+    html += chipsHtml;
+
+    // 4 个 section 用 PoSplit(已下 PO 子组置顶 + 开发中子组在下),跟版师/采购/版房 tab 视觉一致
+    html += todaySectionWithPoSplit('today_shipping', 'warn', '✉️ 待寄出', '待寄给客户 · 跟单负责寄出', fShip, renderCard);
+    html += todaySectionWithPoSplit('today_photo', 'warn', '📸 等图审', '拍照版 · 跟单拍照发图给客户 / 等客户图审', fPhoto, renderCard);
+    html += todaySectionWithPoSplit('today_feedback', 'warn', '⏳ 等反馈', '等客户给评语 · 跟单负责催买手', fFeedback, renderCard);
+    html += todaySectionWithPoSplit('today_fit', 'fit', '💬 已下PO·等回复', '已下 PO,等客户决议下一步(重做 / 拍照 / 直接大货)', fFit, renderCard);
   }
   if (sub === 'prod') {
     // 「📋 已下PO/大货」组：按"在哪个节点"分组，每组里按 EF 升序排序
@@ -14628,7 +14973,7 @@ function renderTodayTab() {
       await_prod_appr:  { items: [], title: '📋 等船版批准',     sub: '已寄船版给客户 — 催客户审批',    badgeCls: 'danger' },
       send_prod:        { items: [], title: '✉️ 待寄船版',       sub: '船版已收，赶紧寄给客户',         badgeCls: 'warn' },
       make_prod:        { items: [], title: '✂️ 船版打版/收样',  sub: '正在做船版（开版/收样/等送样）', badgeCls: 'warn' },
-      await_fit:        { items: [], title: '💬 等 fit comment', sub: '客户试穿后给修改意见',          badgeCls: 'fit' },
+      await_fit:        { items: [], title: '💬 已下PO·等回复', sub: '已下 PO,等客户决议下一步(重做/拍照/直接大货)', badgeCls: 'fit' },
       await_revise_fb:  { items: [], title: '⏳ 等修改版评语',   sub: '修改版已寄，等客户回复',         badgeCls: 'warn' },
       revise_inflight:  { items: [], title: '✂️ 修改版进行中',   sub: '修改版打版/收样/寄出阶段',      badgeCls: 'warn' },
       misc:             { items: [], title: '📌 其他',           sub: '已下 PO 但未归类的款',          badgeCls: 'warn' },
@@ -14675,14 +15020,12 @@ function renderTodayTab() {
   }
 
   // 当前分组无内容时显示空状态
+  // followup 是合并 tab(寄出/图审/反馈/已下PO·等回复 4 个 section),只要任一有数据就不算空
   let subItems = [];
   if (sub === 'pattern') subItems = patternItems;
   else if (sub === 'fabric') subItems = fabricItems;
   else if (sub === 'workshop') subItems = workshopItems;
-  else if (sub === 'shipping') subItems = shippingItems;
-  else if (sub === 'photo') subItems = photoItems;
-  else if (sub === 'feedback') subItems = feedbackItems;
-  else if (sub === 'fit') subItems = fitItems;
+  else if (sub === 'followup') subItems = [...shippingItems, ...photoItems, ...feedbackItems, ...fitItems];
   else if (sub === 'prod') subItems = prodItems;
   
   if (subItems.length === 0) {
@@ -14892,7 +15235,7 @@ function renderArchiveTab() {
 
 function renderArchiveRow(s, type) {
   const thumb = s.imageUrl
-    ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
+    ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(s.imageUrl)}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
     : `<div class="thumb-placeholder">NO IMG</div>`;
 
   // 计算总耗时（开版日期 → 完成/归档日期）
@@ -14985,7 +15328,7 @@ function renderArchiveRow(s, type) {
     ? `<input type="checkbox" class="batch-checkbox row-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">`
     : '';
   return `
-    <div class="style-row simplified archive-row ${type === 'archived' ? 'archive-row-archived' : 'archive-row-done'} ${batchCls}" data-style-id="${s.id}" data-archive-type="${type}" onclick="handleArchiveRowClick(event, '${s.id}', '${type}')">
+    <div role="button" tabindex="0" class="style-row simplified archive-row ${type === 'archived' ? 'archive-row-archived' : 'archive-row-done'} ${batchCls}" data-style-id="${s.id}" data-archive-type="${type}" onclick="handleArchiveRowClick(event, '${s.id}', '${type}')">
       ${ckbox}
       ${thumb}
       <div class="sku">${escapeHtml(s.sku)}</div>
@@ -15019,12 +15362,12 @@ async function restoreArchivedStyle(styleId) {
   // 也清掉最后一个周期的 ARCHIVED 反馈（如果有）
   if (s.cycles && s.cycles.length > 0) {
     const lastCycle = s.cycles[s.cycles.length - 1];
-    if (lastCycle.feedbackOutcome === 'ARCHIVED') {
+    if (lastCycle.feedbackOutcome === FEEDBACK_OUTCOMES.ARCHIVED) {
       delete lastCycle.feedbackDate;
       delete lastCycle.feedbackOutcome;
     }
   }
-  saveState();
+  saveOneStyle(s.id);
   render();
   showToast(`已恢复 ${s.sku}`, 'ok');
 }
@@ -15508,10 +15851,10 @@ async function jumpToNextStage(styleId) {
     const last = s.cycles[s.cycles.length - 1];
     if (!last.feedbackOutcome) {
       // 补齐缺失的中间字段
-      if (!last.receivedDate) last.receivedDate = today;
-      if (!last.sentDate) last.sentDate = today;
-      last.feedbackDate = today;
-      last.feedbackOutcome = 'APPROVED';
+      if (!last.receivedDate) last.receivedDate = toIsoWithNowTime(today);
+      if (!last.sentDate) last.sentDate = toIsoWithNowTime(today);
+      last.feedbackDate = toIsoWithNowTime(today);
+      last.feedbackOutcome = FEEDBACK_OUTCOMES.APPROVED;
     }
   }
 
@@ -15519,13 +15862,13 @@ async function jumpToNextStage(styleId) {
   if (status.stage === 'DEV' || status.stage === 'AWAIT_FIT' ||
       status.stage === 'REVISE' || status.stage === 'PHOTO') {
     // 进入船版：新建一个 PROD cycle
-    s.cycles.push({ id: uid('c'), type: 'PROD', openDate: today });
+    s.cycles.push({ id: uid('c'), type: 'PROD', openDate: toIsoWithNowTime(today) });
   } else if (status.stage === 'PROD') {
     // 进入等大货：把已有 PROD cycle 标记完成（上面已处理）
     // 不需要再加 cycle
   }
 
-  saveState();
+  saveOneStyle(styleId);
   render();
   // 刷新抽屉
   if (state.selectedId === styleId) openDrawer(styleId);
@@ -15557,7 +15900,7 @@ function renderGrid(styles) {
   // 开发追踪：按阶段分组，每组里平铺
   const groups = {
     DEV: { label: '开发版', items: [] },
-    AWAIT_FIT: { label: '等 fit comment', items: [] },
+    AWAIT_FIT: { label: '已下PO·等回复', items: [] },
     REVISE: { label: '修改循环', items: [] },
     PROD: { label: '船版', items: [] }
   };
@@ -15590,7 +15933,7 @@ function renderGrid(styles) {
 
     html += `
       <div class="grid-stage-section ${collapsed ? 'collapsed' : ''}">
-        <div class="grid-stage-header collapsible-header" onclick="toggleSection('${sectionKey}')">
+        <div role="button" tabindex="0" class="grid-stage-header collapsible-header" onclick="toggleSection('${sectionKey}')">
           <span class="section-chevron">▼</span>
           <span class="stage-tag ${stageColorCls[stageKey]}">${escapeHtml(g.label)}</span>
           <span class="grid-stage-count">${g.items.length} 个款</span>
@@ -15615,7 +15958,7 @@ function renderGridCard(s, idx) {
   const selectedClass = state.keyboardSelectedIdx === idx ? 'keyboard-selected' : '';
 
   const thumb = s.imageUrl
-    ? `<img class="grid-card-img thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;grid-card-img-placeholder&quot;>NO IMG</div>'">`
+    ? `<img class="grid-card-img thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(s.imageUrl)}')" onerror="this.outerHTML='<div class=&quot;grid-card-img-placeholder&quot;>NO IMG</div>'">`
     : `<div class="grid-card-img-placeholder">NO IMG</div>`;
 
   let nodeNameCls = '';
@@ -15635,7 +15978,7 @@ function renderGridCard(s, idx) {
   const checked = state.batchSelected && state.batchSelected[s.id] ? 'checked' : '';
   const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
   return `
-    <div class="grid-card stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass} ${batchCls}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
+    <div role="button" tabindex="0" class="grid-card stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass} ${batchCls}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
       <input type="checkbox" class="batch-checkbox grid-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">
       <div class="grid-card-img-wrap">
         ${thumb}
@@ -15665,24 +16008,9 @@ function renderListByStage(styles) {
   // 顶层按月倒序；每月内按 4 个组拆子区块；组内按紧急度/用户排序
   // ============================================================
 
-  // 子组顺序与显示属性
-  const GROUP_ORDER = [
-    { key: 'WOVEN SEPARATE', label: 'WOVEN SEPARATE', cls: 'group-woven', shortLabel: 'WS' },
-    { key: 'PLUS',           label: 'PLUS',           cls: 'group-plus', shortLabel: 'PLUS' },
-    { key: 'DRESS',          label: 'DRESS',          cls: 'group-dress', shortLabel: 'DR' },
-    { key: 'PETITE/TALL',    label: 'PETITE/TALL',    cls: 'group-petite-tall', shortLabel: 'P/T' },
-    { key: '__OTHER__',      label: '未分组',         cls: '', shortLabel: '其他' },
-  ];
-
-  // 把 style 的 clientGroup 标准化成 GROUP_ORDER 里的 key
-  const normalizeGroup = (s) => {
-    const v = (s.clientGroup || '').trim().toUpperCase();
-    if (v === 'WOVEN SEPARATE') return 'WOVEN SEPARATE';
-    if (v === 'PLUS') return 'PLUS';
-    if (v === 'DRESS') return 'DRESS';
-    if (v === 'PETITE/TALL' || v === 'PETITE' || v === 'TALL') return 'PETITE/TALL';
-    return '__OTHER__';
-  };
+  // 使用模块顶部的共享 helper(CLIENT_GROUP_ORDER + normalizeClientGroup)
+  const GROUP_ORDER = CLIENT_GROUP_ORDER;
+  const normalizeGroup = normalizeClientGroup;
 
   // 把 openDate 转成 YYYY-MM
   const monthOf = (s) => {
@@ -15752,7 +16080,7 @@ function renderListByStage(styles) {
 
     html += `
       <div class="dev-month-section ${monthCollapsed ? 'collapsed' : ''}">
-        <div class="dev-month-header collapsible-header" onclick="toggleSection('${monthSectionKey}')">
+        <div role="button" tabindex="0" class="dev-month-header collapsible-header" onclick="toggleSection('${monthSectionKey}')">
           <span class="section-chevron">▼</span>
           <span class="dev-month-label">📅 ${formatMonthLabel(ym)}</span>
           <span class="dev-month-count">${m.total} 个款</span>
@@ -15776,7 +16104,7 @@ function renderListByStage(styles) {
 
       html += `
         <div class="dev-group-subsection ${groupCollapsed ? 'collapsed' : ''}">
-          <div class="dev-group-header collapsible-header" onclick="event.stopPropagation(); toggleSection('${groupSectionKey}')">
+          <div role="button" tabindex="0" class="dev-group-header collapsible-header" onclick="event.stopPropagation(); toggleSection('${groupSectionKey}')">
             <span class="section-chevron">▼</span>
             ${groupBadge}
             <span class="dev-group-count">${items.length} 个款</span>
@@ -15785,10 +16113,10 @@ function renderListByStage(styles) {
             <div class="style-list">
               <div class="list-header simplified">
                 <div></div>
-                <div class="sortable ${state.sortBy && state.sortBy.startsWith('sku') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('sku')">款号 <span class="sort-arrow">${state.sortBy === 'sku_asc' ? '↑' : state.sortBy === 'sku_desc' ? '↓' : '⇅'}</span></div>
+                <div role="button" tabindex="0" class="sortable ${state.sortBy && state.sortBy.startsWith('sku') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('sku')">款号 <span class="sort-arrow">${state.sortBy === 'sku_asc' ? '↑' : state.sortBy === 'sku_desc' ? '↓' : '⇅'}</span></div>
                 <div>客户</div>
                 <div>款名</div>
-                <div class="sortable ${state.sortBy && (state.sortBy === 'days_desc' || state.sortBy === 'days_asc') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('time')">当前进度 <span class="sort-arrow">${state.sortBy === 'days_desc' ? '↓ 久' : state.sortBy === 'days_asc' ? '↑ 新' : '⇅'}</span></div>
+                <div role="button" tabindex="0" class="sortable ${state.sortBy && (state.sortBy === 'days_desc' || state.sortBy === 'days_asc') ? 'active' : ''}" onclick="event.stopPropagation(); cycleSortBy('time')">当前进度 <span class="sort-arrow">${state.sortBy === 'days_desc' ? '↓ 久' : state.sortBy === 'days_asc' ? '↑ 新' : '⇅'}</span></div>
                 <div></div>
               </div>
               ${items.map(s => {
@@ -15817,7 +16145,7 @@ function renderSingleStyleRow(s, idx) {
   const recentClass = isRecentlyUpdated(s) ? 'recently-updated' : '';
   const selectedClass = state.keyboardSelectedIdx === idx ? 'keyboard-selected' : '';
   const thumb = s.imageUrl
-    ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
+    ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(s.imageUrl)}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
     : `<div class="thumb-placeholder">NO IMG</div>`;
 
   let nodeNameCls = '';
@@ -15849,7 +16177,7 @@ function renderSingleStyleRow(s, idx) {
   const specialNoteHtml = renderSpecialNoteTag(s);
   const sampleTypeBadgeHtml = renderSampleTypeBadge(s);
   return `
-    <div class="style-row simplified stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass} ${batchCls}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
+    <div role="button" tabindex="0" class="style-row simplified stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass} ${batchCls}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
       <input type="checkbox" class="batch-checkbox row-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">
       ${thumb}
       <div class="sku">${escapeHtml(s.sku)}${orderTypeHtml}</div>
@@ -15887,7 +16215,7 @@ function renderList(styles) {
     const recentClass = isRecentlyUpdated(s) ? 'recently-updated' : '';
     const selectedClass = state.keyboardSelectedIdx === idx ? 'keyboard-selected' : '';
     const thumb = s.imageUrl
-      ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
+      ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(s.imageUrl)}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
       : `<div class="thumb-placeholder">NO IMG</div>`;
 
     let nodeNameCls = '';
@@ -15912,7 +16240,7 @@ function renderList(styles) {
     }
 
     return `
-      <div class="style-row simplified stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
+      <div role="button" tabindex="0" class="style-row simplified stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
         ${thumb}
         <div class="sku">${escapeHtml(s.sku)}</div>
         <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
@@ -15967,7 +16295,7 @@ function renderBoard(styles) {
     { key: 'await_delivery', title: '等版房送样', match: (s, st) => st.currentNode === 'AWAIT_DELIVERY' },
     { key: 'sending', title: '待寄出', match: (s, st) => st.currentNode === 'AWAIT_SEND' },
     { key: 'await_fb', title: '等客户评语', match: (s, st) => st.currentNode === 'AWAIT_FB' && st.cycleType !== 'PHOTO' && st.cycleType !== 'PROD' },
-    { key: 'await_fit', title: '等 fit comment', match: (s, st) => st.currentNode === 'AWAIT_FIT' },
+    { key: 'await_fit', title: '已下PO·等回复', match: (s, st) => st.currentNode === 'AWAIT_FIT' },
     { key: 'await_review', title: '等图审', match: (s, st) => st.currentNode === 'AWAIT_FB' && st.cycleType === 'PHOTO' },
     { key: 'await_prod', title: '等船版批准', match: (s, st) => st.currentNode === 'AWAIT_FB' && st.cycleType === 'PROD' }
   ];
@@ -15996,7 +16324,7 @@ function renderBoardCard(s) {
   const status = getStyleStatus(s);
   const urgentClass = status.level === 'danger' ? 'urgent-danger' : status.level === 'warn' ? 'urgent-warn' : '';
   const thumb = s.imageUrl
-    ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
+    ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(s.imageUrl)}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
     : `<div class="thumb-placeholder">NO IMG</div>`;
   const startInfo = status.startDate ? `起 ${formatDate(status.startDate)}` : '';
   const daysText = `<span class="days-cell days-${status.level}" style="font-size:11px;"><span class="days-indicator"></span>${formatDaysText(status.days)}</span>`;
@@ -16009,7 +16337,7 @@ function renderBoardCard(s) {
   else if (status.stage === 'PROD' || status.stage === 'PROD_SHIPPING') stageTagCls = 'prod';
 
   return `
-    <div class="board-card stage-bg-${stageTagCls} ${urgentClass}" onclick="openDrawer('${s.id}')">
+    <div role="button" tabindex="0" class="board-card stage-bg-${stageTagCls} ${urgentClass}" onclick="openDrawer('${s.id}')">
       <span class="board-card-stage-pill ${pillCls}">${escapeHtml(status.stageLabel)}</span>
       <div class="board-card-top">
         ${thumb}
@@ -16140,7 +16468,7 @@ function renderProductionTab() {
     const collapsed = state.collapsedSections[sectionKey];
     return `
       <div class="production-group date-group ${dateCls} ${collapsed ? 'collapsed' : ''}" data-group-date="${escapeHtml(date)}">
-        <div class="production-group-header date-group-header collapsible-header" onclick="toggleSection('${sectionKey}')">
+        <div role="button" tabindex="0" class="production-group-header date-group-header collapsible-header" onclick="toggleSection('${sectionKey}')">
           <span class="section-chevron">▼</span>
           <span class="date-main">${escapeHtml(dateLabel)}</span>
           <span class="count">${groupRows.length} 个 PO</span>
@@ -16177,7 +16505,7 @@ function renderProductionTab() {
     const overdueCol = state.collapsedSections['prod_overdue'];
     html += `
       <div class="production-group date-group date-overdue ${overdueCol ? 'collapsed' : ''}">
-        <div class="production-group-header date-group-header collapsible-header" onclick="toggleSection('prod_overdue')">
+        <div role="button" tabindex="0" class="production-group-header date-group-header collapsible-header" onclick="toggleSection('prod_overdue')">
           <span class="section-chevron">▼</span>
           <span class="date-main">🔴 已过货期 · 立刻处理</span>
           <span class="count">${overdueRows.length} 个 PO</span>
@@ -16212,7 +16540,7 @@ function renderProductionTab() {
     const doneCol = state.collapsedSections['prod_done'];
     html += `
       <div class="production-group date-group date-done ${doneCol ? 'collapsed' : ''}">
-        <div class="production-group-header date-group-header collapsible-header" onclick="toggleSection('prod_done')">
+        <div role="button" tabindex="0" class="production-group-header date-group-header collapsible-header" onclick="toggleSection('prod_done')">
           <span class="section-chevron">▼</span>
           <span class="date-main">✅ 已批船版 · 等大货完成</span>
           <span class="count">${doneRows.length} 个 PO</span>
@@ -16356,7 +16684,7 @@ function renderProductionGrid() {
     const ymLabel = ym === '__no_date__' ? '未填写货期' : `${ym.slice(0,4)}年${parseInt(ym.slice(5))}月`;
 
     html += `<div class="prod-month-panel ${isThisMonth ? 'open' : ''}">`;
-    html += `<div class="prod-month-header" onclick="this.parentElement.classList.toggle('open')">`;
+    html += `<div role="button" tabindex="0" class="prod-month-header" onclick="this.parentElement.classList.toggle('open')">`;
     html += `<span class="prod-month-label">📅 ${escapeHtml(ymLabel)}</span>`;
     html += `<span class="prod-month-count">${totalPO} 个 PO</span>`;
     html += `<span class="prod-month-chevron">▼</span>`;
@@ -16611,7 +16939,7 @@ function renderProductionBoard() {
     const isSelected = state.selectedCalendarDate === item.dateKey;
 
     return `
-      <div class="busy-day-item urg-${item.urgCls} ${isSelected ? 'selected' : ''}" onclick="selectCalendarDate('${item.dateKey}')">
+      <div role="button" tabindex="0" class="busy-day-item urg-${item.urgCls} ${isSelected ? 'selected' : ''}" onclick="selectCalendarDate('${item.dateKey}')">
         <div class="busy-day-icon"></div>
         <div class="busy-day-info">
           <div class="busy-day-date">
@@ -16704,7 +17032,7 @@ function renderProductionBoard() {
     }
 
     html += `
-      <div class="${cellCls}" onclick="selectCalendarDate('${dateKey}')">
+      <div role="button" tabindex="0" class="${cellCls}" onclick="selectCalendarDate('${dateKey}')">
         <div class="cal-cell-header">
           <span class="cal-day-num">${dayNum}</span>
           ${rows.length > 0 ? `<span class="cal-day-count">${rows.length}</span>` : ''}
@@ -16787,7 +17115,7 @@ function renderProductionBoard() {
     const overdueCol = state.collapsedSections['cal_overdue'];
     html += `
       <div class="special-section overdue ${overdueCol ? 'collapsed' : ''}" style="margin-top:24px;">
-        <div class="month-header collapsible-header" onclick="toggleSection('cal_overdue')">
+        <div role="button" tabindex="0" class="month-header collapsible-header" onclick="toggleSection('cal_overdue')">
           <span class="section-chevron">▼</span>
           <div class="month-header-left">
             <div class="month-title">🔴 已过货期 · 立刻处理</div>
@@ -16807,7 +17135,7 @@ function renderProductionBoard() {
     const doneCol = state.collapsedSections['cal_done'];
     html += `
       <div class="special-section done ${doneCol ? 'collapsed' : ''}" style="margin-top:14px;">
-        <div class="month-header collapsible-header" onclick="toggleSection('cal_done')">
+        <div role="button" tabindex="0" class="month-header collapsible-header" onclick="toggleSection('cal_done')">
           <span class="section-chevron">▼</span>
           <div class="month-header-left">
             <div class="month-title">✅ 已批船版 · 等大货完成</div>
@@ -16881,7 +17209,7 @@ function renderCalendarDetailItem(s, po) {
   const status = getStyleStatus(s);
 
   const thumb = s.imageUrl
-    ? `<img class="cal-detail-thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;cal-detail-thumb-placeholder&quot;>NO</div>'">`
+    ? `<img class="cal-detail-thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(s.imageUrl)}')" onerror="this.outerHTML='<div class=&quot;cal-detail-thumb-placeholder&quot;>NO</div>'">`
     : `<div class="cal-detail-thumb-placeholder">NO</div>`;
 
   let nodeCls = '';
@@ -16895,7 +17223,7 @@ function renderCalendarDetailItem(s, po) {
   const doneTag = (s.prodReceived && s.prodReceived.date) ? '<span class="cal-detail-done-tag">✓ 大货已到仓</span>' : '';
 
   return `
-    <div class="cal-detail-item" onclick="openDrawer('${s.id}')">
+    <div role="button" tabindex="0" class="cal-detail-item" onclick="openDrawer('${s.id}')">
       ${thumb}
       <div class="cal-detail-item-info">
         <div class="cal-detail-item-row1">
@@ -16922,7 +17250,7 @@ function renderCompactPORow(s, po) {
   const status = getStyleStatus(s);
 
   const thumb = s.imageUrl
-    ? `<img class="thumb-tiny thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-tiny-placeholder&quot;>NO</div>'">`
+    ? `<img class="thumb-tiny thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(s.imageUrl)}')" onerror="this.outerHTML='<div class=&quot;thumb-tiny-placeholder&quot;>NO</div>'">`
     : `<div class="thumb-tiny-placeholder">NO</div>`;
 
   let nodeCls = '';
@@ -16936,7 +17264,7 @@ function renderCompactPORow(s, po) {
   const doneTag = (s.prodReceived && s.prodReceived.date) ? ' <span style="color:var(--ok);font-weight:600;">✓ 到仓</span>' : '';
 
   return `
-    <div class="compact-po-row" onclick="openDrawer('${s.id}')">
+    <div role="button" tabindex="0" class="compact-po-row" onclick="openDrawer('${s.id}')">
       ${thumb}
       <div class="compact-sku">${escapeHtml(s.sku)}</div>
       <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
@@ -16989,7 +17317,7 @@ function renderProductionBoardCard(s, po) {
   else if (status.stage === 'DONE') stageTagCls = 'done';
 
   const thumb = s.imageUrl
-    ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
+    ? `<img class="thumb thumb-zoomable" src="${escapeHtml(s.imageUrl)}" alt="" ondblclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(s.imageUrl)}')" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
     : `<div class="thumb-placeholder">NO IMG</div>`;
 
   let nodeInfoCls = '';
@@ -17010,7 +17338,7 @@ function renderProductionBoardCard(s, po) {
                        : status.stageLabel;
 
   return `
-    <div class="prod-board-card stage-bg-${stageTagCls}" onclick="openDrawer('${s.id}')">
+    <div role="button" tabindex="0" class="prod-board-card stage-bg-${stageTagCls}" onclick="openDrawer('${s.id}')">
       <span class="prod-board-card-stage-pill stage-tag ${stageTagCls}">${escapeHtml(stageLabelText)}</span>
       <div class="prod-board-card-top">
         ${thumb}
@@ -17040,7 +17368,7 @@ function renderProductionRow(s, po) {
 
   const prodCycle = s.cycles.find(c => c.type === 'PROD');
   const hasProdSent = prodCycle && prodCycle.sentDate;
-  const hasProdApproved = prodCycle && prodCycle.feedbackOutcome === 'APPROVED';
+  const hasProdApproved = prodCycle && prodCycle.feedbackOutcome === FEEDBACK_OUTCOMES.APPROVED;
 
   let alertLevel = 'ok';
   if (daysToEF < 0) alertLevel = 'danger';
@@ -17092,7 +17420,7 @@ function renderProductionRow(s, po) {
   // 缩略图:优先用 PO 图,退回款式图
   const imgSrc = po.image || s.imageUrl || '';
   const thumbHtml = imgSrc
-    ? `<img class="prod-row-thumb" src="${escapeHtml(imgSrc)}" alt="" onclick="event.stopPropagation(); openImageViewer('${escapeHtml(imgSrc).replace(/'/g, "\\'")}')" title="点击放大" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
+    ? `<img class="prod-row-thumb" src="${escapeHtml(imgSrc)}" alt="" onclick="event.stopPropagation(); openImageViewer('${escapeJsAttr(imgSrc)}')" title="点击放大" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;>NO IMG</div>'">`
     : `<div class="thumb-placeholder">NO IMG</div>`;
 
   // 新单/反单徽章
@@ -17106,7 +17434,7 @@ function renderProductionRow(s, po) {
   const poNumCell = `<div class="po-num">${escapeHtml(po.poNumber || '—')}</div>`;
 
   return `
-    <div class="production-row with-node stage-bg-${stageTagCls} ${urgentClass} ${poSelCls}" data-po-id="${po.id}" data-style-id="${s.id}" onclick="handleProdRowClick(event, '${s.id}', '${po.id}')">
+    <div role="button" tabindex="0" class="production-row with-node stage-bg-${stageTagCls} ${urgentClass} ${poSelCls}" data-po-id="${po.id}" data-style-id="${s.id}" onclick="handleProdRowClick(event, '${s.id}', '${po.id}')">
       <input type="checkbox" class="batch-checkbox prod-row-checkbox" ${poSel} onclick="togglePoBatchSelection('${po.id}', '${s.id}', this.checked); event.stopPropagation();" title="选择此 PO">
       ${thumbHtml}
       <div class="po-cell">${poNumCell}</div>
@@ -17329,7 +17657,7 @@ function openDrawer(id) {
     <div class="drawer-body">
       <div class="detail-top-section">
         ${s.imageUrl
-          ? `<div><img class="detail-image-mini" src="${escapeHtml(s.imageUrl)}" alt="" onclick="openImageViewer('${escapeHtml(s.imageUrl).replace(/'/g, "\\'")}')"><button class="image-change-mini-btn" onclick="openImageModal('${s.id}')">更换图片</button></div>`
+          ? `<div><img class="detail-image-mini" src="${escapeHtml(s.imageUrl)}" alt="" onclick="openImageViewer('${escapeJsAttr(s.imageUrl)}')"><button class="image-change-mini-btn" onclick="openImageModal('${s.id}')">更换图片</button></div>`
           : `<div><div class="detail-image-mini-placeholder">无图片</div><button class="image-change-mini-btn" onclick="openImageModal('${s.id}')">上传图片</button></div>`
         }
         <div class="detail-meta-strip">
@@ -17395,7 +17723,7 @@ function openDrawer(id) {
           const earliest = getEarliestOpenDate(s);
           if (!earliest) return '';
           const totalDays = daysSince(earliest);
-          return `<span class="dev-since-tag"><span class="lbl">最初开版</span>${escapeHtml(earliest)} · 已 ${totalDays} 天</span>`;
+          return `<span class="dev-since-tag"><span class="lbl">最初开版</span>${escapeHtml(formatDateOnlyHuman(earliest))} · 已 ${totalDays} 天</span>`;
         })()}
       </div>
       <div style="margin-bottom:16px;">${renderStageBar(s)}</div>
@@ -17422,7 +17750,7 @@ function openDrawer(id) {
             </div>
             <div class="meta-item">
               <div class="label">起始日期</div>
-              <div class="value">${status.startDate ? escapeHtml(status.startDate) : '—'}</div>
+              <div class="value">${status.startDate ? escapeHtml(formatDateOnlyHuman(status.startDate)) : '—'}</div>
             </div>
             <div class="meta-item">
               <div class="label">停留天数</div>
@@ -17464,7 +17792,7 @@ async function markPackageDelivered(cycleId) {
   const cycle = style?.cycles?.find(c => c.id === cycleId);
   if (!cycle) return;
   cycle.shipActualArrival = todayStr();
-  saveState(); render(); openDrawer(style.id);
+  saveOneStyle(style.id); render(); openDrawer(style.id);
   showToast(`已标记签收：${todayStr()}`, 'ok');
 }
 function quickEditArrival(cycleId, event) {
@@ -17485,7 +17813,7 @@ function quickEditArrival(cycleId, event) {
     if (val === '') delete cycle.shipEstimatedArrival;
     else if (/^\d{4}-\d{2}-\d{2}$/.test(val)) cycle.shipEstimatedArrival = val;
     tmp.removeEventListener('change', save); tmp.remove();
-    saveState(); render(); openDrawer(style.id);
+    saveOneStyle(style.id); render(); openDrawer(style.id);
   };
   tmp.addEventListener('change', save);
   setTimeout(() => openDatePicker(tmp), 20);
@@ -17573,8 +17901,8 @@ function renderBigFlow(style) {
     // 快递单号 + 预计到达 + FedEx + 签收
     const trackBadge = n.tracking
       ? `<div class="big-flow-tracking-wrap">
-          <button class="big-flow-tracking" onclick="copyTrackingNo('${escapeHtml(n.tracking)}'); event.stopPropagation();" title="点击复制单号">✈ ${escapeHtml(n.tracking.length > 12 ? n.tracking.slice(0, 12) + '…' : n.tracking)}</button>
-          <button class="big-flow-fedex-btn" onclick="openFedExTracking('${escapeHtml(n.tracking)}'); event.stopPropagation();" title="FedEx 查件">📦</button>
+          <button class="big-flow-tracking" onclick="copyTrackingNo('${escapeJsAttr(n.tracking)}'); event.stopPropagation();" title="点击复制单号">✈ ${escapeHtml(n.tracking.length > 12 ? n.tracking.slice(0, 12) + '…' : n.tracking)}</button>
+          <button class="big-flow-fedex-btn" onclick="openFedExTracking('${escapeJsAttr(n.tracking)}'); event.stopPropagation();" title="FedEx 查件">📦</button>
           ${n.actualArrival ? `<span class="big-flow-arrival delivered" title="已签收">✅ ${formatDate(n.actualArrival)}</span>`
             : n.estArrival ? `<span class="big-flow-arrival" title="预计${formatDate(n.estArrival)}到达·点击修改" onclick="quickEditArrival('${n.cycleId}', event); event.stopPropagation();">📅 ${formatDate(n.estArrival)}</span><button class="big-flow-sign-btn" onclick="markPackageDelivered('${n.cycleId}'); event.stopPropagation();" title="标记已签收">✓ 签收</button>` : ''}
         </div>`
@@ -17653,11 +17981,11 @@ function renderStyleGallery(s) {
     const g = groups[key];
     html += `<div class="style-gallery-group open" data-cycle-type="${key}">`;
     html += '<div class="style-gallery-group-header">';
-    html += `<div class="grp-left" onclick="toggleGalleryGroup(this.closest('.style-gallery-group'))">`;
+    html += `<div role="button" tabindex="0" class="grp-left" onclick="toggleGalleryGroup(this.closest('.style-gallery-group'))">`;
     html += `<div class="grp-label">${g.label} · ${g.subLabel}<span class="grp-count">${g.photos.length}张</span></div>`;
     html += '<span class="grp-chevron">▶</span>';
     html += '</div>';
-    html += '<div class="grp-actions" onclick="event.stopPropagation()">';
+    html += '<div role="button" tabindex="0" class="grp-actions" onclick="event.stopPropagation()">';
     html += `<button class="grp-act-btn" onclick="toggleGroupSelect(this,'${key}')" title="全选/取消">`;
     html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg>';
     html += '</button>';
@@ -17685,7 +18013,7 @@ function renderStyleGallery(s) {
         html += '<div class="gallery-card-delete">';
         html += `<button class="gallery-delete-btn" onclick="deleteOnePhoto('${key}',${p.idx}); event.stopPropagation();" title="删除这张">×</button>`;
         html += '</div>';
-        html += `<div class="gallery-card-info" onclick="openImageViewer(${allSrcsJSON},${p.idx})">`;
+        html += `<div role="button" tabindex="0" class="gallery-card-info" onclick="openImageViewer(${allSrcsJSON},${p.idx})">`;
         html += `<div class="gallery-card-label">${escapeHtml(g.label)}</div>`;
         if (g.date) html += `<div class="gallery-card-date">${escapeHtml(g.date)}</div>`;
         html += '</div></div>';
@@ -17876,21 +18204,21 @@ function addPhotosToGalleryCycle(files, cycleType) {
   if (!s) return;
   const cycle = s.cycles?.find(c => c.type === cycleType);
   if (!cycle) return;
+  const imgs = Array.from(files).filter(f => f.type.startsWith('image/'));
   let loaded = 0;
-  Array.from(files).forEach(file => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (!cycle.receivedPhotos) cycle.receivedPhotos = [];
-      cycle.receivedPhotos.push(e.target.result);
-      loaded++;
-      if (loaded === files.length) {
-        saveState();
-        openDrawer(s.id);
-        showToast(`已上传 ${loaded} 张图片`, 'ok');
-      }
-    };
-    reader.readAsDataURL(file);
+  imgs.forEach(file => {
+    compressImage(file)
+      .then(dataUrl => uploadPhotoToStorage(dataUrl, 'cycle'))
+      .then(url => {
+        if (!cycle.receivedPhotos) cycle.receivedPhotos = [];
+        cycle.receivedPhotos.push(url);
+        loaded++;
+        if (loaded === imgs.length) {
+          saveOneStyle(s.id);
+          openDrawer(s.id);
+          showToast(`已上传 ${loaded} 张图片`, 'ok');
+        }
+      });
   });
 }
 
@@ -17941,7 +18269,7 @@ function renderEventLog(s) {
   });
   if (s.awaitingFit) {
     entries.push({ date: s.awaitingFit.since, cycleId: null, field: 'awaitingFit',
-      eventName: '等 fit comment 中', detail: '', cls: 'outcome-po' });
+      eventName: '已下PO·等回复 中', detail: '', cls: 'outcome-po' });
   }
   if (s.awaitingGrading) {
     entries.push({ date: s.awaitingGrading.since, cycleId: null, field: 'awaitingGrading',
@@ -17961,8 +18289,8 @@ function renderEventLog(s) {
     const isLast = idx === isLastIdx;
     return `
       <div class="log-entry ${e.cls} ${isLast ? 'active' : ''}">
-        <div class="log-date">${e.date}</div>
-        <div class="log-content" onclick="openEditLogModal('${s.id}', '${e.cycleId || ''}', '${e.field}')">
+        <div class="log-date">${formatDateTime(e.date)}</div>
+        <div role="button" tabindex="0" class="log-content" onclick="openEditLogModal('${s.id}', '${e.cycleId || ''}', '${e.field}')">
           <div class="event-name">${escapeHtml(e.eventName)}</div>
           ${e.detail ? `<div class="event-detail">${escapeHtml(e.detail)}</div>` : ''}
         </div>
@@ -17992,15 +18320,15 @@ function renderNotesSection(s) {
     return `
       <div class="notes-section">
         <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:8px;">备注 / 跟进记录</div>
-        <div class="notes-display" onclick="startEditNotes('${s.id}')">${escapeHtml(s.notes)}</div>
-        <div class="notes-edit-btn" onclick="startEditNotes('${s.id}')">✎ 编辑</div>
+        <div role="button" tabindex="0" class="notes-display" onclick="startEditNotes('${s.id}')">${escapeHtml(s.notes)}</div>
+        <div role="button" tabindex="0" class="notes-edit-btn" onclick="startEditNotes('${s.id}')">✎ 编辑</div>
       </div>
     `;
   }
   return `
     <div class="notes-section">
       <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:8px;">备注 / 跟进记录</div>
-      <div class="notes-empty" onclick="startEditNotes('${s.id}')">+ 点击添加备注</div>
+      <div role="button" tabindex="0" class="notes-empty" onclick="startEditNotes('${s.id}')">+ 点击添加备注</div>
     </div>
   `;
 }
@@ -18018,7 +18346,7 @@ function saveNotes(id) {
   const s = state.styles.find(x => x.id === id);
   s.notes = document.getElementById('notes-textarea').value.trim();
   delete s._editingNotes;
-  saveState(); render(); openDrawer(id);
+  saveOneStyle(id); render(); openDrawer(id);
 }
 function cancelEditNotes(id) {
   const s = state.styles.find(x => x.id === id);
@@ -18039,7 +18367,7 @@ function markFollowUp(id) {
   s.lastChasedDate = today;
   // 清除旧的 snooze 字段（兼容旧数据）
   if (s.snoozedUntil) delete s.snoozedUntil;
-  saveState(); render(); openDrawer(id);
+  saveOneStyle(id); render(); openDrawer(id);
 }
 
 // 登记面料已备齐
@@ -18054,7 +18382,7 @@ function markFabricSourced(styleId, cycleId) {
   document.getElementById('updateBody').innerHTML = `
     <div class="batch-modal">
       <div class="batch-modal-field">
-        <label class="batch-modal-field-label">面料备齐日期</label>
+        <label for="fabric-sourced-date" class="batch-modal-field-label">面料备齐日期</label>
         <input type="date" id="fabric-sourced-date" value="${todayStr()}">
       </div>
       <div style="font-size:12px;color:var(--ink-mute);padding:0 2px;">
@@ -18115,7 +18443,7 @@ function openReworkModal(styleId, cycleId) {
       </div>
     </div>
     <div class="rework-modal-section">
-      <label>备注（可选）</label>
+      <label for="rework-note">备注（可选）</label>
       <textarea id="rework-note" placeholder="例如：袖长短了 1cm，腰围放出 2cm，扣眼位置不对…"></textarea>
     </div>
   `;
@@ -18259,7 +18587,7 @@ function saveFabricSourced() {
   if (!s) return;
   const cycle = s.cycles?.find(c => c.id === cycleId);
   if (!cycle) return;
-  cycle.fabricSourcedDate = date;
+  cycle.fabricSourcedDate = toIsoWithNowTime(date);
   closeUpdateModal();
   saveOneStyle(s.id);
   render();
@@ -18289,7 +18617,7 @@ function markPatternMakerDone(styleId, cycleId) {
   const html = `
     <div style="padding: 20px;">
       <div style="margin-bottom: 16px;">
-        <label style="display: block; margin-bottom: 8px; font-weight: 500;">版师打完时间</label>
+        <label for="pm-done-date" style="display: block; margin-bottom: 8px; font-weight: 500;">版师打完时间</label>
         <input type="date" id="pm-done-date" value="${defaultDate}" 
                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
       </div>
@@ -18336,7 +18664,7 @@ function saveUpdate() {
     const styleId = state.modalContext.styleId;
     const cycleId = state.modalContext.cycleId;
     cycle.patternMakerDone = true;
-    cycle.patternMakerDoneDate = doneDate;
+    cycle.patternMakerDoneDate = toIsoWithNowTime(doneDate);
     closeUpdateModal();
     saveOneStyle(s.id);
     render();
@@ -18369,16 +18697,16 @@ function confirmPatternMakerDone(styleId, cycleId) {
   if (!cycle) return;
   
   cycle.patternMakerDone = true;
-  cycle.patternMakerDoneDate = doneDate;
+  cycle.patternMakerDoneDate = toIsoWithNowTime(doneDate);
   closeUpdateModal();
-  saveState(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); render(); openDrawer(styleId);
   showUndoToast(`✓ 版师 ${doneDate} 打完 · 进入等面料`, () => {
     const s2 = state.styles.find(x => x.id === styleId);
     const c2 = s2?.cycles?.find(c => c.id === cycleId);
     if (c2) {
       c2.patternMakerDone = false;
       c2.patternMakerDoneDate = null;
-      saveState(); render(); openDrawer(styleId);
+      saveOneStyle(styleId); render(); openDrawer(styleId);
       showToast('已撤销·回到版师阶段', 'ok');
     }
   });
@@ -18392,7 +18720,7 @@ function undoPatternMakerDone(styleId, cycleId) {
   if (!cycle) return;
   cycle.patternMakerDone = false;
   cycle.patternMakerDoneDate = null;
-  saveState(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); render(); openDrawer(styleId);
   showToast('已撤销·回到版师待办', 'ok');
 }
 
@@ -18416,13 +18744,13 @@ function markGradingDone(styleId) {
   const newCycle = {
     id: uid('c'),
     type: 'PROD',
-    openDate: date,
+    openDate: toIsoWithNowTime(date),
     patternMakerDone: true,
-    patternMakerDoneDate: date,
+    patternMakerDoneDate: toIsoWithNowTime(date),
     _fromGrading: snapshot || { since: date }
   };
   s.cycles.push(newCycle);
-  saveState();
+  saveOneStyle(styleId);
   render();
   openDrawer(styleId);
   showUndoToast(`✓ 放码完成 · 进入等面料备齐`, () => {
@@ -18430,7 +18758,7 @@ function markGradingDone(styleId) {
     if (!s2) return;
     if (snapshot) s2.awaitingGrading = snapshot;
     s2.cycles = s2.cycles.filter(c => c.id !== newCycle.id);
-    saveState();
+    saveOneStyle(styleId);
     render();
     openDrawer(styleId);
     showToast('已撤销·回到等放码', 'ok');
@@ -18441,7 +18769,7 @@ function markGradingDone(styleId) {
 function unsnooze(id) {
   const s = state.styles.find(x => x.id === id);
   delete s.snoozedUntil;
-  saveState(); render(); openDrawer(id);
+  saveOneStyle(id); render(); openDrawer(id);
 }
 
 // =============================================================
@@ -18833,7 +19161,7 @@ function openHaveSampleQuickModal() {
         ? `<img class="thumb" src="${escapeHtml(s.imageUrl)}" alt="" onerror="this.outerHTML='<div class=&quot;thumb-placeholder&quot;></div>'">`
         : `<div class="thumb-placeholder"></div>`;
       return `
-        <div class="have-sample-result-item" onclick="haveSamplePickStyle('${s.id}', '${lastCycle ? lastCycle.id : ''}')">
+        <div role="button" tabindex="0" class="have-sample-result-item" onclick="haveSamplePickStyle('${s.id}', '${lastCycle ? lastCycle.id : ''}')">
           ${thumb}
           <div class="info">
             <div class="sku">${escapeHtml(s.sku)}</div>
@@ -18948,11 +19276,11 @@ function addPOWithoutStyle() {
     <p style="font-size:12px;color:var(--ink-mute);margin-bottom:8px;">将自动创建一个款式来挂载此 PO，稍后可以补充款名和图片。</p>
     <div class="form-row">
       <div class="form-field">
-        <label>PO 号</label>
+        <label for="ap-po-num">PO 号</label>
         <input type="text" id="ap-po-num" placeholder="如 BPO-2024-1188">
       </div>
       <div class="form-field">
-        <label>客户</label>
+        <label for="ap-client">客户</label>
         <select id="ap-client">
           <option value="BOOHOO">Boohoo</option>
           <option value="PLT">PLT</option>
@@ -18986,7 +19314,7 @@ function addPOWithoutStyle() {
         <input type="date" id="ap-ef">
       </div>
       <div class="form-field">
-        <label>订单类型</label>
+        <label for="ap-order-type">订单类型</label>
         <select id="ap-order-type">
           <option value="">— 不指定 —</option>
           <option value="new">新单</option>
@@ -18996,7 +19324,7 @@ function addPOWithoutStyle() {
     </div>
     <div class="form-row">
       <div class="form-field">
-        <label>运输方式</label>
+        <label for="ap-ship-method">运输方式</label>
         <select id="ap-ship-method">
           <option value="">— 不指定 —</option>
           <option value="air">✈️ 空运</option>
@@ -19004,7 +19332,7 @@ function addPOWithoutStyle() {
         </select>
       </div>
       <div class="form-field">
-        <label>工厂</label>
+        <label for="ap-factory">工厂</label>
         <select id="ap-factory">
           <option value="">— 不指定 —</option>
           <option value="HUBEI">湖北</option>
@@ -19069,25 +19397,20 @@ function saveNewPOWithoutStyle() {
     createdAt: new Date().toISOString(),
     cycles: [(() => {
       const openDate = todayStr();
-      if (isRepeat && client === 'BOOHOO') {
-        // Boohoo 反单：直接完成 PROD cycle，进入等大货
-        return { id: uid('c'), type: 'PROD', openDate, receivedDate: openDate, sentDate: openDate, feedbackDate: openDate, feedbackOutcome: 'APPROVED' };
-      } else if (isRepeat) {
-        // PLT 反单：需要船版流程
-        return { id: uid('c'), type: 'PROD', openDate };
-      } else {
-        return { id: uid('c'), type: 'DEV', openDate };
+      if (isRepeat) {
+        // 反单:按 REPEAT_ORDER_RULES 决定是否需要寄船版
+        return buildRepeatCycle(client, openDate);
       }
+      return { id: uid('c'), type: 'DEV', openDate };
     })()],
     pos: [newPO]
   });
-  saveState();
+  saveOneStyle(newId);
   closeUpdateModal();
   render();
-  if (isRepeat && client === 'BOOHOO') {
-    showToast(`Boohoo 反单 ${autoSku} · 直接等大货`, 'ok');
-  } else if (isRepeat) {
-    showToast(`PLT 反单 ${autoSku} · 进入船版阶段`, 'ok');
+  if (isRepeat) {
+    const rule = getRepeatRule(client);
+    showToast(`${rule.name} 反单 ${autoSku} · ${rule.stageHint}`, 'ok');
   } else {
     showToast(`已创建款式 ${autoSku} 并添加 PO`, 'ok');
   }
@@ -19109,7 +19432,7 @@ function openAddPOFromTopModal() {
       ? `<img src="${escapeHtml(s.imageUrl)}" alt="">`
       : `<div class="po-style-pick-thumb-placeholder">NO</div>`;
     return `
-      <div class="po-style-pick-item" onclick="selectStyleForNewPO('${s.id}')">
+      <div role="button" tabindex="0" class="po-style-pick-item" onclick="selectStyleForNewPO('${s.id}')">
         ${thumb}
         <div class="po-style-pick-info">
           <div class="po-style-pick-row1">
@@ -19125,15 +19448,15 @@ function openAddPOFromTopModal() {
 
   document.getElementById('updateBody').innerHTML = `
     <div class="form-field">
-      <label>选择款式 / 创建新款</label>
+      <label for="addPoStyleSearch">选择款式 / 创建新款</label>
       <input type="text" id="addPoStyleSearch" placeholder="按款号 / 款名搜索…" oninput="filterAddPoStyles()">
     </div>
     <div class="po-style-pick-list" id="poStylePickList">
-      <div class="po-style-pick-create-new" onclick="addPOWithoutStyle()">
+      <div role="button" tabindex="0" class="po-style-pick-create-new" onclick="addPOWithoutStyle()">
         <span class="icon" style="font-size:16px;">📦</span>
         <span>直接添加 PO（自动创建款式）</span>
       </div>
-      <div class="po-style-pick-create-new" onclick="createNewStyleForPO()">
+      <div role="button" tabindex="0" class="po-style-pick-create-new" onclick="createNewStyleForPO()">
         <span class="icon">+</span>
         <span>创建全新款式</span>
       </div>
@@ -19164,7 +19487,7 @@ function selectStyleForNewPO(styleId) {
   document.getElementById('updateBody').innerHTML = `
     <div class="form-row">
       <div class="form-field">
-        <label>PO 号</label>
+        <label for="ap-po-num">PO 号</label>
         <input type="text" id="ap-po-num" placeholder="如 BPO-2024-1188">
       </div>
       <div class="form-field">
@@ -19193,7 +19516,7 @@ function selectStyleForNewPO(styleId) {
       </div>
     </div>
     <div class="form-field">
-      <label>订单类型</label>
+      <label for="ap-order-type">订单类型</label>
       <select id="ap-order-type">
         <option value="">— 不指定 —</option>
         <option value="new">新单</option>
@@ -19202,7 +19525,7 @@ function selectStyleForNewPO(styleId) {
     </div>
     <div class="form-row">
       <div class="form-field">
-        <label>运输方式</label>
+        <label for="ap-ship-method">运输方式</label>
         <select id="ap-ship-method">
           <option value="">— 不指定 —</option>
           <option value="air">✈️ 空运</option>
@@ -19210,7 +19533,7 @@ function selectStyleForNewPO(styleId) {
         </select>
       </div>
       <div class="form-field">
-        <label>工厂</label>
+        <label for="ap-factory">工厂</label>
         <select id="ap-factory">
           <option value="">— 不指定 —</option>
           <option value="HUBEI">湖北</option>
@@ -19263,7 +19586,7 @@ function saveNewPOFromTop() {
   if (!s.pos) s.pos = [];
   s.pos.push(newPO);
   state.pendingPOImage = null;
-  saveState();
+  saveOneStyle(styleId);
   closeUpdateModal();
   // 如果当前抽屉打开着这个款，刷新抽屉
   if (state.drawerStyleId === styleId) {
@@ -19286,11 +19609,11 @@ function openEditInfoModal(styleId) {
   document.getElementById('updateBody').innerHTML = `
     <div class="form-row">
       <div class="form-field">
-        <label>款号 SKU</label>
+        <label for="ei-sku">款号 SKU</label>
         <input type="text" id="ei-sku" value="${escapeHtml(s.sku)}">
       </div>
       <div class="form-field">
-        <label>客户</label>
+        <label for="ei-client">客户</label>
         <select id="ei-client">
           <option value="BOOHOO" ${s.client === 'BOOHOO' ? 'selected' : ''}>Boohoo</option>
           <option value="PLT" ${s.client === 'PLT' ? 'selected' : ''}>PLT</option>
@@ -19299,7 +19622,7 @@ function openEditInfoModal(styleId) {
       </div>
     </div>
     <div class="form-field">
-      <label>款名</label>
+      <label for="ei-name">款名</label>
       <input type="text" id="ei-name" value="${escapeHtml(s.name)}">
     </div>
     <div class="form-row">
@@ -19313,13 +19636,13 @@ function openEditInfoModal(styleId) {
         </select>
       </div>
       <div class="form-field">
-        <label>描述</label>
+        <label for="ei-desc">描述</label>
         <input type="text" id="ei-desc" value="${escapeHtml(s.description || '')}" placeholder="面料、工艺、特殊要求">
       </div>
     </div>
     <div class="form-row">
       <div class="form-field">
-        <label>跟单员</label>
+        <label for="ei-owner">跟单员</label>
         <select id="ei-owner">
           <option value="" ${!s.owner ? 'selected' : ''}>— 不指定 —</option>
           <option value="PETER" ${s.owner === 'PETER' ? 'selected' : ''}>PETER</option>
@@ -19327,7 +19650,7 @@ function openEditInfoModal(styleId) {
         </select>
       </div>
       <div class="form-field">
-        <label>最初开版日期</label>
+        <label for="ei-open-date">最初开版日期</label>
         <input type="date" id="ei-open-date" value="${earliest}">
       </div>
     </div>
@@ -19401,7 +19724,8 @@ function saveEditInfo() {
   s.clientGroup = clientGroup || '';
   s.buyerName = buyerName || '';
   s.factory = factory || '';
-  // 同步更新最早 cycle 的 openDate
+  // 同步更新最早 cycle 的 openDate(仅当用户**实际改了**日期才动)
+  // 否则保留原 ISO timestamp 不变 — 编辑款式其他字段不该污染开版时间
   if (openDate && s.cycles && s.cycles.length > 0) {
     let earliestCycle = s.cycles[0];
     s.cycles.forEach(c => {
@@ -19409,7 +19733,12 @@ function saveEditInfo() {
         earliestCycle = c;
       }
     });
-    earliestCycle.openDate = openDate;
+    const oldDateOnly = (earliestCycle.openDate || '').slice(0, 10);
+    if (openDate !== oldDateOnly) {
+      // 用户真的改了日期 → 用 updateIsoDate 替换日期部分,保留原 ISO 的时分
+      earliestCycle.openDate = updateIsoDate(earliestCycle.openDate, openDate);
+    }
+    // 否则:openDate === oldDateOnly,用户没动,保留原 ISO 不变
   }
   saveOneStyle(styleId); closeUpdateModal(); render(); openDrawer(styleId);
 }
@@ -19485,7 +19814,7 @@ function openCycleStepModal(styleId, cycleId, field) {
 
   document.getElementById('updateBody').innerHTML = `
     <div class="form-field">
-      <label>日期</label>
+      <label for="u-date">日期</label>
       <input type="date" id="u-date" value="${todayStr()}">
     </div>
     ${extraFields}
@@ -19523,12 +19852,19 @@ function bindCyclePhotoUploader(cycle) {
     const imgs = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (imgs.length === 0) { showToast('只支持图片文件', 'error'); return; }
     let loaded = 0;
+    showToast(`上传中 0/${imgs.length}...`, 'ok');
     imgs.forEach(file => {
-      compressImage(file).then(dataUrl => {
-        state.pendingCyclePhotos.push(dataUrl);
-        loaded++;
-        if (loaded === imgs.length) refreshCyclePhotoPreview();
-      });
+      compressImage(file)
+        .then(dataUrl => uploadPhotoToStorage(dataUrl, 'cycle'))
+        .then(url => {
+          state.pendingCyclePhotos.push(url);
+          loaded++;
+          if (loaded < imgs.length) showToast(`上传中 ${loaded}/${imgs.length}...`, 'ok');
+          if (loaded === imgs.length) {
+            refreshCyclePhotoPreview();
+            showToast(`已上传 ${loaded} 张照片`, 'ok');
+          }
+        });
     });
   };
   const refreshCyclePhotoPreview = () => {
@@ -19599,7 +19935,7 @@ function saveCycleStep() {
   }
 
   if (field === 'received') {
-    cycle.receivedDate = date;
+    cycle.receivedDate = toIsoWithNowTime(date);
     // 不清 patternMakerDone — 保留它作为完整日志/流程线上永久的时间线事件
     if (state.pendingCyclePhotos && state.pendingCyclePhotos.length > 0) {
       cycle.receivedPhotos = [...state.pendingCyclePhotos];
@@ -19608,7 +19944,7 @@ function saveCycleStep() {
     }
   }
   else if (field === 'sent') {
-    cycle.sentDate = date;
+    cycle.sentDate = toIsoWithNowTime(date);
     if (cycle.type !== 'PHOTO') {
       const trackInput = document.getElementById('u-tracking');
       const arrivalInput = document.getElementById('u-arrival');
@@ -19697,7 +20033,7 @@ function openFeedbackModal(styleId, cycleId) {
     title.textContent = `登记 · ${CYCLE_TYPES[cycle.type].label} · 客户评语`;
     body.innerHTML = `
       <div class="form-field">
-        <label>客户反馈日期</label>
+        <label for="u-date">客户反馈日期</label>
         <input type="date" id="u-date" value="${todayStr()}">
       </div>
       <div class="form-field">
@@ -19733,7 +20069,7 @@ function openFeedbackModal(styleId, cycleId) {
         </div>
       </div>
       <div class="form-field">
-        <label>客户评语 / 修改要点（选填，板师可见）</label>
+        <label for="u-feedback-note">客户评语 / 修改要点（选填，板师可见）</label>
         <textarea id="u-feedback-note" placeholder="比如：袖口收紧 1cm，下摆开叉 5cm" style="width:100%;min-height:60px;background:var(--bg);border:1px solid var(--line-strong);padding:9px 11px;font-family:var(--font-sans);font-size:13px;color:var(--ink);border-radius: 5px;outline:none;resize:vertical;"></textarea>
       </div>
       ${cycle.type === 'DEV' && (!s.pos || s.pos.length === 0) ? `
@@ -19789,7 +20125,7 @@ function openFeedbackModal(styleId, cycleId) {
     title.textContent = '登记 · 图审结果';
     body.innerHTML = `
       <div class="form-field">
-        <label>图审反馈日期</label>
+        <label for="u-date">图审反馈日期</label>
         <input type="date" id="u-date" value="${todayStr()}">
       </div>
       <div class="form-field">
@@ -19813,7 +20149,7 @@ function openFeedbackModal(styleId, cycleId) {
         </div>
       </div>
       <div class="form-field">
-        <label>评语 / 修改要点（选填）</label>
+        <label for="u-feedback-note">评语 / 修改要点（选填）</label>
         <textarea id="u-feedback-note" placeholder="" style="width:100%;min-height:60px;background:var(--bg);border:1px solid var(--line-strong);padding:9px 11px;font-family:var(--font-sans);font-size:13px;color:var(--ink);border-radius: 5px;outline:none;resize:vertical;"></textarea>
       </div>
     `;
@@ -19821,7 +20157,7 @@ function openFeedbackModal(styleId, cycleId) {
     title.textContent = '登记 · 船版审批结果';
     body.innerHTML = `
       <div class="form-field">
-        <label>反馈日期</label>
+        <label for="u-date">反馈日期</label>
         <input type="date" id="u-date" value="${todayStr()}">
       </div>
       <div class="form-field">
@@ -19840,7 +20176,7 @@ function openFeedbackModal(styleId, cycleId) {
         </div>
       </div>
       <div class="form-field">
-        <label>评语（选填）</label>
+        <label for="u-feedback-note">评语（选填）</label>
         <textarea id="u-feedback-note" placeholder="" style="width:100%;min-height:60px;background:var(--bg);border:1px solid var(--line-strong);padding:9px 11px;font-family:var(--font-sans);font-size:13px;color:var(--ink);border-radius: 5px;outline:none;resize:vertical;"></textarea>
       </div>
     `;
@@ -19856,7 +20192,7 @@ function updateFBPOFieldsVisibility() {
   const outcome = document.querySelector('input[name="u-outcome"]:checked')?.value;
   const poSection = document.getElementById('po-fields-section');
   if (!poSection) return;
-  poSection.style.display = (outcome === 'ARCHIVED') ? 'none' : 'block';
+  poSection.style.display = (outcome === FEEDBACK_OUTCOMES.ARCHIVED) ? 'none' : 'block';
 }
 
 function addPORow() {
@@ -19885,7 +20221,7 @@ async function saveFeedback() {
 
   // 如果选了"未采用"（ARCHIVED），先让用户选归档原因
   let archiveResult = null;
-  if (outcome === 'ARCHIVED') {
+  if (outcome === FEEDBACK_OUTCOMES.ARCHIVED) {
     archiveResult = await pickArchiveReasonDialog({
       title: '归档此款',
       message: `将"${s.sku}"归档到历史档案。请选择原因，方便日后回查。`
@@ -19893,7 +20229,7 @@ async function saveFeedback() {
     if (!archiveResult) return;  // 用户取消
   }
 
-  cycle.feedbackDate = date;
+  cycle.feedbackDate = toIsoWithNowTime(date);
   cycle.feedbackOutcome = outcome;
   const noteEl = document.getElementById('u-feedback-note');
   if (noteEl && noteEl.value.trim()) cycle.feedbackNote = noteEl.value.trim();
@@ -19928,7 +20264,7 @@ async function saveFeedback() {
     s.pos = newPos;
   }
 
-  if (outcome === 'ARCHIVED') {
+  if (outcome === FEEDBACK_OUTCOMES.ARCHIVED) {
     s.archived = true;
     s.archivedDate = date;
     if (archiveResult) {
@@ -19936,23 +20272,23 @@ async function saveFeedback() {
       if (archiveResult.note) s.archiveNote = archiveResult.note;
     }
   }
-  else if (outcome === 'PO_AWAIT_FIT') { s.awaitingFit = { since: date }; }
-  else if (outcome === 'PO_REVISE') { s.cycles.push({ id: uid('c'), type: 'REVISE', openDate: date }); }
-  else if (outcome === 'PO_PHOTO') { s.cycles.push({ id: uid('c'), type: 'PHOTO', openDate: date }); }
-  else if (outcome === 'PO_PROD') {
+  else if (outcome === FEEDBACK_OUTCOMES.PO_AWAIT_FIT) { s.awaitingFit = { since: date }; }
+  else if (outcome === FEEDBACK_OUTCOMES.PO_REVISE) { s.cycles.push({ id: uid('c'), type: 'REVISE', openDate: toIsoWithNowTime(date) }); }
+  else if (outcome === FEEDBACK_OUTCOMES.PO_PHOTO) { s.cycles.push({ id: uid('c'), type: 'PHOTO', openDate: toIsoWithNowTime(date) }); }
+  else if (outcome === FEEDBACK_OUTCOMES.PO_PROD) {
     // approve · 可安排大货 → 进入「等版师放码」中间状态（不立刻 push PROD cycle）
     // 版师点「✓ 放完码」后才 push PROD cycle
     s.awaitingGrading = { since: date, fromCycleId: cycle.id, fromCycleType: cycle.type };
   }
-  else if (outcome === 'APPROVED' && cycle.type === 'PHOTO') {
+  else if (outcome === FEEDBACK_OUTCOMES.APPROVED && cycle.type === 'PHOTO') {
     // 拍照版批准 → 同样进入「等版师放码」
     s.awaitingGrading = { since: date, fromCycleId: cycle.id, fromCycleType: cycle.type };
   }
-  else if (outcome === 'REMAKE_PHOTO') { s.cycles.push({ id: uid('c'), type: 'PHOTO', openDate: date }); }
-  else if (outcome === 'REMAKE_SAMPLE') { s.cycles.push({ id: uid('c'), type: 'REVISE', openDate: date }); }
-  else if (outcome === 'REMAKE' && cycle.type === 'PROD') { s.cycles.push({ id: uid('c'), type: 'PROD', openDate: date }); }
+  else if (outcome === FEEDBACK_OUTCOMES.REMAKE_PHOTO) { s.cycles.push({ id: uid('c'), type: 'PHOTO', openDate: toIsoWithNowTime(date) }); }
+  else if (outcome === FEEDBACK_OUTCOMES.REMAKE_SAMPLE) { s.cycles.push({ id: uid('c'), type: 'REVISE', openDate: toIsoWithNowTime(date) }); }
+  else if (outcome === FEEDBACK_OUTCOMES.REMAKE && cycle.type === 'PROD') { s.cycles.push({ id: uid('c'), type: 'PROD', openDate: toIsoWithNowTime(date) }); }
 
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); closeUpdateModal(); render(); openDrawer(styleId);
 }
 
 // ─────────────────────────────────────────────────────────
@@ -20127,13 +20463,13 @@ function handleDefectPhotoUpload(event) {
   if (files.length === 0) return;
   files.forEach(file => {
     if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (!state.pendingDefectPhotos) state.pendingDefectPhotos = [];
-      state.pendingDefectPhotos.push(e.target.result);
-      renderDefectPhotoList();
-    };
-    reader.readAsDataURL(file);
+    compressImage(file)
+      .then(dataUrl => uploadPhotoToStorage(dataUrl, 'defect'))
+      .then(url => {
+        if (!state.pendingDefectPhotos) state.pendingDefectPhotos = [];
+        state.pendingDefectPhotos.push(url);
+        renderDefectPhotoList();
+      });
   });
   event.target.value = '';  // 允许重选同一张
 }
@@ -20177,6 +20513,34 @@ async function saveProdReceived() {
     poId = sel.value;
   } else if ((s.pos || []).length === 1) {
     poId = s.pos[0].id;
+  }
+
+  // 校验:本批 + 已收 不能超过 PO 总数量(多 PO 时按 poId 校验单 PO,无 poId 时按全款合计)
+  const prevBatches = s.prodReceived?.batches || [];
+  if (poId) {
+    const targetPo = (s.pos || []).find(p => p.id === poId);
+    const poQty = Number(targetPo?.quantity) || 0;
+    const poRecvBefore = prevBatches.filter(b => b.poId === poId)
+      .reduce((sum, b) => sum + (Number(b.received) || 0), 0);
+    if (poQty > 0 && (poRecvBefore + received) > poQty) {
+      const ok = await showDialog({
+        title: '超出 PO 数量',
+        message: `这个 PO 已到 ${poRecvBefore} 件 + 本批 ${received} 件 = ${poRecvBefore + received},超过 PO 总数 ${poQty}。确认继续吗?`,
+        confirmText: '继续登记', danger: true
+      });
+      if (!ok) return;
+    }
+  } else {
+    const totalQty = (s.pos || []).reduce((sum, p) => sum + (Number(p.quantity) || 0), 0);
+    const totalRecvBefore = prevBatches.reduce((sum, b) => sum + (Number(b.received) || 0), 0);
+    if (totalQty > 0 && (totalRecvBefore + received) > totalQty) {
+      const ok = await showDialog({
+        title: '超出总数量',
+        message: `已到 ${totalRecvBefore} 件 + 本批 ${received} 件 = ${totalRecvBefore + received},超过 PO 总数 ${totalQty}。确认继续吗?`,
+        confirmText: '继续登记', danger: true
+      });
+      if (!ok) return;
+    }
   }
 
   // 收集瑕疵数据
@@ -20294,7 +20658,7 @@ function renderProdReceiveHistory(s) {
             ${b.defectNote ? `<div class="prod-batch-note"><span class="lbl">瑕疵描述</span> ${escapeHtml(b.defectNote)}</div>` : ''}
             ${b.defectPhotos && b.defectPhotos.length > 0 ? `
               <div class="prod-batch-photos">
-                ${b.defectPhotos.map(src => `<img src="${escapeHtml(src)}" alt="瑕疵照片" onclick="openImageViewer('${escapeHtml(src).replace(/'/g, "\\'")}')">`).join('')}
+                ${b.defectPhotos.map(src => `<img src="${escapeHtml(src)}" alt="瑕疵照片" onclick="openImageViewer('${escapeJsAttr(src)}')">`).join('')}
               </div>
             ` : ''}
             ${b.note ? `<div class="prod-batch-note"><span class="lbl">备注</span> ${escapeHtml(b.note)}</div>` : ''}
@@ -20314,7 +20678,7 @@ function openFitReceivedModal(styleId) {
   document.getElementById('updateTitle').textContent = '登记 · 收到 fit comment';
   document.getElementById('updateBody').innerHTML = `
     <div class="form-field">
-      <label>收到 fit comment 日期</label>
+      <label for="u-date">收到 fit comment 日期</label>
       <input type="date" id="u-date" value="${todayStr()}">
     </div>
     <p style="font-size:12px;color:var(--ink-soft);">登记后会自动开新一轮，开版日期就是今天。</p>
@@ -20339,7 +20703,7 @@ function openFitReceivedModal(styleId) {
       </div>
     </div>
     <div class="form-field">
-      <label>fit comment 内容（选填，板师可见）</label>
+      <label for="u-fit-note">fit comment 内容（选填，板师可见）</label>
       <textarea id="u-fit-note" placeholder="" style="width:100%;min-height:60px;background:var(--bg);border:1px solid var(--line-strong);padding:9px 11px;font-family:var(--font-sans);font-size:13px;color:var(--ink);border-radius: 5px;outline:none;resize:vertical;"></textarea>
     </div>
   `;
@@ -20360,8 +20724,8 @@ function saveFitReceived() {
   const note = document.getElementById('u-fit-note').value.trim();
 
   s.awaitingFit = null;
-  const newCycle = { id: uid('c'), type: action, openDate: date };
-  if (note) newCycle.fitNote = note;  // 备用
+  const newCycle = { id: uid('c'), type: action, openDate: toIsoWithNowTime(date) };
+  // note 内容已经追加到 s.notes 备注里(见下方),无需在 cycle 上重复存(也没云端列)
   s.cycles.push(newCycle);
 
   // 也记到备注
@@ -20371,7 +20735,7 @@ function saveFitReceived() {
     s.notes = s.notes ? (s.notes + '\n' + newLine) : newLine;
   }
 
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); closeUpdateModal(); render(); openDrawer(styleId);
 }
 
 function openEditLogModal(styleId, cycleId, field) {
@@ -20380,10 +20744,10 @@ function openEditLogModal(styleId, cycleId, field) {
 
   if (field === 'awaitingFit') {
     state.modalContext = { type: 'editFit', styleId };
-    document.getElementById('updateTitle').textContent = '编辑 · 等 fit comment 起始日期';
+    document.getElementById('updateTitle').textContent = '编辑 · 已下PO·等回复 起始日期';
     document.getElementById('updateBody').innerHTML = `
       <div class="form-field">
-        <label>开始等 fit 的日期</label>
+        <label for="u-date">开始等 fit 的日期</label>
         <input type="date" id="u-date" value="${s.awaitingFit.since}">
       </div>
     `;
@@ -20400,7 +20764,7 @@ function openEditLogModal(styleId, cycleId, field) {
     document.getElementById('updateTitle').textContent = '编辑 · 等版师放码 起始日期';
     document.getElementById('updateBody').innerHTML = `
       <div class="form-field">
-        <label>客户 approve 日期（开始等放码）</label>
+        <label for="u-date">客户 approve 日期（开始等放码）</label>
         <input type="date" id="u-date" value="${s.awaitingGrading.since}">
       </div>
     `;
@@ -20458,7 +20822,7 @@ function openEditLogModal(styleId, cycleId, field) {
   if (field === 'feedbackDate') {
     extra = `
       <div class="form-field">
-        <label>评语 / 修改要点</label>
+        <label for="u-feedback-note">评语 / 修改要点</label>
         <textarea id="u-feedback-note" style="width:100%;min-height:60px;background:var(--bg);border:1px solid var(--line-strong);padding:9px 11px;font-family:var(--font-sans);font-size:13px;color:var(--ink);border-radius: 5px;outline:none;resize:vertical;">${escapeHtml(cycle.feedbackNote || '')}</textarea>
       </div>
     `;
@@ -20466,7 +20830,7 @@ function openEditLogModal(styleId, cycleId, field) {
 
   document.getElementById('updateBody').innerHTML = `
     <div class="form-field">
-      <label>日期</label>
+      <label for="u-date">日期</label>
       <input type="date" id="u-date" value="${cycle[field]}">
     </div>
     ${extra}
@@ -20507,7 +20871,10 @@ function saveEditLog() {
   const { styleId, cycleId, field } = state.modalContext;
   const s = state.styles.find(x => x.id === styleId);
   const cycle = s.cycles.find(c => c.id === cycleId);
-  cycle[field] = document.getElementById('u-date').value;
+  const newDate = document.getElementById('u-date').value;
+  // 编辑日期字段时,保留原 ISO 的时分(用户改的是日,没"重新发生"语义)
+  const TIMESTAMP_FIELDS = ['openDate', 'receivedDate', 'sentDate', 'feedbackDate', 'patternMakerDoneDate', 'fabricSourcedDate'];
+  cycle[field] = TIMESTAMP_FIELDS.includes(field) ? updateIsoDate(cycle[field], newDate) : newDate;
 
   // 保存照片（收到样板编辑）
   if (field === 'receivedDate') {
@@ -20601,7 +20968,7 @@ function openAddPOModal(styleId) {
   document.getElementById('updateBody').innerHTML = `
     <div class="form-row">
       <div class="form-field">
-        <label>PO 号</label>
+        <label for="u-po-num">PO 号</label>
         <input type="text" id="u-po-num" placeholder="如 BPO-2024-1188">
       </div>
       <div class="form-field">
@@ -20633,7 +21000,7 @@ function openAddPOModal(styleId) {
         <input type="number" id="u-po-qty" placeholder="件" min="0">
       </div>
       <div class="form-field">
-        <label>订单类型</label>
+        <label for="u-po-order-type">订单类型</label>
         <select id="u-po-order-type">
           <option value="">— 不指定 —</option>
           <option value="new">新单</option>
@@ -20643,7 +21010,7 @@ function openAddPOModal(styleId) {
     </div>
     <div class="form-row">
       <div class="form-field">
-        <label>运输方式</label>
+        <label for="u-po-ship-method">运输方式</label>
         <select id="u-po-ship-method">
           <option value="">— 不指定 —</option>
           <option value="air">✈️ 空运</option>
@@ -20651,7 +21018,7 @@ function openAddPOModal(styleId) {
         </select>
       </div>
       <div class="form-field">
-        <label>工厂</label>
+        <label for="u-po-factory">工厂</label>
         <select id="u-po-factory">
           <option value="">— 不指定 —</option>
           <option value="HUBEI">湖北</option>
@@ -20698,7 +21065,7 @@ function saveAddPO() {
   if (state.pendingPOImage) po.image = state.pendingPOImage;
   s.pos.push(po);
   state.pendingPOImage = null;
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); closeUpdateModal(); render(); openDrawer(styleId);
 }
 
 function openEditPOModal(styleId, poId) {
@@ -20711,7 +21078,7 @@ function openEditPOModal(styleId, poId) {
   document.getElementById('updateBody').innerHTML = `
     <div class="form-row">
       <div class="form-field">
-        <label>PO 号</label>
+        <label for="u-po-num">PO 号</label>
         <input type="text" id="u-po-num" value="${escapeHtml(po.poNumber)}">
       </div>
       <div class="form-field">
@@ -20743,7 +21110,7 @@ function openEditPOModal(styleId, poId) {
     </div>
     <div class="form-row">
       <div class="form-field">
-        <label>订单类型</label>
+        <label for="u-po-order-type">订单类型</label>
         <select id="u-po-order-type">
           <option value="" ${!po.orderType ? 'selected' : ''}>— 不指定 —</option>
           <option value="new" ${po.orderType === 'new' ? 'selected' : ''}>新单</option>
@@ -20751,7 +21118,7 @@ function openEditPOModal(styleId, poId) {
         </select>
       </div>
       <div class="form-field">
-        <label>运输方式</label>
+        <label for="u-po-ship-method">运输方式</label>
         <select id="u-po-ship-method">
           <option value="" ${!po.shipMethod ? 'selected' : ''}>— 不指定 —</option>
           <option value="air" ${po.shipMethod === 'air' ? 'selected' : ''}>✈️ 空运</option>
@@ -20760,7 +21127,7 @@ function openEditPOModal(styleId, poId) {
       </div>
     </div>
     <div class="form-field">
-      <label>工厂</label>
+      <label for="u-po-factory">工厂</label>
       <select id="u-po-factory">
         <option value="" ${!po.factory ? 'selected' : ''}>— 不指定 —</option>
         <option value="HUBEI" ${po.factory === 'HUBEI' ? 'selected' : ''}>湖北</option>
@@ -20815,7 +21182,7 @@ function saveEditPO() {
   if (state.pendingPOImage) po.image = state.pendingPOImage;
   else delete po.image;
   state.pendingPOImage = null;
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); closeUpdateModal(); render(); openDrawer(styleId);
 }
 
 // ─────────────────────────────────────────────────────────
@@ -20902,12 +21269,12 @@ function readPOImageFile(file) {
     showToast('请选择图片文件', 'warn');
     return;
   }
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    state.pendingPOImage = e.target.result;
-    refreshPOImageDropzone();
-  };
-  reader.readAsDataURL(file);
+  compressImage(file)
+    .then(dataUrl => uploadPhotoToStorage(dataUrl, 'po'))
+    .then(url => {
+      state.pendingPOImage = url;
+      refreshPOImageDropzone();
+    });
 }
 
 function removePOImage(event) {
@@ -20935,7 +21302,7 @@ async function deletePO() {
   if (!Array.isArray(s._deletedPos)) s._deletedPos = [];
   s._deletedPos.push({ ...po, _deletedAt: todayStr() });
   s.pos = s.pos.filter(p => p.id !== poId);
-  saveState(); closeUpdateModal(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); closeUpdateModal(); render(); openDrawer(styleId);
   showToast('PO 已移入「已删 PO」·可恢复', 'ok');
 }
 
@@ -20951,7 +21318,7 @@ async function restoreDeletedPO(styleId, poId) {
   delete restored._deletedAt;
   s.pos.push(restored);
   s._deletedPos = s._deletedPos.filter(p => p.id !== poId);
-  saveState(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); render(); openDrawer(styleId);
   showToast('PO 已恢复', 'ok');
 }
 
@@ -20961,7 +21328,7 @@ async function purgeDeletedPO(styleId, poId) {
   const s = state.styles.find(x => x.id === styleId);
   if (!s || !Array.isArray(s._deletedPos)) return;
   s._deletedPos = s._deletedPos.filter(p => p.id !== poId);
-  saveState(); render(); openDrawer(styleId);
+  saveOneStyle(styleId); render(); openDrawer(styleId);
   showToast('已永久删除', 'ok');
 }
 
@@ -20971,11 +21338,11 @@ async function undoArchive(id) {
   s.archived = false;
   delete s.archivedDate;
   const lastCycle = s.cycles[s.cycles.length - 1];
-  if (lastCycle.feedbackOutcome === 'ARCHIVED') {
+  if (lastCycle.feedbackOutcome === FEEDBACK_OUTCOMES.ARCHIVED) {
     delete lastCycle.feedbackDate;
     delete lastCycle.feedbackOutcome;
   }
-  saveState(); render(); openDrawer(id);
+  saveOneStyle(id); render(); openDrawer(id);
 }
 
 async function deleteStyle(id) {
@@ -21059,26 +21426,26 @@ function buildCyclesForStartStage(startStage, openDate, priorReviseCount) {
   const od = openDate || todayStr();
 
   if (startStage === 'DEV') {
-    return [{ id: uid('c'), type: 'DEV', openDate: od }];
+    return [{ id: uid('c'), type: 'DEV', openDate: toIsoWithNowTime(od) }];
   }
 
   if (startStage === 'REVISE') {
     const cycles = [];
     // 1 个虚拟开发版（在系统之前已完成）
-    cycles.push({ id: uid('c'), type: 'DEV', openDate: od, isVirtual: true });
+    cycles.push({ id: uid('c'), type: 'DEV', openDate: toIsoWithNowTime(od), isVirtual: true });
     // 之前已打过的 N 次重做板（也是虚拟的迁移记录）
     const n = Math.max(0, parseInt(priorReviseCount, 10) || 0);
     for (let i = 0; i < n; i++) {
-      cycles.push({ id: uid('c'), type: 'REVISE', openDate: od, isVirtual: true });
+      cycles.push({ id: uid('c'), type: 'REVISE', openDate: toIsoWithNowTime(od), isVirtual: true });
     }
     // 当前要打的这次重做板（真实记录）
-    cycles.push({ id: uid('c'), type: 'REVISE', openDate: od });
+    cycles.push({ id: uid('c'), type: 'REVISE', openDate: toIsoWithNowTime(od) });
     return cycles;
   }
 
   if (startStage === 'PROD') {
     // 只创建船版 cycle，不再自动加虚拟的开发版历史
-    return [{ id: uid('c'), type: 'PROD', openDate: od }];
+    return [{ id: uid('c'), type: 'PROD', openDate: toIsoWithNowTime(od) }];
   }
 
   if (startStage === 'PROD_SHIPPING') {
@@ -21087,7 +21454,7 @@ function buildCyclesForStartStage(startStage, openDate, priorReviseCount) {
   }
 
   // 兜底：默认开发版
-  return [{ id: uid('c'), type: 'DEV', openDate: od }];
+  return [{ id: uid('c'), type: 'DEV', openDate: toIsoWithNowTime(od) }];
 }
 function closeNewStyleModal() {
   document.getElementById('newStyleBackdrop').classList.remove('open');
@@ -21134,16 +21501,9 @@ function saveNewStyle() {
   // 没有反单时，按"起始阶段"下拉创建对应 cycles（适合历史款迁移）
   const startStage = document.getElementById('f-start-stage')?.value || 'DEV';
   let cycles;
-  if (hasRepeatPo && client === 'BOOHOO') {
-    // Boohoo 反单：创建已完成的 PROD cycle，直接进入等大货
-    cycles = [{
-      id: uid('c'), type: 'PROD', openDate,
-      receivedDate: openDate, sentDate: openDate,
-      feedbackDate: openDate, feedbackOutcome: 'APPROVED'
-    }];
-  } else if (hasRepeatPo) {
-    // PLT 或其他反单：需要船版流程
-    cycles = [{ id: uid('c'), type: 'PROD', openDate }];
+  if (hasRepeatPo) {
+    // 反单:按 REPEAT_ORDER_RULES 决定是否要寄船版
+    cycles = [buildRepeatCycle(client, openDate)];
   } else {
     const priorReviseCount = parseInt(document.getElementById('f-prior-revise-count')?.value || '0', 10) || 0;
     cycles = buildCyclesForStartStage(startStage, openDate, priorReviseCount);
@@ -21167,7 +21527,7 @@ function saveNewStyle() {
     cycles: cycles,
     pos: newPos || []
   });
-  saveState();
+  saveOneStyle(newId);
   closeNewStyleModal();
   // 如果有 callback（来自加 PO 流程），且用户还没一并添加 PO，才调用它
   if (state.afterNewStyleCallback && (!newPos || newPos.length === 0)) {
@@ -21177,10 +21537,9 @@ function saveNewStyle() {
   } else {
     state.afterNewStyleCallback = null;
     render();
-    if (hasRepeatPo && client === 'BOOHOO') {
-      showToast('Boohoo 反单已创建 · 直接进入等大货阶段', 'ok');
-    } else if (hasRepeatPo) {
-      showToast('PLT 反单已创建 · 进入船版阶段', 'ok');
+    if (hasRepeatPo) {
+      const rule = getRepeatRule(client);
+      showToast(`${rule.name} 反单已创建 · ${rule.stageHint}`, 'ok');
     } else if (startStage !== 'DEV') {
       const stageLabels = { 'REVISE': '修改循环', 'PROD': '船版', 'PROD_SHIPPING': '等大货' };
       showToast(`已创建款式 · 起始阶段：${stageLabels[startStage] || startStage}`, 'ok');
@@ -21386,7 +21745,9 @@ function setupImageDropzone(dropEl, fileInputEl, onImage) {
 }
 function handleImageFile(file, callback) {
   if (!file.type.startsWith('image/')) { showToast('只支持图片文件', 'error'); return; }
-  compressImage(file).then(dataUrl => callback(dataUrl));
+  compressImage(file)
+    .then(dataUrl => uploadPhotoToStorage(dataUrl, 'style'))
+    .then(url => callback(url));
 }
 function compressImage(file) {
   return new Promise((resolve) => {
@@ -21409,6 +21770,42 @@ function compressImage(file) {
     };
     reader.readAsDataURL(file);
   });
+}
+
+// === Supabase Storage 照片上传 ===
+// 把 base64 dataUrl 上传到 Storage bucket "cycle-photos",返回 public URL。
+// 数据库 cycle_photos.photo_data 列继续用,但**值改为 URL 而非 base64**。
+// 老 base64 数据继续工作(<img src="base64"> 也合法),只是新上传走 storage。
+// 需配套:Supabase Dashboard 创建 public bucket "cycle-photos"(见 MIGRATIONS.md Migration 4)
+const STORAGE_BUCKET = 'cycle-photos';
+function dataUrlToBlob(dataUrl) {
+  const [meta, b64] = dataUrl.split(',');
+  const mime = meta.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+async function uploadPhotoToStorage(dataUrl, prefix = 'photo') {
+  // 如果输入已经是 URL(不是 dataUrl),直接返回 — 防重复上传
+  if (!dataUrl || !dataUrl.startsWith('data:')) return dataUrl;
+  try {
+    const blob = dataUrlToBlob(dataUrl);
+    const ext = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+    const fileName = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { data, error } = await _supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(fileName, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false });
+    if (error) {
+      console.warn('[uploadPhotoToStorage] 上传失败,回退用 base64', error);
+      return dataUrl;  // 失败时退回 base64,保证功能不断
+    }
+    const { data: pub } = _supabase.storage.from(STORAGE_BUCKET).getPublicUrl(data.path);
+    return pub.publicUrl;
+  } catch (e) {
+    console.warn('[uploadPhotoToStorage] 异常,回退 base64', e);
+    return dataUrl;
+  }
 }
 
 /*
@@ -21489,7 +21886,7 @@ function renderDatePicker() {
     let cls = 'dp-cell';
     if (dateKey === today) cls += ' dp-cell-today';
     if (dateKey === selected) cls += ' dp-cell-selected';
-    cellsHtml += `<div class="${cls}" onclick="datePickerSelect('${dateKey}')">${d}</div>`;
+    cellsHtml += `<div role="button" tabindex="0" class="${cls}" onclick="datePickerSelect('${dateKey}')">${d}</div>`;
   }
   // 下月填充到 6 行
   const totalCells = startCol + daysInMonth;
@@ -21664,7 +22061,7 @@ function closeImageModal() { document.getElementById('imageBackdrop').classList.
 function saveImageChange() {
   if (!state.pendingEditImage) { showToast('请先选择图片', 'warn'); return; }
   const s = state.styles.find(x => x.id === state.modalContext.styleId);
-  if (s) { s.imageUrl = state.pendingEditImage; saveState(); render(); openDrawer(s.id); }
+  if (s) { s.imageUrl = state.pendingEditImage; saveOneStyle(s.id); render(); openDrawer(s.id); }
   closeImageModal();
 }
 function closeUpdateModal() {
@@ -21821,6 +22218,13 @@ document.querySelectorAll('.nav-item').forEach(b => {
   });
 });
 
+// 切换跟单 tab 内的 clientGroup 筛选 chip
+function switchFollowupClientGroupFilter(key) {
+  if (state.followupClientGroupFilter === key) return;
+  state.followupClientGroupFilter = key;
+  render();
+}
+
 function switchTodaySub(sub) {
   // 权限拦截：当前角色不允许看的子菜单
   if (typeof window.canSeeTodaySub === 'function' && !window.canSeeTodaySub(sub)) {
@@ -21948,6 +22352,13 @@ document.addEventListener('keydown', e => {
     return;
   }
 
+  // ? 显示快捷键帮助
+  if (e.key === '?') {
+    e.preventDefault();
+    showKeyboardHelp();
+    return;
+  }
+
   // 如果有任何模态弹窗打开，不处理列表导航
   const anyModalOpen = document.querySelector('.modal-backdrop.open') ||
                        document.querySelector('.drawer.open');
@@ -21992,6 +22403,44 @@ function updateKeyboardSelection() {
     selected.classList.add('keyboard-selected');
     selected.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+}
+
+// 快捷键帮助 overlay
+function showKeyboardHelp() {
+  const existing = document.getElementById('kbHelpOverlay');
+  if (existing) { existing.remove(); return; }
+  const overlay = document.createElement('div');
+  overlay.id = 'kbHelpOverlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', '键盘快捷键');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:var(--z-modal);';
+  overlay.innerHTML = `
+    <div style="background:var(--bg-elevated);padding:24px 28px;border-radius:14px;box-shadow:var(--shadow-xl);min-width:380px;max-width:480px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <h3 style="font-size:16px;font-weight:600;color:var(--ink);margin:0;">键盘快捷键</h3>
+        <button onclick="document.getElementById('kbHelpOverlay').remove()" style="background:none;border:none;font-size:20px;color:var(--ink-mute);cursor:pointer;padding:0;line-height:1;">×</button>
+      </div>
+      <table style="width:100%;font-size:13px;border-collapse:collapse;">
+        ${[
+          ['↑ / k', '上一个款'],
+          ['↓ / j', '下一个款'],
+          ['Enter', '打开当前款抽屉'],
+          ['n', '新建款'],
+          ['/', '聚焦搜索框'],
+          ['Esc', '关闭弹窗 / 抽屉 / 取消焦点'],
+          ['?', '显示 / 关闭本帮助'],
+        ].map(([k, v]) => `
+          <tr>
+            <td style="padding:8px 0;width:120px;color:var(--ink);"><kbd style="background:var(--bg-sunken);padding:2px 8px;border-radius:4px;font-family:var(--font-mono);font-size:12px;border:1px solid var(--line);">${k}</kbd></td>
+            <td style="padding:8px 0;color:var(--ink-soft);">${v}</td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+  `;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 setupImageDropzone(
   document.getElementById('newImageDrop'),
@@ -22146,7 +22595,7 @@ function renderFabricCompleteModal(styles) {
     <div class="batch-modal">
       ${batchModalSummary(styles)}
       <div class="batch-modal-field">
-        <label class="batch-modal-field-label">面料备齐日期</label>
+        <label for="batchFabricDate" class="batch-modal-field-label">面料备齐日期</label>
         <input type="date" id="batchFabricDate" value="${todayStr()}">
       </div>
     </div>
@@ -22158,7 +22607,7 @@ function renderPatternCompleteModal(styles) {
     <div class="batch-modal">
       ${batchModalSummary(styles)}
       <div class="batch-modal-field">
-        <label class="batch-modal-field-label">打版完成日期</label>
+        <label for="batchPatternDate" class="batch-modal-field-label">打版完成日期</label>
         <input type="date" id="batchPatternDate" value="${todayStr()}">
       </div>
     </div>
@@ -22170,7 +22619,7 @@ function renderWorkshopCompleteModal(styles) {
     <div class="batch-modal">
       ${batchModalSummary(styles)}
       <div class="batch-modal-field">
-        <label class="batch-modal-field-label">收样日期</label>
+        <label for="batchReceiveDate" class="batch-modal-field-label">收样日期</label>
         <input type="date" id="batchReceiveDate" value="${todayStr()}">
       </div>
     </div>
@@ -22182,7 +22631,7 @@ function renderShippingCompleteModal(styles) {
     <div class="batch-modal">
       ${batchModalSummary(styles)}
       <div class="batch-modal-field">
-        <label class="batch-modal-field-label">寄出日期</label>
+        <label for="batchSentDate" class="batch-modal-field-label">寄出日期</label>
         <input type="date" id="batchSentDate" value="${todayStr()}">
       </div>
       <div class="batch-modal-field">
@@ -22198,7 +22647,7 @@ function renderFeedbackCompleteModal(styles) {
     <div class="batch-modal">
       ${batchModalSummary(styles)}
       <div class="batch-modal-field">
-        <label class="batch-modal-field-label">反馈日期</label>
+        <label for="batchFeedbackDate" class="batch-modal-field-label">反馈日期</label>
         <input type="date" id="batchFeedbackDate" value="${todayStr()}">
       </div>
       <div class="batch-modal-field">
@@ -22223,7 +22672,7 @@ function renderFitCompleteModal(styles) {
     <div class="batch-modal">
       ${batchModalSummary(styles)}
       <div class="batch-modal-field">
-        <label class="batch-modal-field-label">fit 日期</label>
+        <label for="batchFitDate" class="batch-modal-field-label">fit 日期</label>
         <input type="date" id="batchFitDate" value="${todayStr()}">
       </div>
       <div class="batch-modal-field">
@@ -22239,7 +22688,7 @@ function renderProdCompleteModal(styles) {
     <div class="batch-modal">
       ${batchModalSummary(styles)}
       <div class="batch-modal-field">
-        <label class="batch-modal-field-label">到仓日期</label>
+        <label for="batchArriveDate" class="batch-modal-field-label">到仓日期</label>
         <input type="date" id="batchArriveDate" value="${todayStr()}">
       </div>
     </div>
@@ -22264,7 +22713,7 @@ async function confirmBatchComplete(actionType) {
           const cycle = s.cycles?.[s.cycles.length - 1];
           if (cycle && !cycle.receivedDate) {
             cycle.patternMakerDone = true;
-            cycle.patternMakerDoneDate = patternDate;
+            cycle.patternMakerDoneDate = toIsoWithNowTime(patternDate);
             await saveOneStyle(s.id);
             processedCount++;
           }
@@ -22279,7 +22728,7 @@ async function confirmBatchComplete(actionType) {
           if (!s) continue;
           const cycle = s.cycles?.[s.cycles.length - 1];
           if (cycle && !cycle.receivedDate && cycle.patternMakerDone) {
-            cycle.fabricSourcedDate = fabricDate;
+            cycle.fabricSourcedDate = toIsoWithNowTime(fabricDate);
             await saveOneStyle(s.id);
             processedCount++;
           }
@@ -22298,7 +22747,7 @@ async function confirmBatchComplete(actionType) {
           // 找到最后一个 cycle，且有 patternMakerDone 或 openDate，没有 receivedDate
           const cycle = s.cycles?.[s.cycles.length - 1];
           if (cycle && !cycle.receivedDate) {
-            cycle.receivedDate = receiveDate;
+            cycle.receivedDate = toIsoWithNowTime(receiveDate);
             // 清除版师打完标记
             if (cycle.patternMakerDone) {
               cycle.patternMakerDone = false;
@@ -22323,7 +22772,7 @@ async function confirmBatchComplete(actionType) {
           // 找到最后一个 cycle，有 receivedDate，没有 sentDate
           const cycle = s.cycles?.[s.cycles.length - 1];
           if (cycle && cycle.receivedDate && !cycle.sentDate) {
-            cycle.sentDate = sentDate;
+            cycle.sentDate = toIsoWithNowTime(sentDate);
             if (trackingNumber) cycle.shipTrackingNo = trackingNumber;
             await saveOneStyle(s.id);
             processedCount++;
@@ -22348,12 +22797,12 @@ async function confirmBatchComplete(actionType) {
           // 找到最后一个 cycle，有 sentDate，没有 feedbackDate，且不是 PROD
           const cycle = s.cycles?.[s.cycles.length - 1];
           if (cycle && cycle.sentDate && !cycle.feedbackDate && cycle.type !== 'PROD') {
-            cycle.feedbackDate = feedbackDate;
+            cycle.feedbackDate = toIsoWithNowTime(feedbackDate);
             if (feedbackType === 'approve') {
-              cycle.feedbackOutcome = 'APPROVED';
+              cycle.feedbackOutcome = FEEDBACK_OUTCOMES.APPROVED;
               cycle.feedbackNote = '批量通过';
             } else if (feedbackType === 'revise') {
-              cycle.feedbackOutcome = 'REVISE';
+              cycle.feedbackOutcome = FEEDBACK_OUTCOMES.REVISE;
               cycle.feedbackNote = '批量需修改';
             }
             await saveOneStyle(s.id);
@@ -22471,23 +22920,26 @@ function openBackupModal() {
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button onclick="exportBackup()" style="padding: 14px; background: #007AFF; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
-          📥 导出备份文件
+        <button onclick="exportBackup()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding: 14px; background: var(--apple-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v10m0 0l-4-4m4 4l4-4M4 15v2a1 1 0 001 1h10a1 1 0 001-1v-2"/></svg>
+          导出备份文件
         </button>
-        
-        <button onclick="document.getElementById('restoreFileInput').click()" style="padding: 14px; background: #34C759; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
-          📤 恢复备份文件
+
+        <button onclick="document.getElementById('restoreFileInput').click()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding: 14px; background: var(--ok); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17V7m0 0l-4 4m4-4l4 4M4 5V3a1 1 0 011-1h10a1 1 0 011 1v2"/></svg>
+          恢复备份文件
         </button>
         <input type="file" id="restoreFileInput" accept=".json" style="display: none;" onchange="importBackup(event)">
 
-        <div style="font-size: 11px; color: #FF3B30; padding: 10px; background: rgba(255,59,48,0.08); border-radius: 4px; margin-top: 4px; border-left: 3px solid #FF3B30;">
-          ⚠️ 恢复备份会<strong>覆盖当前所有数据</strong>，请确保在操作前导出当前数据作为备份！
+        <div style="display:flex;align-items:flex-start;gap:8px;font-size: 12px; color: var(--danger); padding: 10px 12px; background: var(--danger-bg); border-radius: 8px; margin-top: 4px;">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;margin-top:2px;"><circle cx="10" cy="10" r="8"/><path d="M10 6v5M10 14h.01"/></svg>
+          <span>恢复备份会<strong>覆盖当前所有数据</strong>,请确保在操作前导出当前数据作为备份。</span>
         </div>
       </div>
     </div>
   `;
-  
-  document.getElementById('updateTitle').textContent = '💾 数据备份';
+
+  document.getElementById('updateTitle').textContent = '数据备份';
   document.getElementById('updateBody').innerHTML = html;
   document.getElementById('updateFooter').innerHTML = `
     <button class="cancel" onclick="closeUpdateModal()">关闭</button>
@@ -22531,7 +22983,13 @@ async function importBackup(event) {
   const file = event.target.files[0];
   if (!file) return;
   
-  if (!confirm(`⚠️ 恢复备份会覆盖当前所有数据！\n\n确定要继续吗？\n\n建议先导出当前数据作为备份。`)) {
+  const ok = await showDialog({
+    title: '恢复备份',
+    message: '恢复备份会覆盖当前所有数据。建议先导出当前数据作为备份。\n\n确定要继续吗?',
+    confirmText: '继续恢复',
+    danger: true
+  });
+  if (!ok) {
     event.target.value = '';
     return;
   }
