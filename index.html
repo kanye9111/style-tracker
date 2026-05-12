@@ -24508,6 +24508,30 @@ function openBatchCompleteModal(actionType) {
       title = '批量标记大货到仓';
       content = renderProdCompleteModal(selectedStyles);
       break;
+    case 'followup': {
+      // 跟单 sub 合并了原 shipping/photo/feedback/fit 4 个,根据所选款 currentNode 自动派发
+      const groups = new Set();
+      selectedStyles.forEach(s => {
+        const st = getStyleStatus(s);
+        if (st.currentNode === 'AWAIT_SEND') groups.add('shipping');
+        else if (st.currentNode === 'AWAIT_FB') groups.add(st.cycleType === 'PHOTO' ? 'photo_fb' : 'feedback');
+        else if (st.currentNode === 'AWAIT_FIT' || st.stage === 'AWAIT_FIT' || s.awaitingFit) groups.add('fit');
+      });
+      if (groups.size === 0) {
+        showToast('选中的款不在可批量完成的节点上(待寄出 / 等反馈 / 等 fit)', 'warn');
+        return;
+      }
+      if (groups.size > 1) {
+        showToast('选中的款处于不同节点(寄出 / 反馈 / fit),请分别批量', 'warn');
+        return;
+      }
+      const [g] = groups;
+      // 递归到具体 action
+      if (g === 'shipping') return openBatchCompleteModal('shipping');
+      if (g === 'feedback' || g === 'photo_fb') return openBatchCompleteModal('feedback');
+      if (g === 'fit') return openBatchCompleteModal('fit');
+      return;
+    }
     default:
       return;
   }
