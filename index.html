@@ -12137,6 +12137,7 @@ main { animation: fadeInUp 0.25s ease-out; }
         <select id="f-start-stage" onchange="onStartStageChange()">
           <option value="DEV">开发版（开版后等收样）</option>
           <option value="REVISE">修改循环（已过开发，进入修改）</option>
+          <option value="PHOTO">拍照版（开版后等拍照发图审）</option>
           <option value="PROD">船版（已过开发，要寄船版）</option>
           <option value="PROD_SHIPPING">大货（已批船版，等大货到仓）</option>
         </select>
@@ -20539,6 +20540,24 @@ function addPOWithoutStyle() {
         </select>
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label for="ap-start-stage">起始类型</label>
+        <select id="ap-start-stage" onchange="onApStartStageChange()">
+          <option value="DEV">开发版（开版后等收样）</option>
+          <option value="REVISE">修改循环（已过开发，进入修改）</option>
+          <option value="PHOTO">拍照版（开版后等拍照发图审）</option>
+          <option value="PROD">船版（已过开发，要寄船版）</option>
+          <option value="PROD_SHIPPING">大货（已批船版，等大货到仓）</option>
+        </select>
+        <p style="font-size:11px;color:var(--ink-soft);margin-top:6px;">反单(订单类型 = repeat)会忽略此项,自动走反单流程。</p>
+      </div>
+      <div class="form-field" id="apPriorReviseField" style="display:none;">
+        <label for="ap-prior-revise">之前已打过几次重做板</label>
+        <input type="number" id="ap-prior-revise" min="0" max="20" value="0" style="width: 100px;">
+        <p style="font-size:11px;color:var(--ink-soft);margin-top:6px;">填 0 = 第一次打重做板(第 2 版)。</p>
+      </div>
+    </div>
     <div class="form-field">
       <label>描述</label>
       <input type="text" id="ap-desc" placeholder="客户给的款式描述">
@@ -20558,6 +20577,13 @@ function addPOWithoutStyle() {
     document.getElementById('ap-po-num')?.focus();
     bindPOImageDropzone();
   }, 100);
+}
+
+// "起始类型"切到"修改循环"时显示"之前已打过几次重做板"
+function onApStartStageChange() {
+  const v = document.getElementById('ap-start-stage')?.value;
+  const f = document.getElementById('apPriorReviseField');
+  if (f) f.style.display = (v === 'REVISE') ? '' : 'none';
 }
 
 function saveNewPOWithoutStyle() {
@@ -20584,6 +20610,14 @@ function saveNewPOWithoutStyle() {
     addedAt: todayStr()
   };
   if (state.pendingPOImage) newPO.image = state.pendingPOImage;
+  // 起始类型(同新建款 modal):反单忽略,直接走反单流程
+  const startStage = document.getElementById('ap-start-stage')?.value || 'DEV';
+  const priorReviseCount = parseInt(document.getElementById('ap-prior-revise')?.value || '0', 10) || 0;
+  const openDate = todayStr();
+  const newCycles = isRepeat
+    ? [buildRepeatCycle(client, openDate)]
+    : buildCyclesForStartStage(startStage, openDate, priorReviseCount);
+
   // 自动创建款式
   const newId = uid('st');
   const autoSku = poNum;  // 用 PO 号作为默认款号
@@ -20596,14 +20630,7 @@ function saveNewPOWithoutStyle() {
     owner: '',
     imageUrl: '',
     createdAt: new Date().toISOString(),
-    cycles: [(() => {
-      const openDate = todayStr();
-      if (isRepeat) {
-        // 反单:跳过版师 → 直接进采购备料
-        return buildRepeatCycle(client, openDate);
-      }
-      return { id: uid('c'), type: 'DEV', openDate };
-    })()],
+    cycles: newCycles,
     pos: [newPO]
   });
   saveOneStyle(newId);
@@ -20611,6 +20638,9 @@ function saveNewPOWithoutStyle() {
   render();
   if (isRepeat) {
     showToast(`反单 ${autoSku} · 通知采购备面料`, 'ok');
+  } else if (startStage !== 'DEV') {
+    const stageLabels = { 'REVISE': '修改循环', 'PHOTO': '拍照版', 'PROD': '船版', 'PROD_SHIPPING': '等大货' };
+    showToast(`已创建款式 ${autoSku} · 起始:${stageLabels[startStage] || startStage}`, 'ok');
   } else {
     showToast(`已创建款式 ${autoSku} 并添加 PO`, 'ok');
   }
@@ -22777,6 +22807,7 @@ function onStartStageChange() {
   const hints = {
     'DEV': '默认从开发版开始，开版后等收到样板。',
     'REVISE': '历史款迁移：默认开发版已通过，进入修改循环。',
+    'PHOTO': '专门做拍照版（挂网/挂图用），开版后等拍照发图审。',
     'PROD': '历史款迁移：开发已完成，准备寄船版给客户。',
     'PROD_SHIPPING': '历史款迁移：船版已批，直接进入等大货到仓阶段。'
   };
@@ -22816,6 +22847,12 @@ function buildCyclesForStartStage(startStage, openDate, priorReviseCount) {
     // 当前要打的这次重做板（真实记录）
     cycles.push({ id: uid('c'), type: 'REVISE', openDate: toIsoWithNowTime(od) });
     return cycles;
+  }
+
+  if (startStage === 'PHOTO') {
+    // 拍照版:直接创建一个 PHOTO cycle,不加虚拟开发版
+    // renderSampleTypeBadge 自动显示"拍照板"(因 lastCycle.type === 'PHOTO')
+    return [{ id: uid('c'), type: 'PHOTO', openDate: toIsoWithNowTime(od) }];
   }
 
   if (startStage === 'PROD') {
@@ -22919,7 +22956,7 @@ function saveNewStyle() {
     if (hasRepeatPo) {
       showToast(`反单已创建 · 通知采购备面料`, 'ok');
     } else if (startStage !== 'DEV') {
-      const stageLabels = { 'REVISE': '修改循环', 'PROD': '船版', 'PROD_SHIPPING': '等大货' };
+      const stageLabels = { 'REVISE': '修改循环', 'PHOTO': '拍照版', 'PROD': '船版', 'PROD_SHIPPING': '等大货' };
       showToast(`已创建款式 · 起始阶段：${stageLabels[startStage] || startStage}`, 'ok');
     } else if (newPos && newPos.length > 0) {
       showToast(`已创建款式并添加 ${newPos.length} 个 PO`, 'ok');
