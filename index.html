@@ -11792,6 +11792,224 @@ main { animation: fadeInUp 0.25s ease-out; }
 .po-image-remove:hover {
   background: var(--danger);
 }
+
+/* ============ 新款工艺信息 — 客户需求 / 面料 / 状态 chip ============ */
+/* 2026-05-12 加 — 配合 style.clientRequirement / fabricInfo / fabricStatus */
+:root {
+  --warn-bg: oklch(96% 0.04 70);
+  --warn-ink: oklch(40% 0.15 50);
+  --warn-border: oklch(82% 0.08 60);
+  --ok-bg: oklch(95% 0.04 145);
+  --ok-ink: oklch(38% 0.14 145);
+}
+.tex-clientreq {
+  font-family: ui-monospace, "SF Mono", Menlo, "PingFang SC", monospace !important;
+  font-size: 13px !important;
+  line-height: 1.62;
+}
+.fabric-block-edit {
+  border: 1px solid var(--border-strong, #d2d2d7);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  overflow: hidden;
+  transition: border-color 140ms ease-out, box-shadow 140ms ease-out;
+}
+.fabric-block-edit:focus-within {
+  border-color: var(--accent, #0071e3);
+  box-shadow: 0 0 0 3px var(--accent-soft, #e8f1fd);
+}
+.fabric-block-edit.is-pending {
+  background: linear-gradient(180deg, var(--warn-bg) 0%, var(--surface, #fff) 60%);
+}
+.fabric-block-edit .fabric-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 11px;
+  border-bottom: 1px solid var(--border, #e5e5ea);
+}
+.fabric-block-edit .fabric-head .lbl {
+  font-size: 12px; color: var(--ink-soft, #444);
+}
+.fabric-block-edit .fabric-head .lbl strong { font-weight: 600; color: var(--ink, #1d1d1f); }
+.fabric-block-edit textarea {
+  border: 0 !important; box-shadow: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 10px 11px !important;
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+}
+.fabric-block-edit textarea:focus { box-shadow: none !important; }
+/* segmented chip — 二档单选(面料状态) */
+.seg-chip {
+  display: inline-flex;
+  background: var(--bg-sunken, #f0f0f3);
+  border: 1px solid var(--border, #e5e5ea);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+.seg-chip-btn {
+  font: inherit;
+  font-size: 11.5px; font-weight: 500;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-mute, #6e6e73);
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 160ms ease-out, color 160ms ease-out;
+}
+.seg-chip-btn:hover { color: var(--ink, #1d1d1f); }
+.seg-chip-btn.active.is-pending {
+  background: var(--warn-ink);
+  color: #fff;
+}
+.seg-chip-btn.active.is-sourced {
+  background: var(--ok-ink);
+  color: #fff;
+}
+
+/* 抽屉里块组件 */
+.spec-block {
+  margin: 0 0 14px;
+  border: 1px solid var(--border, #e5e5ea);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  overflow: hidden;
+}
+.spec-block.is-pending {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+}
+.spec-block-h {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px;
+  background: var(--bg-sunken, #fafafa);
+  border-bottom: 1px solid var(--border, #e5e5ea);
+}
+.spec-block.is-pending .spec-block-h {
+  background: transparent;
+  border-bottom-color: var(--warn-border);
+}
+.spec-block-h .title { font-size: 12.5px; font-weight: 600; color: var(--ink, #1d1d1f); }
+.spec-block-h .who { font-size: 11px; color: var(--ink-faint, #86868b); }
+.spec-block-h .right-controls { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.spec-block-h .pen {
+  width: 24px; height: 24px;
+  display: grid; place-items: center;
+  color: var(--ink-faint, #86868b);
+  border-radius: 5px;
+  cursor: pointer;
+  background: transparent; border: 0;
+  font-size: 14px;
+}
+.spec-block-h .pen:hover { background: var(--bg-sunken, #f0f0f3); color: var(--ink, #1d1d1f); }
+.spec-block-body {
+  padding: 11px 13px;
+  font-size: 13px; color: var(--ink, #1d1d1f);
+  white-space: pre-wrap;
+  line-height: 1.62;
+}
+.spec-block-body.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, "PingFang SC", monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+.spec-block-body.is-empty {
+  color: var(--ink-faint, #86868b);
+}
+/* 防止全局 .empty::before 圆球波及 spec block(以前用 .empty 撞了全局) */
+.spec-block-body.is-empty::before { content: none !important; display: none !important; }
+.spec-block.is-editing .spec-block-body { padding: 0; }
+.spec-block.is-editing textarea {
+  width: 100%; border: 0; outline: none;
+  padding: 11px 13px;
+  font: inherit; font-family: inherit; font-size: 13px;
+  background: var(--accent-soft, #e8f1fd);
+  resize: vertical; min-height: 100px;
+  line-height: 1.62;
+}
+.spec-block.is-editing textarea.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, "PingFang SC", monospace;
+}
+.spec-block-edit-foot {
+  display: none;
+  justify-content: flex-end; gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg-sunken, #fafafa);
+  border-top: 1px solid var(--border, #e5e5ea);
+}
+.spec-block.is-editing .spec-block-edit-foot { display: flex; }
+.spec-btn-mini {
+  font-size: 12px; font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong, #d2d2d7);
+  background: var(--surface, #fff);
+  cursor: pointer;
+  color: var(--ink, #1d1d1f);
+}
+.spec-btn-mini.primary {
+  background: var(--accent, #0071e3);
+  color: #fff;
+  border-color: var(--accent, #0071e3);
+}
+
+/* 抽屉顶部 pill */
+.fabric-pill {
+  background: var(--warn-bg) !important;
+  color: var(--warn-ink) !important;
+  font-weight: 600 !important;
+}
+
+/* 卡片 ⚠ 缺面料 徽章 */
+.badge-fabric-warn {
+  background: var(--warn-ink);
+  color: #fff !important;
+  font-weight: 700 !important;
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-flex; align-items: center; gap: 3px;
+  letter-spacing: 0.02em;
+}
+.style-row.lacks-fabric,
+.today-card.lacks-fabric,
+.grid-card.lacks-fabric {
+  background: linear-gradient(180deg, var(--warn-bg) 0%, var(--surface, #fff) 24%);
+}
+
+/* 警示型 filter chip group(开发追踪顶部) — toggle, 视觉对比强化 */
+.filter-group.alert-group {
+  background: transparent;
+  border: 1px solid var(--warn-border);
+  border-radius: 999px;
+  padding: 2px;
+  display: inline-flex;
+}
+.filter-group.alert-group .filter-btn {
+  color: var(--warn-ink);
+  background: transparent;
+  font-weight: 500;
+  transition: background 0.14s ease-out, color 0.14s ease-out;
+}
+.filter-group.alert-group .filter-btn:hover {
+  background: var(--warn-bg);
+}
+/* 激活态:深琥珀填充 + 白字 + 阴影,跟未激活差异巨大 */
+.filter-group.alert-group .filter-btn.active {
+  background: var(--warn-ink) !important;
+  color: #fff !important;
+  font-weight: 600;
+  box-shadow: 0 1px 3px oklch(50% 0.18 50 / 0.35);
+}
+.filter-group.alert-group:has(.filter-btn.active) {
+  background: var(--warn-bg);
+  border-color: var(--warn-ink);
+}
+
 </style>
 </head>
 <body>
@@ -11971,6 +12189,10 @@ main { animation: fadeInUp 0.25s ease-out; }
     <button class="filter-btn" data-stype="remake">重做板</button>
     <button class="filter-btn" data-stype="photo">拍照板</button>
   </div>
+  <!-- 警示型 filter:缺面料(琥珀色) -->
+  <div class="filter-group alert-group" id="fabric-filters" title="只显示「面料未找好」的款">
+    <button class="filter-btn" data-fabric="pending">⚠ 缺面料</button>
+  </div>
   <label class="show-po-toggle" id="showPoToggle">
     <input type="checkbox" id="showPoCheckbox">
     <span>显示已下 PO 的款</span>
@@ -12076,9 +12298,29 @@ main { animation: fadeInUp 0.25s ease-out; }
       </div>
       <div class="form-row">
         <div class="form-field" style="flex:1;">
-          <label>描述</label>
-          <input type="text" id="f-desc" placeholder="面料、工艺、特殊要求">
+          <label>描述(选填)</label>
+          <input type="text" id="f-desc" placeholder="工艺、特殊要求(版师/采购详情见下方)">
         </div>
+      </div>
+      <!-- 客户需求(给版师看)-->
+      <div class="form-field">
+        <label>客户需求 · 给版师看(选填)</label>
+        <textarea id="f-client-requirement" class="tex-clientreq" rows="5" placeholder="可贴客户原文 + 中文翻译。版师从抽屉里读这一栏。&#10;&#10;例:&#10;OPEN NECKLINE TO BE CUT AS SKETCH AND INSPO  开口领线按草图与灵感图裁剪&#10;LENGTH 52CM SNP TO HEM AT LONGEST POINT  衣长肩颈点至下摆最长处 52cm"></textarea>
+      </div>
+      <!-- 面料信息 + 面料状态(默认未找好)-->
+      <div class="form-field">
+        <label>面料信息 · 给采购 / 版师看(选填)</label>
+        <div class="fabric-block-edit is-pending" id="fFabricBlock">
+          <div class="fabric-head">
+            <span class="lbl">状态 · <strong id="fFabricStatusLabel">未找好(默认)</strong></span>
+            <div class="seg-chip" role="radiogroup" aria-label="面料状态">
+              <button type="button" class="seg-chip-btn active is-pending" data-val="pending" onclick="setNewStyleFabricStatus('pending')">⚠ 未找好</button>
+              <button type="button" class="seg-chip-btn is-sourced" data-val="sourced" onclick="setNewStyleFabricStatus('sourced')">✓ 已找好</button>
+            </div>
+          </div>
+          <textarea id="f-fabric-info" rows="3" placeholder="未找好可以空白,后续在抽屉里补填。&#10;已找好示例:新合盛 / D426 档 / 8186(310#) / 100% 聚酯 / 185g/m² / 幅宽 150cm / 70# 杏色"></textarea>
+        </div>
+        <p style="font-size:11px;color:var(--ink-soft);margin-top:6px;">默认<b style="color:var(--warn-ink);">未找好</b>。采购可在「开发追踪 · ⚠ 缺面料」筛选里看到。</p>
       </div>
       <div class="form-row">
         <div class="form-field">
@@ -12524,6 +12766,13 @@ function dbStyleToLocal(s, cycles, pos) {
     factory: s.factory || '',
     devSize: s.dev_size || '',
     outsourced: !!s.outsourced,
+    // 新款工艺信息(2026-05-12 加):
+    //   clientRequirement = 客户需求原文 + 翻译,给版师看
+    //   fabricInfo = 面料供应商/编号/成分等自由文本,可空
+    //   fabricStatus = 'pending'(未找好,默认) | 'sourced'(已找好)
+    clientRequirement: s.client_requirement || '',
+    fabricInfo: s.fabric_info || '',
+    fabricStatus: s.fabric_status || 'pending',
     cycles: cycles || [],
     pos: pos || [],
   };
@@ -12596,6 +12845,10 @@ function localStyleToDB(s) {
     factory: s.factory || null,
     dev_size: s.devSize || null,
     outsourced: !!s.outsourced,
+    // 新款工艺信息(_smartUpsert 会自动 drop 数据库还没建的列,向后兼容)
+    client_requirement: s.clientRequirement || null,
+    fabric_info: s.fabricInfo || null,
+    fabric_status: s.fabricStatus || 'pending',
   };
 }
 function localCycleToDB(c, styleId) {
@@ -14489,6 +14742,7 @@ let state = {
   filterUrgency: 'all',
   filterClient: 'all',
   filterSampleType: 'all',  // 版型筛选：'all' | 'new' | 'remake' | 'photo'
+  filterFabric: 'all',      // 面料筛选:'all'(默认) | 'pending'(缺面料)
   search: '',
   view: 'list',
   selectedId: null,
@@ -14826,6 +15080,119 @@ function whoToFollowUp(node, cycleType) {
   if (node === 'GRADING') return '版师（放码）';
   return null;
 }
+
+// ─── 抽屉里渲染:客户需求 + 面料信息 2 个 spec block ───
+// 状态:'pending'(未找好,琥珀色) | 'sourced'(已找好,白底)
+function renderStyleSpecBlocks(s) {
+  if (!s || s.archived) return '';
+  const status = s.fabricStatus === 'sourced' ? 'sourced' : 'pending';
+  const cr = s.clientRequirement || '';
+  const fi = s.fabricInfo || '';
+  const canEdit = canEditStyleInfo();
+  // 客户需求块
+  const crBlock = `
+    <div class="spec-block" id="spec-cr-${s.id}">
+      <div class="spec-block-h">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink-mute);">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>
+        </svg>
+        <span class="title">客户需求</span>
+        <span class="who">· 版师看</span>
+        <div class="right-controls">
+          ${canEdit ? `<button class="pen" onclick="editSpecBlock('${s.id}','clientRequirement')" title="编辑">✎</button>` : ''}
+        </div>
+      </div>
+      <div class="spec-block-body${cr ? ' mono' : ' empty'}">${cr ? escapeHtml(cr) : (canEdit ? '<i>(空 · 点 ✎ 添加客户需求)</i>' : '<i>(未填)</i>')}</div>
+      <div class="spec-block-edit-foot">
+        <button class="spec-btn-mini" onclick="cancelSpecBlock('${s.id}','clientRequirement')">取消</button>
+        <button class="spec-btn-mini primary" onclick="saveSpecBlock('${s.id}','clientRequirement')">保存</button>
+      </div>
+    </div>
+  `;
+  // 面料块
+  const fiBlock = `
+    <div class="spec-block ${status === 'pending' ? 'is-pending' : ''}" id="spec-fi-${s.id}">
+      <div class="spec-block-h">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink-mute);">
+          <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+        </svg>
+        <span class="title">面料信息</span>
+        <span class="who">· 采购 / 版师看</span>
+        <div class="right-controls">
+          <div class="seg-chip" role="radiogroup" aria-label="面料状态">
+            <button class="seg-chip-btn is-pending ${status === 'pending' ? 'active' : ''}" onclick="toggleFabricStatus('${s.id}','pending')" ${canEdit ? '' : 'disabled'}>⚠ 未找好</button>
+            <button class="seg-chip-btn is-sourced ${status === 'sourced' ? 'active' : ''}" onclick="toggleFabricStatus('${s.id}','sourced')" ${canEdit ? '' : 'disabled'}>✓ 已找好</button>
+          </div>
+          ${canEdit ? `<button class="pen" onclick="editSpecBlock('${s.id}','fabricInfo')" title="编辑">✎</button>` : ''}
+        </div>
+      </div>
+      <div class="spec-block-body${fi ? ' mono' : ' empty'}">${fi ? escapeHtml(fi) : (canEdit ? '<i>(空 · 点 ✎ 添加面料信息)</i>' : '<i>(未填)</i>')}</div>
+      <div class="spec-block-edit-foot">
+        <button class="spec-btn-mini" onclick="cancelSpecBlock('${s.id}','fabricInfo')">取消</button>
+        <button class="spec-btn-mini primary" onclick="saveSpecBlock('${s.id}','fabricInfo')">保存</button>
+      </div>
+    </div>
+  `;
+  return crBlock + fiBlock;
+}
+
+// 切到编辑模式 — 把 .spec-block-body 替换成 textarea
+function editSpecBlock(styleId, field) {
+  if (!canEditStyleInfo()) { showToast('当前账号无权编辑', 'warn'); return; }
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const prefix = field === 'clientRequirement' ? 'cr' : 'fi';
+  const block = document.getElementById(`spec-${prefix}-${styleId}`);
+  if (!block) return;
+  const body = block.querySelector('.spec-block-body');
+  const current = s[field] || '';
+  const monoCls = field === 'clientRequirement' ? ' mono' : '';
+  body.outerHTML = `<div class="spec-block-body" style="padding:0;"><textarea class="${monoCls.trim()}" rows="5" id="spec-edit-${prefix}-${styleId}" placeholder="${field === 'fabricInfo' ? '面料供应商 / 编号 / 成分 / 克重 / 幅宽 / 颜色 等' : '客户需求原文 + 中文翻译'}">${escapeHtml(current)}</textarea></div>`;
+  block.classList.add('is-editing');
+  setTimeout(() => {
+    const ta = document.getElementById(`spec-edit-${prefix}-${styleId}`);
+    if (ta) ta.focus();
+  }, 30);
+}
+function cancelSpecBlock(styleId, field) {
+  openDrawer(styleId);  // 重渲染抽屉即可丢弃改动
+}
+function saveSpecBlock(styleId, field) {
+  if (!canEditStyleInfo()) { showToast('当前账号无权编辑', 'warn'); return; }
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  const prefix = field === 'clientRequirement' ? 'cr' : 'fi';
+  const ta = document.getElementById(`spec-edit-${prefix}-${styleId}`);
+  if (!ta) return;
+  s[field] = ta.value.trim();
+  saveOneStyle(styleId);
+  render();
+  openDrawer(styleId);
+  showToast(field === 'fabricInfo' ? '面料信息已保存' : '客户需求已保存', 'ok');
+}
+function toggleFabricStatus(styleId, val) {
+  if (!canEditStyleInfo()) { showToast('当前账号无权切换面料状态', 'warn'); return; }
+  const s = state.styles.find(x => x.id === styleId);
+  if (!s) return;
+  s.fabricStatus = (val === 'sourced') ? 'sourced' : 'pending';
+  saveOneStyle(styleId);
+  render();
+  openDrawer(styleId);
+  showToast(s.fabricStatus === 'sourced' ? '面料已标为「已找好」' : '面料已标为「未找好」', 'ok');
+}
+
+// =============================================================
+// 抽屉 4 区简化版 — 已还原(2026-05-12 整段移除,代码不再调用)
+// =============================================================
+/* eslint-disable */
+/*
+  REMOVED — placeholder block kept for git diff context.
+  Original helpers below were: toggleDrawerHeadMenu, _closeDrawerHeadMenuOnce,
+  switchImgLibTab, collectCyclePhotos, renderImageLibrary, uploadReferenceImage,
+  deleteReferenceImage, renderDrawerStickyHead, renderCraftZone.
+  Restored to original 14-block drawer render. See drawer.innerHTML in renderDrawer.
+*/
+
 
 function getStyleStatus(style) {
   if (style.archived) {
@@ -15447,14 +15814,15 @@ function getTodayList(activeStyles) {
 }
 
 // 卡片 badge 按职位差异化:决定当前角色是否显示某个 badge
-// keys: group / sampleType / grading / ship / size / factory / ef
+// keys: group / sampleType / grading / ship(运输方式 + 订单类型 pill) / size(船版码) / factory / ef
 const TODAY_CARD_BADGES_BY_ROLE = {
   admin:      'all',
   followup:   'all',
   pattern:    new Set(['size', 'sampleType']),
   fabric:     new Set(['factory', 'group', 'ef']),  // 兼版房,加 ef 显示货期
   workshop:   new Set(['factory', 'ef']),
-  prod:       new Set(['factory', 'ef']),
+  // 生产 / QC:不看 sampleType(版型类型跟生产无关);看订单类型(新单/反单)、客户群、运输、船版 size、工厂、EF 货期
+  prod:       new Set(['ship', 'group', 'size', 'factory', 'ef']),
   production: new Set(['size', 'sampleType', 'factory']),  // legacy
 };
 function cardBadgeAllowed(key) {
@@ -16277,6 +16645,10 @@ function renderArchiveTab() {
   if (state.filterClient !== 'all') {
     allArchived = allArchived.filter(s => s.client === state.filterClient);
   }
+  // 缺面料 filter
+  if (state.filterFabric === 'pending') {
+    allArchived = allArchived.filter(passesFabricFilter);
+  }
   if (state.search) {
     const q = state.search.toLowerCase();
     allArchived = allArchived.filter(s => {
@@ -16863,6 +17235,7 @@ function filterStyles() {
     if (state.filterUrgency === 'danger' && status.level !== 'danger') return false;
     if (state.filterClient !== 'all' && s.client !== state.filterClient) return false;
     if (state.filterSampleType !== 'all' && (s.sampleType || '') !== state.filterSampleType) return false;
+    if (!passesFabricFilter(s)) return false;
     if (state.filterDevDate) {
       const earliest = getEarliestOpenDate(s);
       if (earliest !== state.filterDevDate) return false;
@@ -16958,6 +17331,7 @@ function filterStylesForBoard() {
     if (status.stage === 'DONE') return false;
     if (!state.showPoInDev && hasPO(s)) return false;
     if (state.filterClient !== 'all' && s.client !== state.filterClient) return false;
+    if (!passesFabricFilter(s)) return false;
     if (state.search) {
       const q = state.search.toLowerCase();
       const matchesBasic = s.sku.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
@@ -17158,6 +17532,37 @@ function renderGrid(styles) {
   return html;
 }
 
+// 缺面料 filter 是否通过(state.filterFabric === 'pending' 时只看未找好的款)
+// 跟徽章逻辑一致:归档/完成/已进生产 都不算"缺面料"
+function passesFabricFilter(s) {
+  if (state.filterFabric !== 'pending') return true;
+  if (!s || s.archived) return false;
+  if ((s.fabricStatus || 'pending') !== 'pending') return false;
+  const st = getStyleStatus(s);
+  if (st && (st.stage === 'DONE' || st.stage === 'PROD' || st.stage === 'PROD_SHIPPING')) return false;
+  return true;
+}
+
+// 缺面料徽章 — 卡片首行末尾;归档/完成的款不显示
+// 当用户已经激活「⚠ 缺面料」filter 时,列表里所有款都是缺面料,徽章成冗余 → 隐藏
+function fabricWarnBadge(s) {
+  if (!s || s.archived) return '';
+  if ((s.fabricStatus || 'pending') !== 'pending') return '';
+  if (state.filterFabric === 'pending') return '';  // 用户已用 filter 过滤,徽章冗余
+  // DONE 状态(大货已到仓)的款不挂这个警示;已进生产阶段也不挂(面料早已定)
+  const st = getStyleStatus(s);
+  if (st && (st.stage === 'DONE' || st.stage === 'PROD' || st.stage === 'PROD_SHIPPING')) return '';
+  return `<span class="badge-fabric-warn">⚠ 缺面料</span>`;
+}
+function fabricWarnCardClass(s) {
+  if (!s || s.archived) return '';
+  if ((s.fabricStatus || 'pending') !== 'pending') return '';
+  if (state.filterFabric === 'pending') return '';  // filter 激活后,整张卡的琥珀色背景也冗余
+  const st = getStyleStatus(s);
+  if (st && (st.stage === 'DONE' || st.stage === 'PROD' || st.stage === 'PROD_SHIPPING')) return '';
+  return ' lacks-fabric';
+}
+
 function renderGridCard(s, idx) {
   const status = getStyleStatus(s);
   const urgentClass = status.level === 'danger' ? 'urgent-danger' : status.level === 'warn' ? 'urgent-warn' : '';
@@ -17194,7 +17599,7 @@ function renderGridCard(s, idx) {
   const specialNoteTitle = (s.specialNote ? ` title="${escapeHtml(s.specialNote)}"` : '');
 
   return `
-    <div role="button" tabindex="0" class="grid-card stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass} ${batchCls}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')"${specialNoteTitle}>
+    <div role="button" tabindex="0" class="grid-card stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass} ${batchCls}${fabricWarnCardClass(s)}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')"${specialNoteTitle}>
       <input type="checkbox" class="batch-checkbox grid-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">
       <div class="grid-card-img-wrap">
         ${thumb}
@@ -17207,6 +17612,7 @@ function renderGridCard(s, idx) {
           ${cardBadgeAllowed('group') ? renderClientGroupBadge(s) : ''}
           ${cardBadgeAllowed('factory') ? renderFactoryBadge(s) : ''}
           ${cardBadgeAllowed('ship') ? (() => { const ob = getOrderTypeBadge(s); return ob ? `<span class="order-type-pill ${ob.cls}">${escapeHtml(ob.label)}</span>` : ''; })() : ''}
+          ${fabricWarnBadge(s)}
         </div>
         <div class="grid-card-name">${s.name && s.name !== '(无款名)' ? renderStyleNameText(s) : '<span class="grid-card-name-empty">—</span>'}</div>
         <div class="grid-card-status-row">
@@ -17387,20 +17793,24 @@ function renderSingleStyleRow(s, idx) {
   const batchCls = state.batchSelected && state.batchSelected[s.id] ? 'batch-selected' : '';
   const orderBadge = getOrderTypeBadge(s);
   const urgentBadge = getStyleUrgentBadge(s);
-  const orderTypeHtml = orderBadge ? `<span class="order-type-pill ${orderBadge.cls}">${escapeHtml(orderBadge.label)}</span>` : '';
+  const orderTypeHtml = (orderBadge && cardBadgeAllowed('ship')) ? `<span class="order-type-pill ${orderBadge.cls}">${escapeHtml(orderBadge.label)}</span>` : '';
   const specialNoteHtml = renderSpecialNoteTag(s);
-  const sampleTypeBadgeHtml = renderSampleTypeBadge(s);
+  const sampleTypeBadgeHtml = cardBadgeAllowed('sampleType') ? renderSampleTypeBadge(s) : '';
+  const factoryBadgeHtml = cardBadgeAllowed('factory') ? renderFactoryBadge(s) : '';
+  const groupBadgeHtml = cardBadgeAllowed('group') ? renderClientGroupBadge(s) : '';
   return `
-    <div role="button" tabindex="0" class="style-row simplified stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass} ${batchCls}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
+    <div role="button" tabindex="0" class="style-row simplified stage-bg-${stageTagCls} ${urgentClass} ${recentClass} ${selectedClass} ${batchCls}${fabricWarnCardClass(s)}" data-idx="${idx}" data-style-id="${s.id}" onclick="handleRowClick(event, '${s.id}')">
       <input type="checkbox" class="batch-checkbox row-batch-checkbox" ${checked} onclick="toggleBatchSelection('${s.id}', this.checked); event.stopPropagation();" title="批量选择">
       ${thumb}
       <div class="sku">${escapeHtml(s.sku)}${orderTypeHtml}</div>
       <span class="client-badge client-${s.client.toLowerCase()}">${s.client}</span>
       <div>
-        <div class="style-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${renderStyleNameText(s)}${sampleTypeBadgeHtml}${renderFactoryBadge(s)}</div>
+        <div class="style-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${renderStyleNameText(s)}${sampleTypeBadgeHtml}${factoryBadgeHtml}${groupBadgeHtml}${fabricWarnBadge(s)}</div>
         <div class="style-subinfo" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           ${s.owner ? `<span>${escapeHtml(s.owner)}</span>` : ''}
           ${renderBuyerTag(s)}
+          ${cardBadgeAllowed('ship') && s.pos && s.pos.find(p => p.shipMethod) ? `<span>${s.pos.find(p => p.shipMethod).shipMethod === 'air' ? '✈️ 空运' : '🚢 海运'}</span>` : ''}
+          ${cardBadgeAllowed('size') && s.devSize ? `<span>船版 ${escapeHtml(s.devSize)} 码</span>` : ''}
         </div>
       </div>
       <div class="node-block">
@@ -17559,7 +17969,7 @@ function renderBoardCard(s) {
           <div class="board-card-sku">${escapeHtml(s.sku)}</div>
           <div class="board-card-name" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
             <span>${renderStyleNameText(s)}</span>
-            ${renderSampleTypeBadge(s)}
+            ${cardBadgeAllowed('sampleType') ? renderSampleTypeBadge(s) : ''}
           </div>
         </div>
       </div>
@@ -17598,6 +18008,7 @@ function renderProductionTab() {
   state.styles.forEach(s => {
     if (!hasPO(s) || s.archived) return;
     if (state.filterClient !== 'all' && s.client !== state.filterClient) return;
+    if (!passesFabricFilter(s)) return;
     if (state.search) {
       const q = state.search.toLowerCase();
       const matchesBasic = s.sku.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
@@ -17779,6 +18190,7 @@ function renderProductionGrid() {
   state.styles.forEach(s => {
     if (!hasPO(s) || s.archived) return;
     if (state.filterClient !== 'all' && s.client !== state.filterClient) return;
+    if (!passesFabricFilter(s)) return;
     if (state.search) {
       const q = state.search.toLowerCase();
       const matchesBasic = s.sku.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
@@ -17903,6 +18315,7 @@ function openProdDateFolder(date) {
   state.styles.forEach(s => {
     if (!hasPO(s) || s.archived) return;
     if (state.filterClient !== 'all' && s.client !== state.filterClient) return;
+    if (!passesFabricFilter(s)) return;
     if (state.search) {
       const q = state.search.toLowerCase();
       const matchesBasic = s.sku.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
@@ -18010,7 +18423,7 @@ function renderProdFolderCard(s, po) {
   const poSel = state.poBatchSelected && state.poBatchSelected[po.id] ? 'checked' : '';
   const poSelCls = state.poBatchSelected && state.poBatchSelected[po.id] ? 'po-selected' : '';
   
-  const sampleTypeBadgeHtml = renderSampleTypeBadge(s);
+  const sampleTypeBadgeHtml = cardBadgeAllowed('sampleType') ? renderSampleTypeBadge(s) : '';
 
   return `
     <div class="prod-folder-card ${poSelCls}" tabindex="0" data-po-id="${po.id}" data-style-id="${s.id}" onclick="handleFolderCardClick(event, '${s.id}', '${po.id}')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.click();}">
@@ -18056,6 +18469,7 @@ function renderProductionBoard() {
   state.styles.forEach(s => {
     if (!hasPO(s) || s.archived) return;
     if (state.filterClient !== 'all' && s.client !== state.filterClient) return;
+    if (!passesFabricFilter(s)) return;
     if (state.search) {
       const q = state.search.toLowerCase();
       const matchesBasic = s.sku.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
@@ -18542,7 +18956,7 @@ function renderProductionBoardCard(s, po) {
           <div class="prod-board-card-sku">${escapeHtml(s.sku)} · ${s.client}</div>
           <div class="prod-board-card-name" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
             <span>${renderStyleNameText(s)}</span>
-            ${renderSampleTypeBadge(s)}
+            ${cardBadgeAllowed('sampleType') ? renderSampleTypeBadge(s) : ''}
           </div>
         </div>
       </div>
@@ -18961,6 +19375,9 @@ function openDrawer(id) {
             const efText = days < 0 ? `已过 ${-days} 天` : `还剩 ${days} 天`;
             return `<span class="drawer-status-meta ${efCls}">EF ${escapeHtml(formatDateOnlyHuman(ef))} · ${efText}</span>`;
           })()}
+          ${(s.fabricStatus || 'pending') === 'pending' && !s.archived && status.stage !== 'DONE'
+            ? `<span class="drawer-status-meta" style="color:var(--warn-ink);background:var(--warn-bg);padding:2px 8px;border-radius:999px;font-weight:600;">⚠ 缺面料</span>`
+            : ''}
         </div>
         <div class="drawer-quick-actions">${actions}</div>
       </div>
@@ -18988,6 +19405,8 @@ function openDrawer(id) {
           ${snoozeHint}
         </div>
       </div>
+
+      ${renderStyleSpecBlocks(s)}
 
       ${!hasPO(s) && status.stage !== 'ARCHIVED' && status.stage !== 'DONE' ? `
         <div class="add-po-cta">
@@ -20586,6 +21005,20 @@ function onApStartStageChange() {
   if (f) f.style.display = (v === 'REVISE') ? '' : 'none';
 }
 
+// 编辑款式 modal 里切换面料状态 chip + 整块视觉
+function setEditInfoFabricStatus(val) {
+  const block = document.getElementById('eiFabricBlock');
+  const label = document.getElementById('eiFabricStatusLabel');
+  if (!block) return;
+  block.dataset.fabricStatus = val;
+  block.classList.toggle('is-pending', val === 'pending');
+  block.querySelectorAll('.seg-chip-btn').forEach(b => {
+    if (b.classList.contains('is-pending')) b.classList.toggle('active', val === 'pending');
+    if (b.classList.contains('is-sourced')) b.classList.toggle('active', val === 'sourced');
+  });
+  if (label) label.textContent = val === 'pending' ? '未找好' : '已找好';
+}
+
 function saveNewPOWithoutStyle() {
   if (!canEditPO()) { showToast('当前账号无权创建 PO', 'warn'); return; }
   const poNum = document.getElementById('ap-po-num').value.trim();
@@ -20924,6 +21357,23 @@ function openEditInfoModal(styleId) {
       <input type="text" id="ei-special-note" value="${escapeHtml(s.specialNote || '')}" placeholder="如：齐色船板10码 / 空运 / 提前两周给船板">
       <p style="font-size:10.5px;color:var(--ink-mute);margin-top:3px;">这条会以红色提醒贴显示在该款的所有列表卡片上</p>
     </div>
+    <div class="form-field">
+      <label>客户需求 · 给版师看</label>
+      <textarea id="ei-client-requirement" class="tex-clientreq" rows="5" placeholder="客户原文 + 翻译">${escapeHtml(s.clientRequirement || '')}</textarea>
+    </div>
+    <div class="form-field">
+      <label>面料信息 · 给采购 / 版师看</label>
+      <div class="fabric-block-edit ${(s.fabricStatus || 'pending') === 'pending' ? 'is-pending' : ''}" id="eiFabricBlock" data-fabric-status="${(s.fabricStatus || 'pending')}">
+        <div class="fabric-head">
+          <span class="lbl">状态 · <strong id="eiFabricStatusLabel">${(s.fabricStatus || 'pending') === 'pending' ? '未找好' : '已找好'}</strong></span>
+          <div class="seg-chip" role="radiogroup" aria-label="面料状态">
+            <button type="button" class="seg-chip-btn is-pending ${(s.fabricStatus || 'pending') === 'pending' ? 'active' : ''}" onclick="setEditInfoFabricStatus('pending')">⚠ 未找好</button>
+            <button type="button" class="seg-chip-btn is-sourced ${(s.fabricStatus || 'pending') === 'sourced' ? 'active' : ''}" onclick="setEditInfoFabricStatus('sourced')">✓ 已找好</button>
+          </div>
+        </div>
+        <textarea id="ei-fabric-info" rows="3" placeholder="新合盛 / D426 档 / 8186(310#) / 100% 聚酯 / 185g/m² / 幅宽 150cm / 70# 杏色">${escapeHtml(s.fabricInfo || '')}</textarea>
+      </div>
+    </div>
   `;
   document.getElementById('updateFooter').innerHTML = `
     <button class="cancel" onclick="closeUpdateModal()">取消</button>
@@ -20948,6 +21398,10 @@ function saveEditInfo() {
   const clientGroup = document.getElementById('ei-client-group')?.value || '';
   const buyerName = (document.getElementById('ei-buyer-name')?.value || '').trim();
   const factory = document.getElementById('ei-factory')?.value || '';
+  // 新款工艺信息
+  const clientRequirement = (document.getElementById('ei-client-requirement')?.value || '').trim();
+  const fabricInfo = (document.getElementById('ei-fabric-info')?.value || '').trim();
+  const fabricStatus = document.getElementById('eiFabricBlock')?.dataset?.fabricStatus || 'pending';
   if (!sku && !name) { showToast('款号和款名至少填一个', 'warn'); return; }
   s.sku = sku || '未命名';
   s.name = name || '(无款名)';
@@ -20959,6 +21413,9 @@ function saveEditInfo() {
   s.clientGroup = clientGroup || '';
   s.buyerName = buyerName || '';
   s.factory = factory || '';
+  s.clientRequirement = clientRequirement;
+  s.fabricInfo = fabricInfo;
+  s.fabricStatus = fabricStatus;
   // 同步更新最早 cycle 的 openDate(仅当用户**实际改了**日期才动)
   // 否则保留原 ISO timestamp 不变 — 编辑款式其他字段不该污染开版时间
   if (openDate && s.cycles && s.cycles.length > 0) {
@@ -22787,12 +23244,34 @@ function openNewStyleModal() {
   // 重置"之前打过几次重做板"
   const priorInput = document.getElementById('f-prior-revise-count');
   if (priorInput) priorInput.value = '0';
+  // 重置客户需求 + 面料 + 状态(默认未找好)
+  const crEl = document.getElementById('f-client-requirement');
+  if (crEl) crEl.value = '';
+  const fiEl = document.getElementById('f-fabric-info');
+  if (fiEl) fiEl.value = '';
+  setNewStyleFabricStatus('pending');
   state.pendingImageData = null;
   clearNewImage();
   // 重置 PO 折叠区
   resetNewStylePoSection();
   document.getElementById('newStyleBackdrop').classList.add('open');
   setTimeout(() => document.getElementById('f-sku').focus(), 100);
+}
+
+// 切换新建款 modal 里的面料状态 chip + 整块视觉
+function setNewStyleFabricStatus(val) {
+  const block = document.getElementById('fFabricBlock');
+  const label = document.getElementById('fFabricStatusLabel');
+  if (!block) return;
+  block.dataset.fabricStatus = val;
+  block.classList.toggle('is-pending', val === 'pending');
+  block.classList.toggle('is-sourced', val === 'sourced');
+  block.querySelectorAll('.seg-chip-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === val);
+  });
+  if (label) {
+    label.textContent = val === 'pending' ? '未找好(默认)' : '已找好';
+  }
 }
 
 function onStartStageChange() {
@@ -22886,6 +23365,10 @@ function saveNewStyle() {
   const buyerName = (document.getElementById('f-buyer-name')?.value || '').trim();
   const outsourced = !!document.getElementById('f-outsourced')?.checked;
   const devSize = document.getElementById('f-dev-size')?.value || '';
+  // 新款工艺信息
+  const clientRequirement = (document.getElementById('f-client-requirement')?.value || '').trim();
+  const fabricInfo = (document.getElementById('f-fabric-info')?.value || '').trim();
+  const fabricStatus = document.getElementById('fFabricBlock')?.dataset?.fabricStatus || 'pending';
   if (!sku && !name) {
     showToast('款号和款名至少填一个', 'warn');
     return;
@@ -22939,6 +23422,9 @@ function saveNewStyle() {
     buyerName: buyerName || '',
     outsourced: outsourced,
     devSize: devSize || '',
+    clientRequirement,
+    fabricInfo,
+    fabricStatus,
     createdAt: new Date().toISOString(),
     cycles: cycles,
     pos: newPos || []
@@ -23543,6 +24029,15 @@ document.querySelectorAll('#sample-type-filters .filter-btn').forEach(b => {
   b.addEventListener('click', () => {
     document.querySelectorAll('#sample-type-filters .filter-btn').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); state.filterSampleType = b.dataset.stype; render();
+  });
+});
+// 缺面料 filter — 单按钮 toggle
+document.querySelectorAll('#fabric-filters .filter-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    const willActivate = !b.classList.contains('active');
+    b.classList.toggle('active', willActivate);
+    state.filterFabric = willActivate ? b.dataset.fabric : 'all';
+    render();
   });
 });
 document.querySelectorAll('.view-toggle button').forEach(b => {
